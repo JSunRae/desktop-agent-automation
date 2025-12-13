@@ -1,0 +1,8 @@
+Listing all top-level windows:
+
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
+
+VS Code candidate windows found:
+
+Look for your VS Code window in the list above.

@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "desktop-agent-automation"
+version = "0.1.0"
+description = "Desktop Agent Automation tooling and launchers"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Desktop Agent Automation" }]
+dependencies = [
+    "pyautogui",
+    "keyboard",
+    "openai",
+    "pillow",
+    "screeninfo",
+    "uiautomation",
+    "python-dotenv",
+    "pyvda",
+    "jsonschema",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "black>=24",
+    "pylint>=3",
+]
+
+[project.scripts]
+master = "automation.cli.master:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["automation*"]

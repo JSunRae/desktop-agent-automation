@@ -1,0 +1,2 @@
+[console_scripts]
+master = automation.cli.master:main

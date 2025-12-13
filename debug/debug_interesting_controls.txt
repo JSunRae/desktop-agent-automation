@@ -1,0 +1,517 @@
+
+================================================================================
+Window: Escalation and validation process for archive restoration - 
+================================================================================
+
+                            [Group] 'Explorer (Ctrl+Shift+E)'
+                              Rect: (42,66)-(90,114)
+                              Reason: group with name
+
+                            [Group] 'Search (Ctrl+Shift+F)'
+                              Rect: (42,114)-(90,162)
+                              Reason: group with name
+
+                            [Group] 'Source Control (Ctrl+Shift+G)'
+                              Rect: (42,162)-(90,210)
+                              Reason: group with name
+
+                            [Group] 'Run and Debug (Ctrl+Shift+D)'
+                              Rect: (42,210)-(90,258)
+                              Reason: group with name
+
+                            [Group] 'Extensions (Ctrl+Shift+X) - 5 require update, 5 require restart'
+                              Rect: (42,258)-(90,306)
+                              Reason: group with name
+
+                            [Group] 'Extensions (Ctrl+Shift+X) - 5 require update, 5 require restart'
+                              Rect: (42,258)-(90,306)
+                              Reason: group with name
+
+                            [Group] 'Remote Explorer'
+                              Rect: (42,306)-(90,354)
+                              Reason: group with name
+
+                            [Group] 'Agent Sessions'
+                              Rect: (42,354)-(90,402)
+                              Reason: group with name
+
+                            [Group] 'Containers'
+                              Rect: (42,402)-(90,450)
+                              Reason: group with name
+
+                            [Group] 'Makefile'
+                              Rect: (42,450)-(90,498)
+                              Reason: group with name
+
+                            [Group] 'GitHub Actions'
+                              Rect: (42,498)-(90,546)
+                              Reason: group with name
+
+                            [Group] 'Codex'
+                              Rect: (42,546)-(90,594)
+                              Reason: group with name
+
+                            [Group] 'Accounts - Sign in to Sync Settings'
+                              Rect: (42,1222)-(90,1270)
+                              Reason: group with name
+
+                            [Group] 'Accounts - Sign in to Sync Settings'
+                              Rect: (42,1222)-(90,1270)
+                              Reason: group with name
+
+                            [Group] 'Manage'
+                              Rect: (42,1270)-(90,1318)
+                              Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.build'
+                                        Rect: (124,123)-(279,145)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.github'
+                                        Rect: (124,145)-(279,167)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.github\workflows'
+                                        Rect: (132,167)-(279,189)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.github\copilot-instructions.md'
+                                        Rect: (110,189)-(279,211)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.vscode'
+                                        Rect: (124,211)-(279,233)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\assets'
+                                        Rect: (124,233)-(279,255)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\config'
+                                        Rect: (124,255)-(279,277)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\data'
+                                        Rect: (124,277)-(279,299)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs'
+                                        Rect: (124,299)-(279,321)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\archive'
+                                        Rect: (132,321)-(279,343)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\sample-tests'
+                                        Rect: (132,343)-(279,365)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\Checklist.md'
+                                        Rect: (110,365)-(279,387)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\CONSOLIDATED_ACTION_PLAN.md'
+                                        Rect: (110,387)-(279,409)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\EXPO_DEVELOPMENT_GUIDE.md'
+                                        Rect: (110,409)-(279,431)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\IMPORT_STATUS.md'
+                                        Rect: (110,431)-(279,453)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\ios-development-workflow.md'
+                                        Rect: (110,453)-(279,475)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\ML_MASTER_LAUNCHER_STATUS.md'
+                                        Rect: (110,475)-(279,497)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\programming-engine.md'
+                                        Rect: (110,497)-(279,519)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\SETUP.md'
+                                        Rect: (110,519)-(279,541)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\docs\testing-strategy.md'
+                                        Rect: (110,541)-(279,563)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\scripts'
+                                        Rect: (124,563)-(279,585)
+                                        Reason: group with name
+
+                                        [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src\services'
+                                          Rect: (124,585)-(279,607)
+                                          Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src\services\VolumeCalculator.ts'
+                                        Rect: (110,607)-(279,629)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\watchOS'
+                                        Rect: (124,629)-(279,651)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.editorconfig'
+                                        Rect: (102,651)-(279,673)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.eslintrc.js'
+                                        Rect: (102,673)-(279,695)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.gitignore'
+                                        Rect: (102,695)-(279,717)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.nvmrc'
+                                        Rect: (102,717)-(279,739)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.swiftformat'
+                                        Rect: (102,739)-(279,761)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\.swiftlint.yml'
+                                        Rect: (102,761)-(279,783)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\AGENTS.md'
+                                        Rect: (102,783)-(279,805)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\app.json'
+                                        Rect: (102,805)-(279,827)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\App.tsx'
+                                        Rect: (102,827)-(279,849)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\babel.config.js'
+                                        Rect: (102,849)-(279,871)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\CHANGELOG_AUDIT.md'
+                                        Rect: (102,871)-(279,893)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\CHANGELOG.md'
+                                        Rect: (102,893)-(279,915)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\CONTRIBUTING.md'
+                                        Rect: (102,915)-(279,937)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\eslint.config.js'
+                                        Rect: (102,937)-(279,959)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\index.js'
+                                        Rect: (102,959)-(279,981)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\jest.config.js'
+                                        Rect: (102,981)-(279,1003)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\LICENSE'
+                                        Rect: (102,1003)-(279,1025)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\MIGRATION_IMPLEMENTATION_COMPLETE.md'
+                                        Rect: (102,1025)-(279,1047)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\npx'
+                                        Rect: (102,1047)-(279,1069)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\package-lock.json'
+                                        Rect: (102,1069)-(279,1091)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\package.json'
+                                        Rect: (102,1091)-(279,1113)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\Package.resolved'
+                                        Rect: (102,1113)-(279,1135)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\Package.swift'
+                                        Rect: (102,1135)-(279,1157)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\README.md'
+                                        Rect: (102,1157)-(279,1179)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\TASK_5_STATUS.md'
+                                        Rect: (102,1179)-(279,1201)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\test_migration_system.sh'
+                                        Rect: (102,1201)-(279,1223)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\tsconfig.json'
+                                        Rect: (102,1223)-(279,1245)
+                                        Reason: group with name
+
+                                      [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\validation_report.json'
+                                        Rect: (102,1245)-(279,1267)
+                                        Reason: group with name
+
+                                              [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src\__tests__\VolumeCalculator.test.ts'
+                                                Rect: (290,66)-(450,101)
+                                                Reason: group with name
+
+                                              [Group] 'VolumeCalculator.ts'
+                                                Rect: (488,66)-(624,101)
+                                                Reason: group with name
+
+                                              [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\CHANGELOG.md'
+                                                Rect: (662,66)-(782,101)
+                                                Reason: group with name
+
+                                              [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\TASK_5_STATUS.md'
+                                                Rect: (820,66)-(954,101)
+                                                Reason: group with name
+
+                                              [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\validation_report.json'
+                                                Rect: (992,66)-(1138,101)
+                                                Reason: group with name
+
+                                              [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src\types\Workout.ts'
+                                                Rect: (0,0)-(0,0)
+                                                Reason: group with name
+
+                                            [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src'
+                                              Rect: (296,101)-(313,123)
+                                              Reason: group with name
+
+                                            [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src\services'
+                                              Rect: (328,101)-(373,123)
+                                              Reason: group with name
+
+                                            [Group] 'C:\Users\Pilot\Documents\Vs Code Projects\Hypertrophy App\src\services\VolumeCalculator.ts'
+                                              Rect: (388,101)-(525,123)
+                                              Reason: group with name
+
+                                      [Group] 'VolumeCalculator.ts, preview, Editor Group 1'
+                                        Rect: (280,123)-(1235,887)
+                                        Reason: group with name
+
+                                  [Group] 'Problems (Ctrl+Shift+M) - Total 1 Problems'
+                                    Rect: (298,889)-(356,921)
+                                    Reason: group with name
+
+                                  [Group] 'Problems (Ctrl+Shift+M) - Total 1 Problems'
+                                    Rect: (357,897)-(374,913)
+                                    Reason: group with name
+
+                                  [Group] 'Output (Ctrl+Shift+U)'
+                                    Rect: (393,889)-(439,921)
+                                    Reason: group with name
+
+                                  [Group] 'Debug Console (Ctrl+Shift+Y)'
+                                    Rect: (458,889)-(549,921)
+                                    Reason: group with name
+
+                                  [Group] 'Terminal (Ctrl+ö)'
+                                    Rect: (568,889)-(624,921)
+                                    Reason: group with name
+
+                                  [Group] 'Ports'
+                                    Rect: (643,889)-(680,921)
+                                    Reason: group with name
+
+                                                    [Group] '$(warning)'
+                                                      Rect: (1190,922)-(1235,944)
+                                                      Reason: group with name
+
+                                                    [Group] '$(terminal-powershell)'
+                                                      Rect: (1190,944)-(1235,966)
+                                                      Reason: group with name
+
+                                                    [Group] '$(chat-sparkle)'
+                                                      Rect: (1190,966)-(1235,988)
+                                                      Reason: group with name
+
+                                                    [Group] '$(chat-sparkle)'
+                                                      Rect: (1190,988)-(1235,1010)
+                                                      Reason: group with name
+
+                                                    [Group] '$(chat-sparkle)'
+                                                      Rect: (1190,1010)-(1235,1032)
+                                                      Reason: group with name
+
+                                                    [Group] '$(chat-sparkle)'
+                                                      Rect: (1190,1032)-(1235,1054)
+                                                      Reason: group with name
+
+                                                    [Group] '$(chat-sparkle)'
+                                                      Rect: (1190,1054)-(1235,1076)
+                                                      Reason: group with name
+
+                          [Group] 'Chat (Ctrl+Alt+I)'
+                            Rect: (1254,68)-(1285,99)
+                            Reason: group with name
+
+                                        [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                          Rect: (1288,1218)-(1403,1236)
+                                          Reason: group with name
+
+                  [Group] 'remote'
+                    AutomationId: status.host
+                    Rect: (42,1318)-(74,1340)
+                    Reason: group with name
+
+                  [Group] 'Errors: 1'
+                    AutomationId: status.problems
+                    Rect: (74,1318)-(145,1340)
+                    Reason: group with name
+
+                  [Group] 'play React Native Packager, Start Packager'
+                    AutomationId: msjsdiag.vscode-react-native.togglePackagerItem
+                    Rect: (144,1318)-(298,1340)
+                    Reason: group with name
+
+                  [Group] 'sync, Restart Packager'
+                    AutomationId: msjsdiag.vscode-react-native.restartPackagerItem
+                    Rect: (297,1318)-(330,1340)
+                    Reason: group with name
+
+                  [Group] 'Notifications'
+                    AutomationId: status.notifications
+                    Rect: (1745,1318)-(1777,1340)
+                    Reason: group with name
+
+                  [Group] 'check Prettier'
+                    AutomationId: esbenp.prettier-vscode.prettier.status
+                    Rect: (1671,1318)-(1745,1340)
+                    Reason: group with name
+
+                  [Group] 'Copilot status'
+                    AutomationId: chat.statusBarEntry
+                    Rect: (1639,1318)-(1672,1340)
+                    Reason: group with name
+
+                  [Group] 'TypeScript'
+                    AutomationId: status.editor.mode
+                    Rect: (1573,1318)-(1640,1340)
+                    Reason: group with name
+
+                  [Group] 'Editor Language Status: Copilot Completions, next: Prettier, next: 5.9.3, TypeScript version'
+                    AutomationId: status.languageStatus
+                    Rect: (1546,1318)-(1574,1340)
+                    Reason: group with name
+
+                  [Group] 'LF'
+                    AutomationId: status.editor.eol
+                    Rect: (1518,1318)-(1547,1340)
+                    Reason: group with name
+
+                  [Group] 'UTF-8'
+                    AutomationId: status.editor.encoding
+                    Rect: (1470,1318)-(1519,1340)
+                    Reason: group with name
+
+                  [Group] 'Spaces: 2'
+                    AutomationId: status.editor.indentation
+                    Rect: (1406,1318)-(1471,1340)
+                    Reason: group with name
+
+                  [Group] 'Ln 388, Col 1'
+                    AutomationId: status.editor.selection
+                    Rect: (1322,1318)-(1407,1340)
+                    Reason: group with name
+
+
+================================================================================
+Window: Escalation and validation process for archive restoration - 
+================================================================================
+
+                                          [Text] 'allows updating exercis'
+                                            Rect: (0,0)-(0,0)
+                                            Reason: action keyword
+
+                                          [Text] 'allows updating exercis'
+                                            Rect: (0,0)-(0,0)
+                                            Reason: action keyword
+
+                                          [Text] 'allows updating exercis'
+                                            Rect: (0,0)-(0,0)
+                                            Reason: action keyword
+
+                                          [Text] 'allows updating exercis'
+                                            Rect: (0,0)-(0,0)
+                                            Reason: action keyword
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (-895,1212)-(-780,1230)
+                                Reason: group with name
+
+
+================================================================================
+Window: Chat 3 - Hypertrophy App - Visual Studio Code
+================================================================================
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (-748,448)-(-633,466)
+                                Reason: group with name
+
+
+================================================================================
+Window: Chat 4 - Hypertrophy App - Visual Studio Code
+================================================================================
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (3052,1081)-(3167,1099)
+                                Reason: group with name
+
+
+================================================================================
+Window: Chat 5 - Hypertrophy App - Visual Studio Code
+================================================================================
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (2643,478)-(2758,496)
+                                Reason: group with name
+
+
+================================================================================
+Window: Repository health summary and next actions - Hypertrophy App
+================================================================================
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (1856,566)-(1971,584)
+                                Reason: group with name
+
+
+================================================================================
+Window: Task 5: Documentation Consolid… - Hypertrophy App - Visual S
+================================================================================
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (1885,1291)-(2000,1309)
+                                Reason: group with name
+
+
+================================================================================
+Window: TASK: Resolve all ESLint warni… - Hypertrophy App - Visual S
+================================================================================
+
+                              [Group] 'Enable current file context src\services\VolumeCalculator.ts'
+                                Rect: (2658,1551)-(2773,1569)
+                                Reason: group with name
+

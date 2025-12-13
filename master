@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+# Thin launcher so `master` resolves the packaged CLI without sourcing anything.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+_resolve_python_from_dir() {
+  local base="$1"
+  shift || true
+  local candidate
+  for candidate in \
+    "${base}/bin/python" \
+    "${base}/bin/python3" \
+    "${base}/Scripts/python" \
+    "${base}/Scripts/python.exe" \
+    "${base}/Scripts/python3"; do
+    if [[ -x "${candidate}" ]]; then
+      printf '%s' "${candidate}"
+      return 0
+    fi
+  done
+  return 1
+}
+
+PY_BIN=""
+
+if [[ -n "${VIRTUAL_ENV:-}" ]]; then
+  case "${VIRTUAL_ENV}" in
+    "${SCRIPT_DIR}/.venv_old"|"${SCRIPT_DIR}/.venv_old"/*)
+      :
+      ;;
+    *)
+      if PY_CANDIDATE=$(_resolve_python_from_dir "${VIRTUAL_ENV}" 2>/dev/null); then
+        PY_BIN="${PY_CANDIDATE}"
+      fi
+      ;;
+  esac
+fi
+
+if [[ -z "${PY_BIN}" ]]; then
+  for hint in "${MASTER_VENV:-}" "${TF1_VENV:-}"; do
+    [[ -z "${hint}" ]] && continue
+    if PY_CANDIDATE=$(_resolve_python_from_dir "${hint}" 2>/dev/null); then
+      PY_BIN="${PY_CANDIDATE}"
+      break
+    fi
+  done
+fi
+
+if [[ -z "${PY_BIN}" ]]; then
+  for candidate in \
+    "${SCRIPT_DIR}/.venv/bin/python" \
+    "${SCRIPT_DIR}/.venv/bin/python3" \
+    "${SCRIPT_DIR}/.venv/Scripts/python" \
+    "${SCRIPT_DIR}/.venv/Scripts/python.exe" \
+    "${SCRIPT_DIR}/.venv_old/bin/python" \
+    "${SCRIPT_DIR}/.venv_old/bin/python3"; do
+    if [[ -x "${candidate}" ]]; then
+      PY_BIN="${candidate}"
+      break
+    fi
+  done
+fi
+
+if [[ -z "${PY_BIN}" ]]; then
+  if command -v python3 >/dev/null 2>&1; then
+    PY_BIN="$(command -v python3)"
+  elif command -v python >/dev/null 2>&1; then
+    PY_BIN="$(command -v python)"
+  else
+    echo "[master wrapper] python3/python not found; bootstrap the venv or install Python" >&2
+    exit 1
+  fi
+fi
+
+exec "${PY_BIN}" -m automation.cli.master "$@"

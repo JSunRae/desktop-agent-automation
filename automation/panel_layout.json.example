@@ -1,0 +1,68 @@
+{
+  "default": [
+    {
+      "pattern": "Trading",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 1080
+      },
+      "monitor_index": 0
+    },
+    {
+      "pattern": "tf_1",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 720
+      },
+      "monitor_index": 1
+    }
+  ],
+  "TF": [
+    {
+      "pattern": "Priority: P1",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 960,
+        "height": 1080
+      },
+      "monitor_index": 0
+    },
+    {
+      "pattern": "Priority: P2",
+      "position": {
+        "x": 960,
+        "y": 0,
+        "width": 960,
+        "height": 1080
+      },
+      "monitor_index": 0
+    }
+  ],
+  "Trading": [
+    {
+      "pattern": "TASK-ID:",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1920,
+        "height": 540
+      },
+      "monitor_index": 1
+    },
+    {
+      "pattern": "manifest",
+      "position": {
+        "x": 0,
+        "y": 540,
+        "width": 1920,
+        "height": 540
+      },
+      "monitor_index": 1
+    }
+  ]
+}

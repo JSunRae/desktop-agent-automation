@@ -1,0 +1,10 @@
+pyautogui
+keyboard
+openai
+pillow
+screeninfo
+uiautomation
+python-dotenv
+rich
+pyvda
+jsonschema

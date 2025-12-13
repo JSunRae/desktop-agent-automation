@@ -1,0 +1,2034 @@
+"""
+Align VS Code panels to their configured positions.
+
+This script helps fix panel layouts when Windows moves VS Code windows around
+due to DPI scaling issues (non DPI-aware per monitor behavior).
+
+Usage:
+    python scripts/align_panels.py                    # Heuristic tile on TF desktop (default)
+    python scripts/align_panels.py --desktop TF       # Heuristic tile on specific desktop
+    python scripts/align_panels.py --all-desktops     # Heuristic tile across all desktops
+    python scripts/align_panels.py --dry-run          # Preview changes without applying
+    python scripts/align_panels.py --use-config       # Use saved title-pattern layout config (legacy)
+    python scripts/align_panels.py --configure        # Interactive configuration mode (legacy)
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, List, Optional, Tuple
+from math import ceil
+
+import uiautomation as auto
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from automation.config import VSCODE_TITLE_SUFFIX
+from automation.desktop import switch_to_desktop, needs_desktop_switch
+from automation.ui import find_all_vscode_windows
+
+
+def _get_current_virtual_desktop_name() -> Optional[str]:
+    try:
+        import pyvda
+
+        current = pyvda.VirtualDesktop.current()
+        return current.name if current else None
+    except Exception:
+        return None
+
+
+# Configuration file path
+LAYOUT_CONFIG_PATH = Path(__file__).parent.parent / "automation" / "panel_layout.json"
+
+
+@dataclass
+class WindowPosition:
+    """Position and size for a window."""
+    x: int
+    y: int
+    width: int
+    height: int
+    
+    def to_dict(self) -> dict:
+        return {
+            "x": self.x,
+            "y": self.y,
+            "width": self.width,
+            "height": self.height
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> WindowPosition:
+        return cls(
+            x=data["x"],
+            y=data["y"],
+            width=data["width"],
+            height=data["height"]
+        )
+
+
+@dataclass
+class PanelLayout:
+    """Layout configuration for a panel."""
+    pattern: str  # Pattern to match in window title
+    position: WindowPosition
+    monitor_index: int = 0  # Which monitor (0 = primary)
+    
+    def to_dict(self) -> dict:
+        return {
+            "pattern": self.pattern,
+            "position": self.position.to_dict(),
+            "monitor_index": self.monitor_index
+        }
+    
+    @classmethod
+    def from_dict(cls, data: dict) -> PanelLayout:
+        return cls(
+            pattern=data["pattern"],
+            position=WindowPosition.from_dict(data["position"]),
+            monitor_index=data.get("monitor_index", 0)
+        )
+
+
+@dataclass
+class MonitorInfo:
+    """Information about a monitor."""
+    index: int
+    x: int
+    y: int
+    width: int
+    height: int
+    is_primary: bool = False
+    
+    def __str__(self) -> str:
+        primary = " (Primary)" if self.is_primary else ""
+        return f"Monitor {self.index}{primary}: {self.width}x{self.height} at ({self.x}, {self.y})"
+
+
+def get_monitor_info() -> List[MonitorInfo]:
+    """
+    Get information about all monitors.
+    
+    Returns:
+        List of MonitorInfo objects
+    """
+    try:
+        from screeninfo import get_monitors
+        monitors = get_monitors()
+        
+        result = []
+        for idx, m in enumerate(monitors):
+            result.append(MonitorInfo(
+                index=idx,
+                x=m.x,
+                y=m.y,
+                width=m.width,
+                height=m.height,
+                is_primary=(m.x == 0 and m.y == 0)  # Primary is usually at 0,0
+            ))
+        return result
+    except ImportError:
+        # Fallback: assume single monitor
+        print("⚠️  screeninfo not available, assuming single monitor")
+        return [MonitorInfo(index=0, x=0, y=0, width=1920, height=1080, is_primary=True)]
+
+
+def get_window_position(window: auto.Control) -> Optional[WindowPosition]:
+    """
+    Get current position and size of a window.
+    
+    Args:
+        window: Window control
+        
+    Returns:
+        WindowPosition or None if unable to get position
+    """
+    try:
+        rect = window.BoundingRectangle
+        return WindowPosition(
+            x=rect.left,
+            y=rect.top,
+            width=rect.right - rect.left,
+            height=rect.bottom - rect.top
+        )
+    except Exception as e:
+        print(f"⚠️  Could not get window position: {e}")
+        return None
+
+
+def set_window_position(window: auto.Control, position: WindowPosition, dry_run: bool = False) -> bool:
+    """
+    Set window position and size using Win32 API.
+    
+    Args:
+        window: Window control to move
+        position: Target position
+        dry_run: If True, only simulate (don't actually move)
+        
+    Returns:
+        True if successful
+    """
+    try:
+        import win32gui
+        import win32con
+        
+        hwnd = window.NativeWindowHandle
+        if not hwnd:
+            print("⚠️  Window has no native handle")
+            return False
+        
+        if dry_run:
+            print(f"    [DRY RUN] Would move window to ({position.x}, {position.y}) {position.width}x{position.height}")
+            return True
+
+        # Preserve existing Z-order to avoid moving panels in front of each other or the main VS Code window.
+        # Also avoid stealing focus.
+        flags = win32con.SWP_NOACTIVATE | win32con.SWP_NOZORDER
+
+        # If minimized, restore first so the move/resize actually takes effect.
+        try:
+            if win32gui.IsIconic(hwnd):
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+        except Exception:
+            pass
+
+        win32gui.SetWindowPos(
+            hwnd,
+            0,
+            position.x,
+            position.y,
+            position.width,
+            position.height,
+            flags,
+        )
+        
+        return True
+        
+    except ImportError:
+        print("⚠️  pywin32 not available - cannot move windows")
+        return False
+    except Exception as e:
+        print(f"⚠️  Error moving window: {e}")
+        return False
+
+
+def _clamp_int(value: float) -> int:
+    try:
+        return int(round(value))
+    except Exception:
+        return int(value)
+
+
+def _rect_center(pos: WindowPosition) -> tuple[int, int]:
+    return (pos.x + pos.width // 2, pos.y + pos.height // 2)
+
+
+def _monitor_for_point(monitors: List[MonitorInfo], x: int, y: int) -> int:
+    for m in monitors:
+        if m.x <= x < m.x + m.width and m.y <= y < m.y + m.height:
+            return m.index
+    return 0
+
+
+def _is_chat_like_title(title: str) -> bool:
+    t = (title or "").strip().lower()
+    if t.startswith("chat "):
+        return True
+    if "build with agent" in t:
+        return True
+    return False
+
+
+def _choose_main_window(windows: List[auto.Control]) -> Optional[auto.Control]:
+    """Heuristic: prefer non-chat VS Code window; otherwise pick largest by area."""
+    candidates = []
+    fallback = []
+    for w in windows:
+        title = (getattr(w, "Name", None) or "")
+        pos = get_window_position(w)
+        if not pos:
+            continue
+        area = max(1, pos.width) * max(1, pos.height)
+        fallback.append((area, w))
+        if not _is_chat_like_title(title):
+            candidates.append((area, w))
+    if candidates:
+        candidates.sort(key=lambda x: x[0], reverse=True)
+        return candidates[0][1]
+    if fallback:
+        fallback.sort(key=lambda x: x[0], reverse=True)
+        return fallback[0][1]
+    return None
+
+
+def _grid_slots_for_monitor(m: MonitorInfo, n: int) -> List[WindowPosition]:
+    if n <= 0:
+        return []
+    is_portrait = m.height > m.width
+    if n == 1:
+        cols = 1
+    else:
+        if is_portrait:
+            cols = 2 if n > 2 else 1
+        else:
+            cols = 3 if n > 4 else 2
+    rows = ceil(n / cols)
+
+    cell_w = max(1, m.width // cols)
+    cell_h = max(1, m.height // rows)
+
+    slots: List[WindowPosition] = []
+    for idx in range(n):
+        r = idx // cols
+        c = idx % cols
+        x = m.x + c * cell_w
+        y = m.y + r * cell_h
+        # Expand last col/row to fill any remainder
+        w = (m.x + m.width - x) if c == cols - 1 else cell_w
+        h = (m.y + m.height - y) if r == rows - 1 else cell_h
+        slots.append(WindowPosition(x=x, y=y, width=w, height=h))
+    return slots
+
+
+def _two_col_slots_with_optional_vertical_merge(m: MonitorInfo, n: int) -> List[WindowPosition]:
+    """Create a 2-column grid; if n is odd, merge the last two rows in the right column.
+
+    This matches the requested behavior: when there is an odd number of panels, one panel
+    takes two vertical positions.
+    """
+
+    if n <= 0:
+        return []
+    if n == 1:
+        return [WindowPosition(x=m.x, y=m.y, width=m.width, height=m.height)]
+
+    rows = ceil(n / 2)
+    if rows <= 0:
+        rows = 1
+
+    col_w_left = max(1, m.width // 2)
+    col_w_right = max(1, m.width - col_w_left)
+
+    base_h = max(1, m.height // rows)
+    row_heights = [base_h for _ in range(rows)]
+    row_heights[-1] = max(1, m.height - base_h * (rows - 1))
+    row_tops: List[int] = []
+    y = m.y
+    for h in row_heights:
+        row_tops.append(y)
+        y += h
+
+    slots: List[WindowPosition] = []
+
+    # Left column: always rows slots.
+    for r in range(rows):
+        slots.append(
+            WindowPosition(
+                x=m.x,
+                y=row_tops[r],
+                width=col_w_left,
+                height=row_heights[r],
+            )
+        )
+
+    # Right column: if odd, merge the last two rows into one slot.
+    is_odd = (n % 2 == 1)
+    right_col_x = m.x + col_w_left
+    if is_odd and rows >= 2:
+        # Rows 0..rows-3 individual
+        for r in range(max(0, rows - 2)):
+            slots.append(
+                WindowPosition(
+                    x=right_col_x,
+                    y=row_tops[r],
+                    width=col_w_right,
+                    height=row_heights[r],
+                )
+            )
+
+        # Merge rows-2 and rows-1
+        merged_r = rows - 2
+        merged_h = row_heights[rows - 2] + row_heights[rows - 1]
+        slots.append(
+            WindowPosition(
+                x=right_col_x,
+                y=row_tops[merged_r],
+                width=col_w_right,
+                height=merged_h,
+            )
+        )
+    else:
+        for r in range(rows):
+            slots.append(
+                WindowPosition(
+                    x=right_col_x,
+                    y=row_tops[r],
+                    width=col_w_right,
+                    height=row_heights[r],
+                )
+            )
+
+    # We may have created 2*rows slots (even) or 2*rows-1 slots (odd) which matches n.
+    # Trim defensively in case of rounding edge-cases.
+    return slots[:n]
+
+
+def _preferred_panel_slots_for_region(m: MonitorInfo, n: int) -> List[WindowPosition]:
+    """Panel slot policy optimized for readability on portrait/half-width regions."""
+    if n <= 0:
+        return []
+    is_portraitish = m.height >= m.width
+    if is_portraitish and n >= 2:
+        return _two_col_slots_with_optional_vertical_merge(m, n)
+    return _grid_slots_for_monitor(m, n)
+
+
+def _pick_left_right_panel_monitors(
+    monitors: List[MonitorInfo],
+    main_monitor_index: int,
+) -> tuple[Optional[MonitorInfo], Optional[MonitorInfo]]:
+    candidates = [m for m in monitors if m.index != main_monitor_index]
+    if not candidates:
+        return None, None
+
+    portrait = [m for m in candidates if m.height > m.width]
+    if len(portrait) >= 2:
+        portrait_sorted = sorted(portrait, key=lambda m: (m.x, m.y))
+        return portrait_sorted[0], portrait_sorted[-1]
+
+    # Fallback: just use left-most and right-most non-main monitors.
+    c_sorted = sorted(candidates, key=lambda m: (m.x, m.y))
+    if len(c_sorted) == 1:
+        return c_sorted[0], None
+    return c_sorted[0], c_sorted[-1]
+
+
+def _split_counts_evenly(total: int, parts: int) -> List[int]:
+    if parts <= 0:
+        return []
+    base = total // parts
+    rem = total % parts
+    counts = [base for _ in range(parts)]
+    for i in range(rem):
+        counts[i] += 1
+    return counts
+
+
+def _split_main_and_side(m: MonitorInfo, side_count: int) -> tuple[WindowPosition, List[WindowPosition]]:
+    """Single-monitor fallback: large main region + remaining side strip tiled for panels."""
+    if side_count <= 0:
+        return WindowPosition(m.x, m.y, m.width, m.height), []
+
+    is_portrait = m.height > m.width
+    if is_portrait:
+        main_h = _clamp_int(m.height * 0.7)
+        main_pos = WindowPosition(m.x, m.y, m.width, max(1, main_h))
+        strip_y = m.y + main_pos.height
+        strip_h = max(1, m.y + m.height - strip_y)
+        strip = MonitorInfo(index=m.index, x=m.x, y=strip_y, width=m.width, height=strip_h, is_primary=m.is_primary)
+        return main_pos, _grid_slots_for_monitor(strip, side_count)
+    else:
+        main_w = _clamp_int(m.width * 0.7)
+        main_pos = WindowPosition(m.x, m.y, max(1, main_w), m.height)
+        strip_x = m.x + main_pos.width
+        strip_w = max(1, m.x + m.width - strip_x)
+        strip = MonitorInfo(index=m.index, x=strip_x, y=m.y, width=strip_w, height=m.height, is_primary=m.is_primary)
+        # Prefer vertical stack on narrow strip
+        slots: List[WindowPosition] = []
+        cell_h = max(1, strip.height // side_count)
+        for i in range(side_count):
+            y = strip.y + i * cell_h
+            h = (strip.y + strip.height - y) if i == side_count - 1 else cell_h
+            slots.append(WindowPosition(x=strip.x, y=y, width=strip.width, height=h))
+        return main_pos, slots
+
+
+def _split_monitor_left_right(
+    m: MonitorInfo,
+    left_ratio: float,
+) -> tuple[WindowPosition, MonitorInfo]:
+    """Split a monitor into left and right regions.
+
+    Returns:
+        (left_window_position, right_region_as_monitor)
+    """
+
+    # Clamp ratio and handle tiny widths defensively.
+    try:
+        ratio = float(left_ratio)
+    except Exception:
+        ratio = 0.5
+    ratio = max(0.05, min(0.95, ratio))
+
+    if m.width <= 2:
+        left_width = 1
+    else:
+        left_width = _clamp_int(m.width * ratio)
+        left_width = max(1, min(m.width - 1, left_width))
+    right_width = max(1, m.width - left_width)
+
+    left = WindowPosition(m.x, m.y, left_width, m.height)
+    right = MonitorInfo(
+        index=m.index,
+        x=m.x + left_width,
+        y=m.y,
+        width=right_width,
+        height=m.height,
+        is_primary=m.is_primary,
+    )
+    return left, right
+
+
+def _assign_windows_to_slots_nearest(
+    windows: List[auto.Control],
+    slots: List[WindowPosition],
+) -> List[tuple[auto.Control, WindowPosition]]:
+    """Greedy nearest assignment (stable enough; avoids title reliance)."""
+    remaining = []
+    for w in windows:
+        pos = get_window_position(w)
+        if pos:
+            remaining.append((w, _rect_center(pos)))
+
+    assignments: List[tuple[auto.Control, WindowPosition]] = []
+    for slot in slots:
+        if not remaining:
+            break
+        sx, sy = _rect_center(slot)
+
+        best_idx = 0
+        best_dist = None
+        for i, (_w, (wx, wy)) in enumerate(remaining):
+            d = (wx - sx) * (wx - sx) + (wy - sy) * (wy - sy)
+            if best_dist is None or d < best_dist:
+                best_dist = d
+                best_idx = i
+
+        w, _ = remaining.pop(best_idx)
+        assignments.append((w, slot))
+
+    return assignments
+
+
+def tile_windows_by_monitor_heuristic(
+    windows: List[auto.Control],
+    monitors: List[MonitorInfo],
+    dry_run: bool = False,
+) -> tuple[int, int]:
+    """Tile windows without relying on per-title layout config."""
+
+    if not windows:
+        return 0, 0
+    if not monitors:
+        monitors = [MonitorInfo(index=0, x=0, y=0, width=1920, height=1080, is_primary=True)]
+
+    # Prefer the largest landscape monitor for the main window.
+    monitors_by_area = sorted(monitors, key=lambda m: m.width * m.height, reverse=True)
+    landscape = [m for m in monitors_by_area if m.width >= m.height]
+    main_monitor = (landscape[0] if landscape else monitors_by_area[0])
+
+    # Compute current monitor per window (used to keep panels on the same monitor when possible)
+    windows_with_pos: List[tuple[auto.Control, WindowPosition]] = []
+    for w in windows:
+        pos = get_window_position(w)
+        if pos:
+            windows_with_pos.append((w, pos))
+
+    if not windows_with_pos:
+        return 0, len(windows)
+
+    main_window = _choose_main_window([w for w, _ in windows_with_pos])
+
+    aligned = 0
+    skipped = 0
+
+    # Build slots
+    slots: List[tuple[auto.Control, WindowPosition]] = []
+
+    remaining_windows = [w for w, _ in windows_with_pos]
+    if main_window and len(remaining_windows) >= 2:
+        # Put main on the biggest landscape monitor. If only one monitor, split.
+        other_windows = [w for w in remaining_windows if w != main_window]
+
+        if len(monitors) == 1:
+            main_pos, side_slots = _split_main_and_side(main_monitor, len(other_windows))
+            slots.append((main_window, main_pos))
+            slots.extend(_assign_windows_to_slots_nearest(other_windows, side_slots))
+        else:
+            # Multi-monitor policy (TF desktop):
+            # - Count panels (all other VS Code windows)
+            # - If <= 12: main fullscreen on the main (landscape) monitor; panels split across two portrait monitors.
+            # - If > 12: split main monitor in half; main on left half; panels split across left portrait, right portrait, and right half.
+            panel_count = len(other_windows)
+            left_panel_monitor, right_panel_monitor = _pick_left_right_panel_monitors(monitors, main_monitor.index)
+
+            if not left_panel_monitor and not right_panel_monitor:
+                # Fallback: nothing to split onto; just full-screen main + grid remaining on main.
+                main_pos, side_slots = _split_main_and_side(main_monitor, panel_count)
+                slots.append((main_window, main_pos))
+                slots.extend(_assign_windows_to_slots_nearest(other_windows, side_slots))
+            else:
+                if panel_count <= 12:
+                    print(f"Heuristic layout: {panel_count} panel(s) -> split across two vertical screens; VS Code main fullscreen")
+                    slots.append(
+                        (main_window, WindowPosition(main_monitor.x, main_monitor.y, main_monitor.width, main_monitor.height))
+                    )
+
+                    regions: List[MonitorInfo] = []
+                    if left_panel_monitor:
+                        regions.append(left_panel_monitor)
+                    if right_panel_monitor and (not left_panel_monitor or right_panel_monitor.index != left_panel_monitor.index):
+                        regions.append(right_panel_monitor)
+
+                    counts = _split_counts_evenly(panel_count, len(regions))
+                    all_panel_slots: List[WindowPosition] = []
+                    for region, count in zip(regions, counts):
+                        all_panel_slots.extend(_preferred_panel_slots_for_region(region, count))
+
+                    slots.extend(_assign_windows_to_slots_nearest(other_windows, all_panel_slots))
+                else:
+                    print(
+                        f"Heuristic layout: {panel_count} panel(s) -> 3-way split (L/R vertical + right 40% of middle); VS Code main left 60%"
+                    )
+                    main_left, middle_right = _split_monitor_left_right(main_monitor, 0.60)
+
+                    slots.append((main_window, main_left))
+
+                    regions = []
+                    if left_panel_monitor:
+                        regions.append(left_panel_monitor)
+                    if right_panel_monitor and (not left_panel_monitor or right_panel_monitor.index != left_panel_monitor.index):
+                        regions.append(right_panel_monitor)
+                    regions.append(middle_right)
+
+                    counts = _split_counts_evenly(panel_count, len(regions))
+                    all_panel_slots = []
+                    for region, count in zip(regions, counts):
+                        all_panel_slots.extend(_preferred_panel_slots_for_region(region, count))
+
+                    slots.extend(_assign_windows_to_slots_nearest(other_windows, all_panel_slots))
+    else:
+        # No main window detected (or only one window): tile by current monitor distribution.
+        by_monitor: dict[int, List[auto.Control]] = {m.index: [] for m in monitors}
+        for w, pos in windows_with_pos:
+            cx, cy = _rect_center(pos)
+            mi = _monitor_for_point(monitors, cx, cy)
+            by_monitor.setdefault(mi, []).append(w)
+
+        for m in monitors:
+            group = by_monitor.get(m.index, [])
+            if not group:
+                continue
+            group_slots = _grid_slots_for_monitor(m, len(group))
+            slots.extend(_assign_windows_to_slots_nearest(group, group_slots))
+
+    # Apply moves
+    for w, target in slots:
+        title = getattr(w, "Name", "") or ""
+        current_pos = get_window_position(w)
+        if not current_pos:
+            skipped += 1
+            continue
+        tolerance = 10
+        if (abs(current_pos.x - target.x) < tolerance and
+            abs(current_pos.y - target.y) < tolerance and
+            abs(current_pos.width - target.width) < tolerance and
+            abs(current_pos.height - target.height) < tolerance):
+            continue
+
+        print(f"↻ Tiling: {title[:60]}")
+        print(f"  To:   ({target.x}, {target.y}) {target.width}x{target.height}")
+        if set_window_position(w, target, dry_run=dry_run):
+            aligned += 1
+        else:
+            skipped += 1
+
+    return aligned, skipped
+
+
+def load_layout_config(desktop: str = "default") -> List[PanelLayout]:
+    """
+    Load panel layout configuration.
+    
+    Args:
+        desktop: Desktop name (or "default")
+        
+    Returns:
+        List of PanelLayout objects
+    """
+    if not LAYOUT_CONFIG_PATH.exists():
+        print(f"⚠️  No layout configuration found at {LAYOUT_CONFIG_PATH}")
+        return []
+    
+    try:
+        with LAYOUT_CONFIG_PATH.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        # Check for desktop-specific config first
+        if desktop in data:
+            layouts = data[desktop]
+            return [PanelLayout.from_dict(layout) for layout in layouts]
+        
+        # If looking for a specific desktop (not "default"), don't fall back
+        if desktop != "default":
+            print(f"⚠️  No layout configuration found for '{desktop}'")
+            return []
+        
+        # Only fall back to "default" if we were specifically asked for "default"
+        if "default" in data:
+            layouts = data["default"]
+            return [PanelLayout.from_dict(layout) for layout in layouts]
+        else:
+            print(f"⚠️  No layout found for desktop '{desktop}'")
+            return []
+        
+    except Exception as e:
+        print(f"⚠️  Error loading layout config: {e}")
+        return []
+
+
+def save_layout_config(layouts: List[PanelLayout], desktop: str = "default") -> bool:
+    """
+    Save panel layout configuration.
+    
+    Args:
+        layouts: List of PanelLayout objects
+        desktop: Desktop name (or "default")
+        
+    Returns:
+        True if successful
+    """
+    try:
+        # Load existing config if present
+        if LAYOUT_CONFIG_PATH.exists():
+            with LAYOUT_CONFIG_PATH.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+        else:
+            data = {}
+        
+        # Update the specific desktop config
+        data[desktop] = [layout.to_dict() for layout in layouts]
+        
+        # Save back
+        LAYOUT_CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        with LAYOUT_CONFIG_PATH.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        
+        print(f"✅ Layout configuration saved to {LAYOUT_CONFIG_PATH}")
+        return True
+        
+    except Exception as e:
+        print(f"⚠️  Error saving layout config: {e}")
+        return False
+
+
+def find_matching_layout(window_title: str, layouts: List[PanelLayout]) -> Optional[PanelLayout]:
+    """
+    Find a layout that matches the window title.
+    
+    Args:
+        window_title: Window title to match
+        layouts: List of layouts to search
+        
+    Returns:
+        Matching PanelLayout or None
+    """
+    # Try exact pattern match first
+    for layout in layouts:
+        if layout.pattern.lower() in window_title.lower():
+            return layout
+    
+    return None
+
+
+def align_panels(
+    windows: List[auto.Control],
+    layouts: List[PanelLayout],
+    monitors: List[MonitorInfo],
+    dry_run: bool = False
+) -> Tuple[int, int]:
+    """
+    Align windows to their configured positions.
+    
+    Args:
+        windows: List of VS Code windows
+        layouts: List of panel layouts
+        monitors: List of monitor info
+        dry_run: If True, don't actually move windows
+        
+    Returns:
+        Tuple of (aligned_count, skipped_count)
+    """
+    aligned = 0
+    skipped = 0
+    
+    for window in windows:
+        try:
+            title = window.Name or ""
+            current_pos = get_window_position(window)
+            
+            if not current_pos:
+                print(f"⚠️  Skipping window (no position): {title[:60]}")
+                skipped += 1
+                continue
+            
+            # Find matching layout
+            layout = find_matching_layout(title, layouts)
+            
+            if not layout:
+                print(f"⏭️  No layout for: {title[:60]}")
+                skipped += 1
+                continue
+            
+            # Get monitor offset
+            monitor_offset_x = 0
+            monitor_offset_y = 0
+            if layout.monitor_index < len(monitors):
+                monitor = monitors[layout.monitor_index]
+                monitor_offset_x = monitor.x
+                monitor_offset_y = monitor.y
+            
+            # Calculate target position (relative to monitor)
+            target_pos = WindowPosition(
+                x=monitor_offset_x + layout.position.x,
+                y=monitor_offset_y + layout.position.y,
+                width=layout.position.width,
+                height=layout.position.height
+            )
+            
+            # Check if already in position (with small tolerance)
+            tolerance = 10
+            if (abs(current_pos.x - target_pos.x) < tolerance and
+                abs(current_pos.y - target_pos.y) < tolerance and
+                abs(current_pos.width - target_pos.width) < tolerance and
+                abs(current_pos.height - target_pos.height) < tolerance):
+                print(f"✓ Already aligned: {title[:60]}")
+                continue
+            
+            # Move window
+            print(f"↻ Aligning: {title[:60]}")
+            print(f"  From: ({current_pos.x}, {current_pos.y}) {current_pos.width}x{current_pos.height}")
+            print(f"  To:   ({target_pos.x}, {target_pos.y}) {target_pos.width}x{target_pos.height}")
+            
+            if set_window_position(window, target_pos, dry_run=dry_run):
+                aligned += 1
+            else:
+                skipped += 1
+                
+        except Exception as e:
+            print(f"⚠️  Error processing window: {e}")
+            skipped += 1
+    
+    return aligned, skipped
+
+
+# Global counter for unique patterns
+_pattern_counter: dict = {}
+
+def extract_window_pattern(title: str) -> str:
+    """
+    Extract a unique pattern from window title for identification.
+    
+    Args:
+        title: Window title
+        
+    Returns:
+        Pattern string to identify the window
+    """
+    global _pattern_counter
+    
+    if not title:
+        return "Unknown"
+    
+    # Extract chat number if present - be more specific
+    if "Chat" in title:
+        import re
+        match = re.search(r'Chat (\d+)', title)
+        if match:
+            base_pattern = f"Chat {match.group(1)}"
+            # Ensure uniqueness
+            if base_pattern in _pattern_counter:
+                _pattern_counter[base_pattern] += 1
+                return f"{base_pattern}_{_pattern_counter[base_pattern]}"
+            else:
+                _pattern_counter[base_pattern] = 0
+                return base_pattern
+    
+    # For non-chat windows, use more specific patterns
+    if "desktop-agent-automation" in title:
+        # Look for specific identifiers
+        if "Terminal" in title:
+            return "Terminal"
+        elif "Problems" in title:
+            return "Problems"
+        elif "Output" in title:
+            return "Output"
+        else:
+            # Main coding window - use first part before first dash
+            parts = title.split(' - ')
+            if len(parts) > 2:
+                return parts[0][:25]  # First part, shortened
+            else:
+                return "Main Window"
+    
+    # Use first meaningful part of title
+    parts = title.split(' - ')
+    if len(parts) > 1:
+        # Take first part but limit length
+        pattern = parts[0][:25]
+    else:
+        # Take first 25 characters
+        pattern = title[:25]
+    
+    return pattern.strip()
+
+
+def optimize_current_layout(
+    windows: List[auto.Control],
+    monitors: List[MonitorInfo],
+    target_monitor_index: int = 2,
+    limit: Optional[int] = None
+) -> List[PanelLayout]:
+    """
+    Create template-based layouts based on panel count and monitor orientation.
+    
+    Templates:
+    - Landscape (2560x1440) with 13 panels: Main (top-left) + 3x2 grid (top-right) + 1x6 bottom row
+    - Portrait (1080x1920) with 6 panels: 2x3 grid
+    - Portrait (1080x1920) with 5 panels: Left column (3 equal) + Right column (1 large main + 1 small)
+    
+    Args:
+        windows: List of VS Code windows to arrange
+        monitors: List of monitor info
+        target_monitor_index: Which monitor to arrange windows on
+        limit: Maximum number of windows to include (None = all)
+        
+    Returns:
+        List of PanelLayout objects with template positions
+    """
+    if not windows or target_monitor_index >= len(monitors):
+        return []
+    
+    monitor = monitors[target_monitor_index]
+    
+    # Filter windows on target monitor
+    window_info: List[dict[str, Any]] = []
+    seen_handles = set()
+    
+    for window in windows:
+        pos = get_window_position(window)
+        if pos:
+            if pos.width < 100 or pos.height < 100:
+                continue
+            
+            try:
+                handle = window.NativeWindowHandle
+                if handle in seen_handles:
+                    continue
+                seen_handles.add(handle)
+            except Exception:
+                pass
+                
+            center_x = pos.x + pos.width // 2
+            center_y = pos.y + pos.height // 2
+            
+            if (monitor.x <= center_x < monitor.x + monitor.width and
+                monitor.y <= center_y < monitor.y + monitor.height):
+                window_info.append({
+                    'window': window,
+                    'current_pos': pos,
+                    'title': window.Name or "",
+                    'area': pos.width * pos.height
+                })
+    
+    if limit and len(window_info) > limit:
+        window_info.sort(key=lambda x: int(x['area']), reverse=True)
+        window_info = window_info[:limit]
+        print(f"Limited to {limit} largest windows")
+    
+    if not window_info:
+        print(f"⚠️  No windows found on monitor {target_monitor_index}")
+        return []
+    
+    num_windows = len(window_info)
+    print(f"Creating template layout for {num_windows} windows on monitor {target_monitor_index}")
+    print(f"Monitor: {monitor.width}x{monitor.height}px")
+    
+    # Sort by area to identify main window (largest)
+    window_info.sort(key=lambda x: int(x['area']), reverse=True)
+    
+    # Calculate usable area
+    title_bar_height = 40
+    taskbar_height = 0  # Don't reserve space - fill to bottom
+    usable_width = monitor.width
+    usable_height = monitor.height - title_bar_height - taskbar_height
+    
+    # Determine monitor orientation
+    is_landscape = monitor.width > monitor.height
+    
+    # Helper function to find closest window to a target position
+    def find_closest_window(target_x: int, target_y: int, available_windows: List[dict[str, Any]]) -> Optional[dict[str, Any]]:
+        """Find the window whose center is closest to the target position"""
+        if not available_windows:
+            return None
+        
+        min_distance = float('inf')
+        closest = None
+        
+        for win in available_windows:
+            # Calculate center relative to monitor
+            win_center_x = win['current_pos'].x + win['current_pos'].width // 2 - monitor.x
+            win_center_y = win['current_pos'].y + win['current_pos'].height // 2 - monitor.y
+            
+            # Calculate distance to target
+            distance = ((win_center_x - target_x) ** 2 + (win_center_y - target_y) ** 2) ** 0.5
+            
+            if distance < min_distance:
+                min_distance = distance
+                closest = win
+        
+        return closest
+    
+    layouts = []
+    available_windows = window_info.copy()
+    
+    # === LANDSCAPE MONITOR TEMPLATES ===
+    if is_landscape:
+        if num_windows == 13:
+            # Template: Main (top-left) + 3x2 grid (top-right) + 1x6 row (bottom)
+            print("Using template: Main + 3x2 grid + 1x6 bottom row")
+            
+            # Dimensions
+            main_width = int(usable_width * 0.5)  # 50% width for main
+            grid_width = usable_width - main_width  # 50% for grid
+            top_height = int(usable_height * 0.65)  # 65% for top area
+            bottom_height = usable_height - top_height  # 35% for bottom
+            
+            grid_col_width = grid_width // 3  # 3 columns in grid
+            grid_row_height = top_height // 2  # 2 rows in grid
+            bottom_panel_width = usable_width // 6  # 6 panels in bottom row
+            
+            # Define all template slots with their positions
+            template_slots: List[dict[str, Any]] = []
+            
+            # Slot 0: Main window (top-left)
+            template_slots.append({
+                'x': 0, 'y': 0, 'width': main_width, 'height': top_height,
+                'center_x': main_width // 2, 'center_y': top_height // 2,
+                'name': 'MAIN'
+            })
+            
+            # Slots 1-6: 3x2 grid (top-right)
+            for row in range(2):
+                for col in range(3):
+                    x = main_width + (col * grid_col_width)
+                    y = row * grid_row_height
+                    w = (usable_width - x) if col == 2 else grid_col_width
+                    template_slots.append({
+                        'x': x, 'y': y, 'width': w, 'height': grid_row_height,
+                        'center_x': x + w // 2, 'center_y': y + grid_row_height // 2,
+                        'name': f'Grid R{row+1}C{col+1}'
+                    })
+            
+            # Slots 7-12: Bottom row (1x6)
+            for col in range(6):
+                x = col * bottom_panel_width
+                w = (usable_width - x) if col == 5 else bottom_panel_width
+                template_slots.append({
+                    'x': x, 'y': top_height, 'width': w, 'height': bottom_height,
+                    'center_x': x + w // 2, 'center_y': top_height + bottom_height // 2,
+                    'name': f'Bottom C{col+1}'
+                })
+            
+            # Match windows to slots based on proximity
+            for idx, slot in enumerate(template_slots):
+                closest = find_closest_window(slot['center_x'], slot['center_y'], available_windows)
+                if closest:
+                    available_windows.remove(closest)
+                    layouts.append(PanelLayout(
+                        pattern=extract_window_pattern(closest['title']),
+                        position=WindowPosition(
+                            x=slot['x'], y=slot['y'], 
+                            width=slot['width'], height=slot['height']
+                        ),
+                        monitor_index=target_monitor_index
+                    ))
+                    tag = " [MAIN]" if slot['name'] == 'MAIN' else ""
+                    print(f"  [{idx}]{tag} {slot['name']}: {closest['title'][:30]} at ({slot['x']}, {slot['y']}) {slot['width']}x{slot['height']}")
+        
+        else:
+            print(f"⚠️  No template for {num_windows} panels on landscape monitor")
+            return []
+    
+    # === PORTRAIT MONITOR TEMPLATES ===
+    else:
+        if num_windows == 6:
+            # Template: 2x3 grid
+            print("Using template: 2x3 grid")
+            
+            col_width = usable_width // 2
+            row_height = usable_height // 3
+            
+            template_slots = []
+            for row in range(3):
+                for col in range(2):
+                    x = col * col_width
+                    y = row * row_height
+                    w = (usable_width - x) if col == 1 else col_width
+                    h = (usable_height - y) if row == 2 else row_height
+                    template_slots.append({
+                        'x': x, 'y': y, 'width': w, 'height': h,
+                        'center_x': x + w // 2, 'center_y': y + h // 2,
+                        'name': f'R{row+1}C{col+1}'
+                    })
+            
+            # Match windows to slots based on proximity
+            for idx, slot in enumerate(template_slots):
+                closest = find_closest_window(slot['center_x'], slot['center_y'], available_windows)
+                if closest:
+                    available_windows.remove(closest)
+                    is_main = (closest == window_info[0])  # Largest by area
+                    tag = " [MAIN]" if is_main else ""
+                    layouts.append(PanelLayout(
+                        pattern=extract_window_pattern(closest['title']),
+                        position=WindowPosition(
+                            x=slot['x'], y=slot['y'],
+                            width=slot['width'], height=slot['height']
+                        ),
+                        monitor_index=target_monitor_index
+                    ))
+                    print(f"  [{idx}]{tag} {slot['name']}: {closest['title'][:30]} at ({slot['x']}, {slot['y']}) {slot['width']}x{slot['height']}")
+        
+        elif num_windows == 5:
+            # Template: Left column (3 equal) + Right column (1 large main + 1 small)
+            print("Using template: Left column (3 equal) + Right column (1 main + 1 small)")
+            
+            left_width = int(usable_width * 0.45)  # 45% for left
+            right_width = usable_width - left_width  # 55% for right
+            left_row_height = usable_height // 3  # 3 equal rows
+            right_main_height = int(usable_height * 0.67)  # Main takes 67%
+            right_small_height = usable_height - right_main_height  # Small takes 33%
+            
+            template_slots = []
+            
+            # Left column: 3 equal panels
+            for row in range(3):
+                y = row * left_row_height
+                h = (usable_height - y) if row == 2 else left_row_height
+                template_slots.append({
+                    'x': 0, 'y': y, 'width': left_width, 'height': h,
+                    'center_x': left_width // 2, 'center_y': y + h // 2,
+                    'name': f'Left R{row+1}'
+                })
+            
+            # Right column: 1 large main + 1 small
+            template_slots.append({
+                'x': left_width, 'y': 0, 'width': right_width, 'height': right_main_height,
+                'center_x': left_width + right_width // 2, 'center_y': right_main_height // 2,
+                'name': 'Right MAIN'
+            })
+            template_slots.append({
+                'x': left_width, 'y': right_main_height, 'width': right_width, 'height': right_small_height,
+                'center_x': left_width + right_width // 2, 'center_y': right_main_height + right_small_height // 2,
+                'name': 'Right small'
+            })
+            
+            # Match windows to slots based on proximity
+            for idx, slot in enumerate(template_slots):
+                closest = find_closest_window(slot['center_x'], slot['center_y'], available_windows)
+                if closest:
+                    available_windows.remove(closest)
+                    tag = " [MAIN]" if 'MAIN' in slot['name'] else ""
+                    layouts.append(PanelLayout(
+                        pattern=extract_window_pattern(closest['title']),
+                        position=WindowPosition(
+                            x=slot['x'], y=slot['y'],
+                            width=slot['width'], height=slot['height']
+                        ),
+                        monitor_index=target_monitor_index
+                    ))
+                    print(f"  [{idx}]{tag} {slot['name']}: {closest['title'][:30]} at ({slot['x']}, {slot['y']}) {slot['width']}x{slot['height']}")
+        
+        else:
+            print(f"⚠️  No template for {num_windows} panels on portrait monitor")
+            return []
+    
+    return layouts
+
+
+def create_smart_pack_layout(
+    windows: List[auto.Control],
+    monitors: List[MonitorInfo],
+    target_monitor_index: int = 2,
+    limit: Optional[int] = None
+) -> List[PanelLayout]:
+    """
+    Smart packing layout that preserves current window sizes and arranges them like a jigsaw.
+    
+    Args:
+        windows: List of VS Code windows to arrange
+        monitors: List of monitor info
+        target_monitor_index: Which monitor to arrange windows on
+        limit: Maximum number of windows to include (None = all)
+        
+    Returns:
+        List of PanelLayout objects arranged optimally
+    """
+    if not windows or target_monitor_index >= len(monitors):
+        return []
+    
+    monitor = monitors[target_monitor_index]
+    
+    # Filter and get current window info
+    window_info: List[dict[str, Any]] = []
+    seen_handles = set()  # Track window handles to avoid duplicates
+    
+    for window in windows:
+        pos = get_window_position(window)
+        if pos:
+            # Skip invisible/minimized windows
+            if pos.width < 100 or pos.height < 100:
+                continue
+            
+            # Skip duplicate windows (same handle)
+            try:
+                handle = window.NativeWindowHandle
+                if handle in seen_handles:
+                    continue
+                seen_handles.add(handle)
+            except Exception:
+                pass  # If we can't get handle, allow it through
+                
+            # Check if window center is on the target monitor
+            center_x = pos.x + pos.width // 2
+            center_y = pos.y + pos.height // 2
+            
+            if (monitor.x <= center_x < monitor.x + monitor.width and
+                monitor.y <= center_y < monitor.y + monitor.height):
+                window_info.append({
+                    'window': window,
+                    'current_pos': pos,
+                    'title': window.Name or "",
+                    'area': pos.width * pos.height
+                })
+    
+    # Apply limit if specified
+    if limit and len(window_info) > limit:
+        # Sort by area (largest first) to keep most important windows
+        window_info.sort(key=lambda x: int(x['area']), reverse=True)
+        window_info = window_info[:limit]
+        print(f"Limited to {limit} largest windows")
+    
+    if not window_info:
+        print(f"⚠️  No windows found on monitor {target_monitor_index}")
+        return []
+    
+    print(f"Smart packing {len(window_info)} windows on monitor {target_monitor_index}")
+    
+    # Account for title bar and taskbar
+    title_bar_height = 40
+    taskbar_height = 40 if monitor.is_primary else 0
+    
+    # Calculate usable area
+    usable_width = monitor.width
+    usable_height = monitor.height - title_bar_height - taskbar_height
+    
+    print(f"Available space: {usable_width}x{usable_height}px")
+    
+    # Sort windows by area (largest first) to identify main window
+    window_info.sort(key=lambda x: int(x['area']), reverse=True)
+    
+    # Use shelf packing algorithm for optimal tiling
+    layouts: List[PanelLayout] = []
+    
+    if not window_info:
+        return layouts
+    
+    # Shelf packing: pack windows into horizontal rows (shelves)
+    shelves: List[dict[str, Any]] = []  # Each shelf is a list of windows
+    current_shelf: List[dict[str, Any]] = []
+    current_shelf_width = 0
+    current_shelf_height = 0
+    current_y = 0
+    
+    for info in window_info:
+        pos = info['current_pos']
+        title = str(info['title'])
+
+        if pos is None:
+            continue
+        
+        # Desired aspect ratio - preserve current if reasonable, else use defaults
+        desired_width = pos.width if pos.width > 200 else 640
+        desired_height = pos.height if pos.height > 200 else 480
+        
+        # Check if this window fits in current shelf
+        if current_shelf_width + desired_width <= usable_width:
+            # Fits in current shelf
+            current_shelf.append({
+                'info': info,
+                'width': desired_width,
+                'height': desired_height
+            })
+            current_shelf_width += desired_width
+            current_shelf_height = max(current_shelf_height, desired_height)
+        else:
+            # Start new shelf
+            if current_shelf:
+                shelves.append({
+                    'windows': current_shelf,
+                    'y': current_y,
+                    'height': current_shelf_height
+                })
+                current_y += current_shelf_height
+            
+            current_shelf = [{
+                'info': info,
+                'width': desired_width,
+                'height': desired_height
+            }]
+            current_shelf_width = desired_width
+            current_shelf_height = desired_height
+    
+    # Add last shelf
+    if current_shelf:
+        shelves.append({
+            'windows': current_shelf,
+            'y': current_y,
+            'height': current_shelf_height
+        })
+    
+    # Now normalize shelves to fit screen height
+    total_height = sum(int(shelf.get('height', 0)) for shelf in shelves)
+    
+    if total_height > usable_height:
+        # Scale down shelf heights proportionally
+        scale_factor = usable_height / max(1, total_height)
+        current_y = 0
+        for shelf in shelves:
+            shelf['height'] = int(int(shelf.get('height', 0)) * scale_factor)
+            shelf['y'] = current_y
+            current_y += int(shelf.get('height', 0))
+    
+    # Create layouts from shelves
+    for shelf in shelves:
+        windows_in_shelf: List[dict[str, Any]] = list(shelf.get('windows', []))
+        shelf_y = int(shelf.get('y', 0))
+        shelf_height = int(shelf.get('height', 0))
+        
+        # Normalize window widths to fill shelf width exactly
+        total_desired_width = sum(int(w.get('width', 0)) for w in windows_in_shelf)
+        current_x = 0
+        
+        for i, win_data in enumerate(windows_in_shelf):
+            info = win_data['info']
+            title = str(info['title'])
+            
+            # Calculate proportional width
+            if i == len(windows_in_shelf) - 1:
+                # Last window takes remaining width to avoid rounding gaps
+                width = usable_width - current_x
+            else:
+                denom = max(1, int(total_desired_width))
+                width = int((int(win_data.get('width', 0)) / denom) * usable_width)
+            
+            layout = PanelLayout(
+                pattern=extract_window_pattern(title),
+                position=WindowPosition(
+                    x=current_x,
+                    y=shelf_y,
+                    width=width,
+                    height=shelf_height
+                ),
+                monitor_index=target_monitor_index
+            )
+            
+            layouts.append(layout)
+            print(f"  Shelf {shelves.index(shelf)}: {title[:25]} at ({current_x}, {shelf_y}) {width}x{shelf_height}")
+            current_x += width
+    
+    return layouts
+
+
+def find_best_position(width: int, height: int, max_width: int, max_height: int, 
+                      placed_rects: List[Tuple[int, int, int, int]]) -> Optional[Tuple[int, int]]:
+    """
+    Find the best position for a window without overlapping existing ones.
+    
+    Args:
+        width, height: Size of window to place
+        max_width, max_height: Available space
+        placed_rects: List of (x, y, width, height) for existing windows
+        
+    Returns:
+        (x, y) position or None if can't fit
+    """
+    # Try positions in order of preference
+    positions = []
+    
+    # Generate candidate positions
+    step_x = max(50, width // 4)  # Try positions every 50px or quarter-width
+    step_y = max(50, height // 4)
+    
+    for y in range(0, max_height - height + 1, step_y):
+        for x in range(0, max_width - width + 1, step_x):
+            positions.append((x, y))
+    
+    # Test each position for overlaps
+    for x, y in positions:
+        if not overlaps_with_existing(x, y, width, height, placed_rects):
+            return (x, y)
+    
+    return None
+
+
+def overlaps_with_existing(x: int, y: int, width: int, height: int,
+                         placed_rects: List[Tuple[int, int, int, int]]) -> bool:
+    """
+    Check if a rectangle overlaps with any existing rectangles.
+    
+    Args:
+        x, y, width, height: Rectangle to test
+        placed_rects: List of existing rectangles
+        
+    Returns:
+        True if there's an overlap
+    """
+    for px, py, pw, ph in placed_rects:
+        # Check if rectangles overlap
+        if not (x >= px + pw or x + width <= px or y >= py + ph or y + height <= py):
+            return True
+    return False
+
+
+def create_auto_grid_layout(
+    windows: List[auto.Control],
+    monitors: List[MonitorInfo],
+    target_monitor_index: int = 2,  # Default to primary monitor
+    limit: Optional[int] = None  # Limit number of windows to arrange
+) -> List[PanelLayout]:
+    """
+    Automatically create a grid layout for windows on a specific monitor.
+    
+    Args:
+        windows: List of VS Code windows to arrange
+        monitors: List of monitor info
+        target_monitor_index: Which monitor to arrange windows on
+        limit: Maximum number of windows to include (None = all)
+        
+    Returns:
+        List of PanelLayout objects arranged in a grid
+    """
+    if not windows or target_monitor_index >= len(monitors):
+        return []
+    
+    monitor = monitors[target_monitor_index]
+    
+    # Filter windows to only those currently on the target monitor
+    windows_on_monitor = []
+    for window in windows:
+        pos = get_window_position(window)
+        if pos:
+            # Skip invisible/minimized windows
+            if pos.width < 100 or pos.height < 100:
+                continue
+                
+            # Check if window center is on the target monitor
+            center_x = pos.x + pos.width // 2
+            center_y = pos.y + pos.height // 2
+            
+            if (monitor.x <= center_x < monitor.x + monitor.width and
+                monitor.y <= center_y < monitor.y + monitor.height):
+                windows_on_monitor.append(window)
+    
+    # Apply limit if specified
+    if limit and len(windows_on_monitor) > limit:
+        windows_on_monitor = windows_on_monitor[:limit]
+        print(f"Limited to first {limit} windows")
+    
+    if not windows_on_monitor:
+        print(f"⚠️  No windows found on monitor {target_monitor_index}")
+        return []
+    
+    num_windows = len(windows_on_monitor)
+    print(f"Found {num_windows} window(s) on monitor {target_monitor_index} (Primary)" if monitor.is_primary else f"Found {num_windows} window(s) on monitor {target_monitor_index}")
+    
+    # Identify main coding window vs chat panels
+    main_window = None
+    chat_windows = []
+    
+    # First pass: look for obvious main coding windows (non-chat windows)
+    for window in windows_on_monitor:
+        title = window.Name or ""
+        pos = get_window_position(window)
+        
+        # Skip if can't get position
+        if not pos:
+            continue
+            
+        # Main window indicators: larger size, has file explorer, terminal, or is not a chat
+        is_likely_main = (
+            "Chat" not in title or  # Not a chat window
+            pos.width > 1000 or     # Large window (likely main)
+            "Terminal" in title or
+            "Problems" in title or
+            "Output" in title or
+            "Explorer" in title
+        )
+        
+        if is_likely_main and "Chat" not in title:
+            if not main_window:  # Take first real non-chat window
+                main_window = window
+                continue
+        
+        # Everything else goes to chat windows
+        chat_windows.append(window)
+    
+    # If still no main window found, look for the largest window among all
+    if not main_window and windows_on_monitor:
+        largest_window = None
+        largest_area = 0
+        
+        for window in windows_on_monitor:
+            pos = get_window_position(window)
+            if pos:
+                area = pos.width * pos.height
+                if area > largest_area:
+                    largest_area = area
+                    largest_window = window
+        
+        if largest_window:
+            main_window = largest_window
+            chat_windows = [w for w in windows_on_monitor if w != largest_window]
+        else:
+            # Last resort: treat all as chat windows
+            chat_windows = windows_on_monitor
+    
+    num_chat_windows = len(chat_windows)
+    print(f"Main window: {main_window.Name[:50] if main_window else 'None'}")
+    print(f"Chat panels: {num_chat_windows}")
+    
+    # Account for title bar and taskbar
+    title_bar_height = 40
+    taskbar_height = 40 if monitor.is_primary else 0
+    
+    # Calculate usable area
+    usable_width = monitor.width
+    usable_height = monitor.height - title_bar_height - taskbar_height
+    
+    layouts = []
+    
+    # Initialize main_width
+    main_width = 0
+    
+    if main_window:
+        # Main window takes left 65% of screen (full height) - slightly more readable space
+        main_width = int(usable_width * 0.65)
+        main_layout = PanelLayout(
+            pattern=extract_window_pattern(main_window.Name or ""),
+            position=WindowPosition(
+                x=0,
+                y=0,
+                width=main_width,
+                height=usable_height
+            ),
+            monitor_index=target_monitor_index
+        )
+        layouts.append(main_layout)
+    
+    # Chat panels take remaining right side in grid
+    if chat_windows:
+        chat_area_width = usable_width - main_width if main_window else usable_width
+        chat_area_x = main_width if main_window else 0
+        
+        # Determine chat panel grid - optimize for 3-4 panels
+        if num_chat_windows == 1:
+            chat_cols, chat_rows = 1, 1
+        elif num_chat_windows == 2:
+            chat_cols, chat_rows = 1, 2  # Vertical stack
+        elif num_chat_windows == 3:
+            chat_cols, chat_rows = 1, 3  # Vertical stack of 3
+        elif num_chat_windows == 4:
+            chat_cols, chat_rows = 2, 2  # 2x2 grid
+        else:
+            chat_cols = 2
+            chat_rows = (num_chat_windows + 1) // 2  # 2 columns, multiple rows
+        
+        # Calculate chat panel dimensions to fill remaining space exactly
+        chat_cell_width = chat_area_width // chat_cols
+        chat_cell_height = usable_height // chat_rows
+        
+        print(f"Chat layout: {chat_cols}x{chat_rows} grid")
+        print(f"Chat area: {chat_area_width}px wide at x={chat_area_x}")
+        print(f"Each panel: {chat_cell_width}x{chat_cell_height}px")
+        
+        for idx, window in enumerate(chat_windows):
+            # Calculate chat panel position in grid
+            row = idx // chat_cols
+            col = idx % chat_cols
+            
+            # Calculate position within chat area
+            x = chat_area_x + (col * chat_cell_width)
+            y = row * chat_cell_height
+            
+            # Ensure we don't exceed screen bounds
+            if x + chat_cell_width > usable_width:
+                print(f"⚠️  Warning: Panel would exceed screen width at x={x}")
+                x = usable_width - chat_cell_width
+            
+            chat_layout = PanelLayout(
+                pattern=extract_window_pattern(window.Name or ""),
+                position=WindowPosition(
+                    x=x,
+                    y=y,
+                    width=chat_cell_width,
+                    height=chat_cell_height
+                ),
+                monitor_index=target_monitor_index
+            )
+            
+            print(f"  Panel {idx+1}: {extract_window_pattern(window.Name or '')[:20]} at ({x}, {y}) {chat_cell_width}x{chat_cell_height}")
+            layouts.append(chat_layout)
+    
+    return layouts
+
+
+def configure_layouts_interactive(windows: List[auto.Control], monitors: List[MonitorInfo]) -> List[PanelLayout]:
+    """
+    Interactive configuration mode to capture current window positions.
+    
+    Args:
+        windows: List of VS Code windows
+        monitors: List of monitor info
+        
+    Returns:
+        List of configured PanelLayout objects
+    """
+    print("\n" + "="*80)
+    print("INTERACTIVE LAYOUT CONFIGURATION")
+    print("="*80)
+    print("\nThis will capture the current positions of your VS Code windows.")
+    print("Make sure your windows are arranged how you want them before continuing.\n")
+    
+    # Show monitor info
+    print("Detected monitors:")
+    for monitor in monitors:
+        print(f"  {monitor}")
+    print()
+    
+    input("Press Enter when ready to capture current layout...")
+    
+    layouts = []
+    
+    for idx, window in enumerate(windows, 1):
+        try:
+            title = window.Name or ""
+            position = get_window_position(window)
+            
+            if not position:
+                print(f"\n⚠️  Skipping window (no position): {title[:60]}")
+                continue
+            
+            print(f"\n[{idx}/{len(windows)}] Window: {title[:70]}")
+            print(f"  Current position: ({position.x}, {position.y}) {position.width}x{position.height}")
+            
+            # Determine which monitor
+            monitor_idx = 0
+            for m_idx, monitor in enumerate(monitors):
+                if (monitor.x <= position.x < monitor.x + monitor.width and
+                    monitor.y <= position.y < monitor.y + monitor.height):
+                    monitor_idx = m_idx
+                    break
+            
+            print(f"  Detected monitor: {monitor_idx}")
+            
+            # Ask for pattern
+            default_pattern = title.replace(VSCODE_TITLE_SUFFIX, "").strip()
+            pattern = input(f"  Enter pattern to match this window [{default_pattern}]: ").strip()
+            if not pattern:
+                pattern = default_pattern
+            
+            # Convert to monitor-relative coordinates
+            monitor = monitors[monitor_idx]
+            relative_pos = WindowPosition(
+                x=position.x - monitor.x,
+                y=position.y - monitor.y,
+                width=position.width,
+                height=position.height
+            )
+            
+            layout = PanelLayout(
+                pattern=pattern,
+                position=relative_pos,
+                monitor_index=monitor_idx
+            )
+            
+            layouts.append(layout)
+            print(f"  ✓ Captured layout for pattern: {pattern}")
+            
+        except Exception as e:
+            print(f"  ⚠️  Error capturing window: {e}")
+    
+    return layouts
+
+
+def main():
+    # 1. Parse arguments
+    parser = argparse.ArgumentParser(
+        description="Align VS Code panels to configured positions",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # DEFAULT (recommended): Heuristic tiling (no brittle title-based layouts)
+    python scripts/align_panels.py --desktop TF
+    python scripts/align_panels.py --all-desktops
+
+  # OPTIMIZE MODE (recommended): Learn from your current layout
+  # 1. Arrange panels roughly where you want them
+  # 2. Run optimize to perfect the layout and save it
+  python scripts/align_panels.py --desktop TF --optimize --monitor 2
+  # This saves as "2560x1440_N" where N is panel count
+  # Next time you have N panels on that monitor, it auto-applies!
+  
+    # Legacy: align using saved title-pattern layouts
+    python scripts/align_panels.py --desktop TF --use-config
+  
+  # Preview changes without applying
+  python scripts/align_panels.py --dry-run
+  
+  # Create grid layout automatically (fallback if no saved layout)
+  python scripts/align_panels.py --auto-grid
+  
+  # Interactive configuration (old method)
+  python scripts/align_panels.py --configure
+        """
+    )
+    
+    parser.add_argument(
+        "--desktop",
+        type=str,
+        default="TF",
+        help="Desktop to align (e.g., 'TF', 'Trading', or 'current')"
+    )
+    
+    parser.add_argument(
+        "--all-desktops",
+        action="store_true",
+        help="Align panels on all virtual desktops (ignores --desktop)"
+    )
+    
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview changes without applying them"
+    )
+    
+    parser.add_argument(
+        "--configure",
+        action="store_true",
+        help="Interactive mode to configure layout from current positions"
+    )
+
+    parser.add_argument(
+        "--use-config",
+        action="store_true",
+        help="Use saved title-pattern layout config instead of heuristic tiling"
+    )
+    
+    parser.add_argument(
+        "--config-name",
+        type=str,
+        default="default",
+        help="Configuration name to use/save (default: 'default')"
+    )
+    
+    parser.add_argument(
+        "--auto-grid",
+        action="store_true",
+        help="Automatically create grid layout if no configuration exists"
+    )
+    
+    parser.add_argument(
+        "--monitor",
+        type=int,
+        default=2,
+        help="Monitor index to use for auto-grid layout (default: 2 = primary)"
+    )
+    
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Limit number of windows to arrange in auto-grid (e.g., --limit 4 for 2x2)"
+    )
+    
+    parser.add_argument(
+        "--smart-pack",
+        action="store_true",
+        help="Use smart packing layout (preserves current sizes, minimizes gaps)"
+    )
+    
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Optimize current window arrangement (learns from your layout and perfects it)"
+    )
+    
+    args = parser.parse_args()
+
+    original_desktop_name = _get_current_virtual_desktop_name()
+    did_switch = False
+    
+    # 2. Get monitor information
+    monitors = get_monitor_info()
+    print("\nDetected monitors:")
+    for monitor in monitors:
+        print(f"  {monitor}")
+    print()
+    
+    # 3. Handle --configure mode (early return)
+    if args.configure:
+        # Switch to desktop if needed
+        if args.desktop != "current" and needs_desktop_switch(args.desktop):
+            print(f"Switching to desktop: {args.desktop}")
+            switch_to_desktop(args.desktop)
+            import time
+            time.sleep(1.0)
+        
+        # Find VS Code windows
+        print("Scanning for VS Code windows...")
+        windows = find_all_vscode_windows()
+        
+        if not windows:
+            print(f"⚠️  No VS Code windows found on desktop '{args.desktop}'")
+            return 1
+        
+        print(f"Found {len(windows)} VS Code window(s)\n")
+        
+        # Configure layouts interactively
+        layouts = configure_layouts_interactive(windows, monitors)
+        
+        if not layouts:
+            print("\n⚠️  No layouts captured")
+            return 1
+        
+        print(f"\n✅ Captured {len(layouts)} layout(s)")
+        
+        # Save configuration
+        config_name = args.config_name
+        if args.desktop != "current":
+            config_name = args.desktop
+        
+        if save_layout_config(layouts, config_name):
+            print(f"\n✅ Configuration saved as '{config_name}'")
+            return 0
+        else:
+            return 1
+    
+    try:
+        # 4. Align mode - determine which desktops to process
+        desktops_to_process = []
+        if args.all_desktops:
+            print("Getting all virtual desktops...")
+            try:
+                import pyvda
+
+                all_desktops = pyvda.get_virtual_desktops()
+                desktops_to_process = [d.name for d in all_desktops]
+                print(f"Found {len(desktops_to_process)} virtual desktops: {', '.join(desktops_to_process)}\n")
+            except Exception as e:
+                print(f"⚠️  Error getting virtual desktops: {e}")
+                print("Falling back to single desktop mode\n")
+                desktops_to_process = [args.desktop]
+        else:
+            desktops_to_process = [args.desktop]
+
+        # 5. Process each desktop
+        total_aligned = 0
+        total_skipped = 0
+
+        for desktop_name in desktops_to_process:
+            if len(desktops_to_process) > 1:
+                print(f"\n{'='*80}")
+                print(f"Processing desktop: {desktop_name}")
+                print(f"{'='*80}\n")
+
+            # Switch to desktop if needed
+            if desktop_name != "current" and needs_desktop_switch(desktop_name):
+                print(f"Switching to desktop: {desktop_name}")
+                switch_to_desktop(desktop_name)
+                did_switch = True
+                import time
+
+                time.sleep(1.0)  # Wait for desktop switch
+
+            # Find VS Code windows on this desktop
+            print("Scanning for VS Code windows...")
+            windows = find_all_vscode_windows()
+
+            if not windows:
+                print(f"⚠️  No VS Code windows found on desktop '{desktop_name}'")
+                continue
+
+            print(f"Found {len(windows)} VS Code window(s)\n")
+
+            # Default mode: configless heuristic tiling (monitor orientation + main window + count)
+            # This avoids brittle title-based matching (chat/task titles change across runs).
+            if not (args.optimize or args.auto_grid or args.smart_pack or args.use_config):
+                if args.dry_run and len(desktops_to_process) == 1:
+                    print("DRY RUN MODE - No changes will be made\n")
+
+                aligned, skipped = tile_windows_by_monitor_heuristic(windows, monitors, dry_run=args.dry_run)
+                total_aligned += aligned
+                total_skipped += skipped
+
+                if len(desktops_to_process) > 1:
+                    print(f"\nDesktop '{desktop_name}' results: {aligned} tiled, {skipped} skipped")
+                continue
+
+            # Determine config name for this desktop
+            config_name = args.config_name
+            if desktop_name != "current":
+                config_name = desktop_name
+
+            # Load or create layouts
+            layouts = []
+
+            # For optimize mode, create optimized layout from current positions
+            if args.optimize:
+                print("\n✨ Optimizing current window arrangement...")
+                layouts = optimize_current_layout(windows, monitors, args.monitor, args.limit)
+
+                if layouts:
+                    print(f"\n✅ Created {len(layouts)} optimized layout(s)")
+
+                    # Save with monitor+count key
+                    if monitors and args.monitor < len(monitors):
+                        monitor = monitors[args.monitor]
+                        panel_count = len(layouts)
+                        config_key = f"{monitor.width}x{monitor.height}_{panel_count}"
+                        print(f"Saving as '{config_key}' (monitor size + panel count)")
+                        if save_layout_config(layouts, config_key):
+                            print(f"✅ Optimized configuration saved as '{config_key}'")
+                            print(
+                                f"   This layout will auto-apply for {panel_count} panels on {monitor.width}x{monitor.height} monitor"
+                            )
+                        else:
+                            print("⚠️  Warning: Could not save optimized configuration")
+                else:
+                    print("⚠️  Failed to create optimized layout")
+                    if len(desktops_to_process) == 1:
+                        return 1
+                    continue
+
+            # Try loading by monitor+count first for auto-matching
+            if not layouts and not args.auto_grid and not args.smart_pack:
+                if args.monitor < len(monitors):
+                    # Count windows on target monitor to try auto-match
+                    monitor = monitors[args.monitor]
+                    window_count = 0
+                    for window in windows:
+                        pos = get_window_position(window)
+                        if pos:
+                            center_x = pos.x + pos.width // 2
+                            center_y = pos.y + pos.height // 2
+                            if (
+                                monitor.x <= center_x < monitor.x + monitor.width
+                                and monitor.y <= center_y < monitor.y + monitor.height
+                            ):
+                                window_count += 1
+
+                    if args.limit and window_count > args.limit:
+                        window_count = args.limit
+
+                    # Try loading by monitor size + count
+                    if window_count > 0:
+                        auto_key = f"{monitor.width}x{monitor.height}_{window_count}"
+                        print(f"Looking for layout: {auto_key}")
+                        layouts = load_layout_config(auto_key)
+                        if layouts:
+                            print(
+                                f"✅ Found matching layout for {window_count} panels on {monitor.width}x{monitor.height}"
+                            )
+
+            # Fall back to desktop name config
+            if not layouts:
+                layouts = load_layout_config(config_name)
+
+            # If still no layouts, create auto-grid or smart-pack if requested
+            if not layouts:
+                if args.auto_grid or args.smart_pack:
+                    if args.smart_pack:
+                        print("\n🧩 No configuration found - creating smart pack layout...")
+                        layouts = create_smart_pack_layout(windows, monitors, args.monitor, args.limit)
+                    else:
+                        print("\n📐 No configuration found - creating auto-grid layout...")
+                        layouts = create_auto_grid_layout(windows, monitors, args.monitor, args.limit)
+
+                    if layouts:
+                        print(f"\n✅ Created {len(layouts)} layout(s) in grid arrangement")
+
+                        # Save the auto-generated layout with desktop name
+                        if save_layout_config(layouts, config_name):
+                            print(f"✅ Auto-grid configuration saved as '{config_name}'")
+                        else:
+                            print("⚠️  Warning: Could not save auto-grid configuration")
+                    else:
+                        print("⚠️  Failed to create auto-grid layout")
+                        if len(desktops_to_process) == 1:
+                            return 1
+                        continue
+                else:
+                    print(f"\n⚠️  No layout configuration found for '{config_name}'")
+                    if len(desktops_to_process) == 1:
+                        print("\nOptions:")
+                        print("  1. Smart pack layout (preserves sizes):")
+                        print("     python scripts/align_panels.py --smart-pack")
+                        print("  2. Auto-create grid layout:")
+                        print("     python scripts/align_panels.py --auto-grid")
+                        print("  3. Interactive configuration:")
+                        print(f"     python scripts/align_panels.py --configure --config-name {config_name}")
+                        return 1
+                    continue
+
+            print(f"Loaded {len(layouts)} layout configuration(s)\n")
+
+            # Align windows on this desktop
+            if args.dry_run and len(desktops_to_process) == 1:
+                print("DRY RUN MODE - No changes will be made\n")
+
+            aligned, skipped = align_panels(windows, layouts, monitors, dry_run=args.dry_run)
+            total_aligned += aligned
+            total_skipped += skipped
+
+            if len(desktops_to_process) > 1:
+                print(f"\nDesktop '{desktop_name}' results: {aligned} aligned, {skipped} skipped")
+    
+        # 6. Show final results
+        print(f"\n{'='*80}")
+        if len(desktops_to_process) > 1:
+            print(f"TOTAL RESULTS across {len(desktops_to_process)} desktops:")
+        print(f"Results: {total_aligned} aligned, {total_skipped} skipped")
+        if args.dry_run:
+            print("(DRY RUN - no actual changes made)")
+        print(f"{'='*80}")
+
+        return 0
+    finally:
+        # Always attempt to restore the desktop you started on.
+        if did_switch and original_desktop_name:
+            try:
+                print(f"\nRestoring original desktop: {original_desktop_name}")
+                switch_to_desktop(original_desktop_name)
+            except Exception as e:
+                print(f"⚠️  Failed to restore original desktop '{original_desktop_name}': {e}")
+
+
+if __name__ == "__main__":
+    sys.exit(main())

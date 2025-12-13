@@ -1,0 +1,7 @@
+Prompt 1 (Codex Max): Review the desktop agent automation system and identify any areas for improvement in the finished panel follow-through implementation. Focus on error handling, edge cases, and user experience.
+
+Prompt 2 (Codex): Analyze the rate limiting configuration and suggest optimizations based on current usage patterns. Consider the tradeoff between automation speed and API safety.
+
+Prompt 3 (Codex Mini): Check for code duplication across the automation modules and suggest refactoring opportunities to improve maintainability.
+
+Prompt 4 (Grok): Review the documentation in the docs/ folder and ensure it accurately reflects the current implementation, especially for new features.

@@ -1,0 +1,15 @@
+pyautogui
+keyboard
+openai
+pillow
+screeninfo
+uiautomation
+python-dotenv
+pyvda
+jsonschema
+
+[dev]
+pytest>=8
+pytest-cov>=5
+black>=24
+pylint>=3

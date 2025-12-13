@@ -1,0 +1,52 @@
+Metadata-Version: 2.1
+Name: pyvda
+Version: 0.5.0
+Summary: Python implementation of the VirtualDesktopAccessor for manipulating Windows 10 virtual desktops.
+Home-page: https://github.com/mrob95/py-VirtualDesktopAccessor
+Author: Mike Roberts
+Author-email: mike.roberts.2k10@googlemail.com
+License: LICENSE.txt
+Classifier: Environment :: Win32 (MS Windows)
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Programming Language :: Python :: 3.7
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+Requires-Dist: pywin32
+Requires-Dist: comtypes
+
+# Python Virtual Desktop Accessor
+Python module providing programmatic access to most of the settings accessed through the [Windows task view](https://en.wikipedia.org/wiki/Task_View).
+Including switching virtual desktops, moving windows between virtual desktops, pinning windows and listing the windows on a desktop.
+
+Originally based on https://github.com/Ciantic/VirtualDesktopAccessor.
+
+## Installation
+```
+pip install pyvda
+```
+
+## Example usage
+```python
+from pyvda import AppView, get_apps_by_z_order, VirtualDesktop, get_virtual_desktops
+
+number_of_active_desktops = len(get_virtual_desktops())
+print(f"There are {number_of_active_desktops} active desktops")
+
+current_desktop = VirtualDesktop.current()
+print(f"Current desktop is number {current_desktop}")
+
+current_window = AppView.current()
+target_desktop = VirtualDesktop(5)
+current_window.move(target_desktop)
+print(f"Moved window {current_window.hwnd} to {target_desktop.number}")
+
+print("Going to desktop number 5")
+VirtualDesktop(5).go()
+
+print("Pinning the current window")
+AppView.current().pin()
+```
+
+## Documentation
+Full API documentation can be found at [Read the Docs](https://pyvda.readthedocs.io/en/latest/index.html)

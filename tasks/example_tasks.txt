@@ -1,0 +1,3 @@
+Review the new README draft for clarity and completeness.
+Run the automated linting script and summarize any failures.
+Draft a short overview of the Copilot automation toolkit for social channels.

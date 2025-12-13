@@ -1,0 +1,4 @@
+automation/config.json
+automation/state.json
+*.log
+__pycache__/

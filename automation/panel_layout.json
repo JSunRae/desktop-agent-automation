@@ -1,0 +1,1330 @@
+{
+  "default": [
+    {
+      "pattern": "Medium Priority Task 8: A",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1664,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 8: A",
+      "position": {
+        "x": 1664,
+        "y": 0,
+        "width": 896,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1664,
+        "y": 453,
+        "width": 896,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1664,
+        "y": 906,
+        "width": 896,
+        "height": 453
+      },
+      "monitor_index": 2
+    }
+  ],
+  "TF": [
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1664,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 1664,
+        "y": 0,
+        "width": 448,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "L2 dataset manifest audit",
+      "position": {
+        "x": 2112,
+        "y": 0,
+        "width": 448,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: CLI-FIX-002-TRAI",
+      "position": {
+        "x": 1664,
+        "y": 453,
+        "width": 448,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Typing enhancements for s",
+      "position": {
+        "x": 2112,
+        "y": 453,
+        "width": 448,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Adding type hints and uni",
+      "position": {
+        "x": 1664,
+        "y": 906,
+        "width": 448,
+        "height": 453
+      },
+      "monitor_index": 2
+    }
+  ],
+  "smartpack": [
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1664,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 0,
+        "y": 1360,
+        "width": 1280,
+        "height": 0
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: GCOP-EXCLUSION-V",
+      "position": {
+        "x": 1680,
+        "y": 0,
+        "width": 480,
+        "height": 511
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 1716,
+        "y": 560,
+        "width": 529,
+        "height": 449
+      },
+      "monitor_index": 2
+    }
+  ],
+  "smartpack2": [
+    {
+      "pattern": "align_panels.py",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1659,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1659,
+        "y": 0,
+        "width": 901,
+        "height": 317
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1659,
+        "y": 317,
+        "width": 896,
+        "height": 317
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1659,
+        "y": 634,
+        "width": 896,
+        "height": 317
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tftest": [
+    {
+      "pattern": "all_prepared_symbols.txt",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: GCOP-EXCLUSION-V",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "L2 dataset manifest audit",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: CLI-FIX-002-TRAI",
+      "position": {
+        "x": 1280,
+        "y": 475,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Typing enhancements for s",
+      "position": {
+        "x": 1920,
+        "y": 475,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 0,
+        "y": 951,
+        "width": 853,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Fortnightly monitoring re",
+      "position": {
+        "x": 853,
+        "y": 951,
+        "width": 853,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 1706,
+        "y": 951,
+        "width": 853,
+        "height": 409
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tf8": [
+    {
+      "pattern": "Chat 3",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1280,
+        "y": 453,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1280,
+        "y": 906,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tf4panels": [
+    {
+      "pattern": "Chat 3",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 3_1",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1280,
+        "y": 453,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1280,
+        "y": 906,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tf5panels": [
+    {
+      "pattern": "Chat 3",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1280,
+        "y": 453,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1280,
+        "y": 906,
+        "width": 1280,
+        "height": 453
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tf9panels": [
+    {
+      "pattern": "Review the repo, and all ",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Review the repo, and all ",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1280,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1920,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tf6panels": [
+    {
+      "pattern": "Review the repo, and all ",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Review the repo, and all ",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Medium Priority Task 7: C",
+      "position": {
+        "x": 1280,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1920,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    }
+  ],
+  "test-fix": [
+    {
+      "pattern": "Health check and ledger r",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Fortnightly monitoring re",
+      "position": {
+        "x": 1280,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Verification of symbol ex",
+      "position": {
+        "x": 1920,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    }
+  ],
+  "final-test": [
+    {
+      "pattern": "Task ID: (New) GCOP-TEST-",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Health check and ledger r",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Verification of symbol ex",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "New sweep preflight valid",
+      "position": {
+        "x": 1280,
+        "y": 475,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 1920,
+        "y": 475,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Fortnightly monitoring re",
+      "position": {
+        "x": 0,
+        "y": 951,
+        "width": 2560,
+        "height": 409
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tf-main": [
+    {
+      "pattern": "Chat 3",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 1360
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 3_1",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 9",
+      "position": {
+        "x": 1280,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 11",
+      "position": {
+        "x": 1920,
+        "y": 680,
+        "width": 640,
+        "height": 680
+      },
+      "monitor_index": 2
+    }
+  ],
+  "tfcenter": [
+    {
+      "pattern": "Fortnightly monitoring re",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: (New) GCOP-TEST-",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Health check and ledger r",
+      "position": {
+        "x": 1920,
+        "y": 0,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Verification of symbol ex",
+      "position": {
+        "x": 1280,
+        "y": 475,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Adding --max-samples OOM",
+      "position": {
+        "x": 1920,
+        "y": 475,
+        "width": 640,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 0,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Fortnightly monitoring re",
+      "position": {
+        "x": 365,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "L2 dataset manifest audit",
+      "position": {
+        "x": 730,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Typing enhancements for s",
+      "position": {
+        "x": 1095,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Adding type hints and uni",
+      "position": {
+        "x": 1460,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "MODEL: Grok \u2014 file copy &",
+      "position": {
+        "x": 1825,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: DOC-ARCHIVE-CLEA",
+      "position": {
+        "x": 2190,
+        "y": 951,
+        "width": 365,
+        "height": 409
+      },
+      "monitor_index": 2
+    }
+  ],
+  "2560x1440_14": [
+    {
+      "pattern": "Task ID: (New) GCOP-TEST-",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 853,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Health check and ledger r",
+      "position": {
+        "x": 853,
+        "y": 0,
+        "width": 853,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "L2 dataset manifest audit",
+      "position": {
+        "x": 1706,
+        "y": 0,
+        "width": 853,
+        "height": 475
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: gcop-l2-manifest-au",
+      "position": {
+        "x": 0,
+        "y": 475,
+        "width": 512,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: gap-opener-featu",
+      "position": {
+        "x": 512,
+        "y": 475,
+        "width": 512,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 16",
+      "position": {
+        "x": 1024,
+        "y": 475,
+        "width": 512,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Adding --max-samples OOM",
+      "position": {
+        "x": 1536,
+        "y": 475,
+        "width": 512,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Typing enhancements for s",
+      "position": {
+        "x": 2048,
+        "y": 475,
+        "width": 512,
+        "height": 951
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 0,
+        "y": 1426,
+        "width": 426,
+        "height": 484
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 10",
+      "position": {
+        "x": 426,
+        "y": 1426,
+        "width": 426,
+        "height": 484
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 11",
+      "position": {
+        "x": 852,
+        "y": 1426,
+        "width": 426,
+        "height": 484
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 12",
+      "position": {
+        "x": 1278,
+        "y": 1426,
+        "width": 426,
+        "height": 484
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "MODEL: Grok \u2014 file copy &",
+      "position": {
+        "x": 1704,
+        "y": 1426,
+        "width": 426,
+        "height": 484
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: DOC-ARCHIVE-CLEA",
+      "position": {
+        "x": 2130,
+        "y": 1426,
+        "width": 426,
+        "height": 484
+      },
+      "monitor_index": 2
+    }
+  ],
+  "2560x1440_15": [
+    {
+      "pattern": "Health check and ledger r",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 820,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-L2-MANIFEST-AU",
+      "position": {
+        "x": 820,
+        "y": 0,
+        "width": 820,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "L2 dataset manifest audit",
+      "position": {
+        "x": 1640,
+        "y": 0,
+        "width": 920,
+        "height": 453
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 15",
+      "position": {
+        "x": 0,
+        "y": 453,
+        "width": 1295,
+        "height": 887
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: gap-opener-featu",
+      "position": {
+        "x": 1295,
+        "y": 453,
+        "width": 405,
+        "height": 887
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 16",
+      "position": {
+        "x": 1700,
+        "y": 453,
+        "width": 405,
+        "height": 887
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Typing enhancements for s",
+      "position": {
+        "x": 2105,
+        "y": 453,
+        "width": 455,
+        "height": 887
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: gcop-l2-manifest-au",
+      "position": {
+        "x": 0,
+        "y": 1340,
+        "width": 305,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 305,
+        "y": 1340,
+        "width": 324,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 10",
+      "position": {
+        "x": 629,
+        "y": 1340,
+        "width": 324,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: (New) GCOP-TEST-",
+      "position": {
+        "x": 953,
+        "y": 1340,
+        "width": 305,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 11",
+      "position": {
+        "x": 1258,
+        "y": 1340,
+        "width": 324,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 12",
+      "position": {
+        "x": 1582,
+        "y": 1340,
+        "width": 324,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "MODEL: Grok \u2014 file copy &",
+      "position": {
+        "x": 1906,
+        "y": 1340,
+        "width": 324,
+        "height": 487
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: DOC-ARCHIVE-CLEA",
+      "position": {
+        "x": 2230,
+        "y": 1340,
+        "width": 330,
+        "height": 487
+      },
+      "monitor_index": 2
+    }
+  ],
+  "2560x1440_13": [
+    {
+      "pattern": "TASK: GCOP-L2-MANIFEST-AU",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1280,
+        "height": 910
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: gap-opener-featu",
+      "position": {
+        "x": 1280,
+        "y": 0,
+        "width": 426,
+        "height": 455
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: DOC-ARCHIVE-CLEA",
+      "position": {
+        "x": 1706,
+        "y": 0,
+        "width": 426,
+        "height": 455
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 16",
+      "position": {
+        "x": 2132,
+        "y": 0,
+        "width": 428,
+        "height": 455
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Typing enhancements for s",
+      "position": {
+        "x": 1280,
+        "y": 455,
+        "width": 426,
+        "height": 455
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: gcop-l2-manifest-au",
+      "position": {
+        "x": 1706,
+        "y": 455,
+        "width": 426,
+        "height": 455
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-L2-MANIFEST-AU",
+      "position": {
+        "x": 2132,
+        "y": 455,
+        "width": 428,
+        "height": 455
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "L2 dataset manifest audit",
+      "position": {
+        "x": 0,
+        "y": 910,
+        "width": 426,
+        "height": 490
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Task ID: (New) GCOP-TEST-",
+      "position": {
+        "x": 426,
+        "y": 910,
+        "width": 426,
+        "height": 490
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 11",
+      "position": {
+        "x": 852,
+        "y": 910,
+        "width": 426,
+        "height": 490
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 12",
+      "position": {
+        "x": 1278,
+        "y": 910,
+        "width": 426,
+        "height": 490
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "Chat 10",
+      "position": {
+        "x": 1704,
+        "y": 910,
+        "width": 426,
+        "height": 490
+      },
+      "monitor_index": 2
+    },
+    {
+      "pattern": "TASK: GCOP-TYPING-MEMORY-",
+      "position": {
+        "x": 2130,
+        "y": 910,
+        "width": 430,
+        "height": 490
+      },
+      "monitor_index": 2
+    }
+  ],
+  "1080x1920_5": [
+    {
+      "pattern": "Task assignment and agent",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 486,
+        "height": 626
+      },
+      "monitor_index": 0
+    },
+    {
+      "pattern": "Task ID: (New) GCOP-BENCH",
+      "position": {
+        "x": 0,
+        "y": 626,
+        "width": 486,
+        "height": 626
+      },
+      "monitor_index": 0
+    },
+    {
+      "pattern": "Chat 5",
+      "position": {
+        "x": 0,
+        "y": 1252,
+        "width": 486,
+        "height": 628
+      },
+      "monitor_index": 0
+    },
+    {
+      "pattern": "Chat 8",
+      "position": {
+        "x": 486,
+        "y": 0,
+        "width": 594,
+        "height": 1259
+      },
+      "monitor_index": 0
+    },
+    {
+      "pattern": "Chat 7",
+      "position": {
+        "x": 486,
+        "y": 1259,
+        "width": 594,
+        "height": 621
+      },
+      "monitor_index": 0
+    }
+  ],
+  "1080x1920_6": [
+    {
+      "pattern": "Baseline matrix completio",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 540,
+        "height": 626
+      },
+      "monitor_index": 1
+    },
+    {
+      "pattern": "Adding --max-samples OOM",
+      "position": {
+        "x": 540,
+        "y": 0,
+        "width": 540,
+        "height": 626
+      },
+      "monitor_index": 1
+    },
+    {
+      "pattern": "Health check and ledger r",
+      "position": {
+        "x": 0,
+        "y": 626,
+        "width": 540,
+        "height": 626
+      },
+      "monitor_index": 1
+    },
+    {
+      "pattern": "Chat 2",
+      "position": {
+        "x": 540,
+        "y": 626,
+        "width": 540,
+        "height": 626
+      },
+      "monitor_index": 1
+    },
+    {
+      "pattern": "Chat 15",
+      "position": {
+        "x": 0,
+        "y": 1252,
+        "width": 540,
+        "height": 628
+      },
+      "monitor_index": 1
+    },
+    {
+      "pattern": "MODEL: Grok \u2014 file copy &",
+      "position": {
+        "x": 540,
+        "y": 1252,
+        "width": 540,
+        "height": 628
+      },
+      "monitor_index": 1
+    }
+  ]
+}

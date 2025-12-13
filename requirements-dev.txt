@@ -1,0 +1,13 @@
+# Developer tooling install (tests + lint/format)
+#
+# Recommended:
+#   pip install -r requirements-dev.txt
+#
+# This keeps the developer entrypoint stable while the canonical dependency
+# list lives in pyproject.toml under [project.optional-dependencies].
+#
+# If you want more reproducibility, keep constraints-dev.txt updated and
+# install with:
+#   pip install -r requirements-dev.txt -c constraints-dev.txt
+
+-e ".[dev]"

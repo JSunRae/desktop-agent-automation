@@ -1,0 +1,22 @@
+{
+  "generated_at": "2025-12-12T20:22:19.288427",
+  "label": "monthly",
+  "days_included": 30,
+  "success_rate": 0.0,
+  "cost_per_completion": 0.0,
+  "tasks_per_hour": 1.6666666666666667,
+  "top_repos": [
+    {
+      "repo": "my-repo",
+      "hour": 19,
+      "count": 2
+    },
+    {
+      "repo": "other-repo",
+      "hour": 19,
+      "count": 1
+    }
+  ],
+  "model_mix": [],
+  "alerts": []
+}

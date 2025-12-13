@@ -1,0 +1,3199 @@
+{
+  "version": 1,
+  "generated_at": "2025-12-12T13:53:24.039790+00:00",
+  "repos": [
+    {
+      "repo_name": "desktop-agent-automation",
+      "todo_paths": [
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\desktop-agent-automation\\docs\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\desktop-agent-automation\\docs\\todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\desktop-agent-automation\\docs\\TODO.md"
+      ],
+      "parsed_at": "2025-12-12T13:53:24.010283+00:00",
+      "items": [
+        {
+          "text": "API call to classify idle panel output before seeding",
+          "title": "API call to classify idle panel output before seeding",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Handle \"OK\" button after Keep Edits if confirmation needed",
+          "title": "Handle \"OK\" button after Keep Edits if confirmation needed",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Add retry logic if New Chat fails to open",
+          "title": "Add retry logic if New Chat fails to open",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Better error recovery for failed seeding attempts",
+          "title": "Better error recovery for failed seeding attempts",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Document model picker UI dependencies",
+          "title": "Document model picker UI dependencies",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "Create troubleshooting guide for common failures",
+          "title": "Create troubleshooting guide for common failures",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "Multi-repo support with separate prompt batches",
+          "title": "Multi-repo support with separate prompt batches",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Agent assignment tracking (which prompt \u2192 which panel)",
+          "title": "Agent assignment tracking (which prompt \u2192 which panel)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Feedback loop to parse agent responses",
+          "title": "Feedback loop to parse agent responses",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Cost tracking for OpenAI spend",
+          "title": "Cost tracking for OpenAI spend",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Add comprehensive error handling throughout",
+          "title": "Add comprehensive error handling throughout",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Code Quality"
+        },
+        {
+          "text": "Validate dry-run on real test panel (\"Testing window functionality - desktop-agent-automation\") - Depends on: test panel setup, dry-run mode enabled",
+          "title": "Validate dry-run on real test panel (\"Testing window functionality - desktop-agent-automation\") - Depends on: test panel setup, dry-run mode enabled",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled",
+          "title": "Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active",
+          "title": "Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking",
+          "title": "Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection",
+          "title": "Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation",
+          "title": "Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates",
+          "title": "Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Handle \"OK\" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling",
+          "title": "Handle \"OK\" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries",
+          "title": "Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification",
+          "title": "Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management",
+          "title": "Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata",
+          "title": "Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates",
+          "title": "Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics",
+          "title": "Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Fix window scanning on inactive desktops when using cache",
+          "title": "Fix window scanning on inactive desktops when using cache",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Update README.md with finished-panel follow-through section",
+          "title": "Update README.md with finished-panel follow-through section",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Deepen quick panel detection depth so Allow dialogs classify as live",
+          "title": "Deepen quick panel detection depth so Allow dialogs classify as live",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Always sweep idle windows to catch stray Allow dialogs after live passes",
+          "title": "Always sweep idle windows to catch stray Allow dialogs after live passes",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Reacquire cached window handles after desktop switches to click Trading allows reliably",
+          "title": "Reacquire cached window handles after desktop switches to click Trading allows reliably",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Add environment variable reference table",
+          "title": "Add environment variable reference table",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Fix type errors in panel_tracker.py (uiautomation stubs)",
+          "title": "Fix type errors in panel_tracker.py (uiautomation stubs)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Refactor duplicated code across modules (logging utils)",
+          "title": "Refactor duplicated code across modules (logging utils)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Validate finished panel follow-through on real test panel",
+          "title": "Validate finished panel follow-through on real test panel",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Test live mode with benign prompt",
+          "title": "Test live mode with benign prompt",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Monitor logs for false positives",
+          "title": "Monitor logs for false positives",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Implement prompt queue/round-robin",
+          "title": "Implement prompt queue/round-robin",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Add repo-root detection from foreground VS Code window title",
+          "title": "Add repo-root detection from foreground VS Code window title",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Add metrics tracking for seeded prompts and model selections",
+          "title": "Add metrics tracking for seeded prompts and model selections",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Implement finished panel detection",
+          "title": "Implement finished panel detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Add dry-run mode for safe testing",
+          "title": "Add dry-run mode for safe testing",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Create unit tests for finished panel followups",
+          "title": "Create unit tests for finished panel followups",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Update system prompt for master orchestrator",
+          "title": "Update system prompt for master orchestrator",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Add workspace detection for docs folders",
+          "title": "Add workspace detection for docs folders",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)",
+          "title": "Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Validate finished panel follow-through with validation infrastructure",
+          "title": "Validate finished panel follow-through with validation infrastructure",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Create live mode testing prerequisites checker",
+          "title": "Create live mode testing prerequisites checker",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement log analysis tool for false positive detection",
+          "title": "Implement log analysis tool for false positive detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement comprehensive metrics tracking for prompts and models",
+          "title": "Implement comprehensive metrics tracking for prompts and models",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
+          "title": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "Prompt file location: `tasks/generated_prompts/latest.txt`",
+          "title": "Prompt file location: `tasks/generated_prompts/latest.txt`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "Panel state persisted in: `automation/panel_state.json`",
+          "title": "Panel state persisted in: `automation/panel_state.json`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "API call to classify idle panel output before seeding",
+          "title": "API call to classify idle panel output before seeding",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Handle \"OK\" button after Keep Edits if confirmation needed",
+          "title": "Handle \"OK\" button after Keep Edits if confirmation needed",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Add retry logic if New Chat fails to open",
+          "title": "Add retry logic if New Chat fails to open",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Better error recovery for failed seeding attempts",
+          "title": "Better error recovery for failed seeding attempts",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Document model picker UI dependencies",
+          "title": "Document model picker UI dependencies",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "Create troubleshooting guide for common failures",
+          "title": "Create troubleshooting guide for common failures",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "Multi-repo support with separate prompt batches",
+          "title": "Multi-repo support with separate prompt batches",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Agent assignment tracking (which prompt \u2192 which panel)",
+          "title": "Agent assignment tracking (which prompt \u2192 which panel)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Feedback loop to parse agent responses",
+          "title": "Feedback loop to parse agent responses",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Cost tracking for OpenAI spend",
+          "title": "Cost tracking for OpenAI spend",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Add comprehensive error handling throughout",
+          "title": "Add comprehensive error handling throughout",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Code Quality"
+        },
+        {
+          "text": "Validate dry-run on real test panel (\"Testing window functionality - desktop-agent-automation\") - Depends on: test panel setup, dry-run mode enabled",
+          "title": "Validate dry-run on real test panel (\"Testing window functionality - desktop-agent-automation\") - Depends on: test panel setup, dry-run mode enabled",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled",
+          "title": "Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active",
+          "title": "Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking",
+          "title": "Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection",
+          "title": "Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation",
+          "title": "Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates",
+          "title": "Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Handle \"OK\" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling",
+          "title": "Handle \"OK\" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries",
+          "title": "Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification",
+          "title": "Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management",
+          "title": "Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata",
+          "title": "Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates",
+          "title": "Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics",
+          "title": "Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Fix window scanning on inactive desktops when using cache",
+          "title": "Fix window scanning on inactive desktops when using cache",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Update README.md with finished-panel follow-through section",
+          "title": "Update README.md with finished-panel follow-through section",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Deepen quick panel detection depth so Allow dialogs classify as live",
+          "title": "Deepen quick panel detection depth so Allow dialogs classify as live",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Always sweep idle windows to catch stray Allow dialogs after live passes",
+          "title": "Always sweep idle windows to catch stray Allow dialogs after live passes",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Reacquire cached window handles after desktop switches to click Trading allows reliably",
+          "title": "Reacquire cached window handles after desktop switches to click Trading allows reliably",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Add environment variable reference table",
+          "title": "Add environment variable reference table",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Fix type errors in panel_tracker.py (uiautomation stubs)",
+          "title": "Fix type errors in panel_tracker.py (uiautomation stubs)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Refactor duplicated code across modules (logging utils)",
+          "title": "Refactor duplicated code across modules (logging utils)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Validate finished panel follow-through on real test panel",
+          "title": "Validate finished panel follow-through on real test panel",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Test live mode with benign prompt",
+          "title": "Test live mode with benign prompt",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Monitor logs for false positives",
+          "title": "Monitor logs for false positives",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Implement prompt queue/round-robin",
+          "title": "Implement prompt queue/round-robin",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Add repo-root detection from foreground VS Code window title",
+          "title": "Add repo-root detection from foreground VS Code window title",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Add metrics tracking for seeded prompts and model selections",
+          "title": "Add metrics tracking for seeded prompts and model selections",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Implement finished panel detection",
+          "title": "Implement finished panel detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Add dry-run mode for safe testing",
+          "title": "Add dry-run mode for safe testing",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Create unit tests for finished panel followups",
+          "title": "Create unit tests for finished panel followups",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Update system prompt for master orchestrator",
+          "title": "Update system prompt for master orchestrator",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Add workspace detection for docs folders",
+          "title": "Add workspace detection for docs folders",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)",
+          "title": "Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Validate finished panel follow-through with validation infrastructure",
+          "title": "Validate finished panel follow-through with validation infrastructure",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Create live mode testing prerequisites checker",
+          "title": "Create live mode testing prerequisites checker",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement log analysis tool for false positive detection",
+          "title": "Implement log analysis tool for false positive detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement comprehensive metrics tracking for prompts and models",
+          "title": "Implement comprehensive metrics tracking for prompts and models",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
+          "title": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "Prompt file location: `tasks/generated_prompts/latest.txt`",
+          "title": "Prompt file location: `tasks/generated_prompts/latest.txt`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "Panel state persisted in: `automation/panel_state.json`",
+          "title": "Panel state persisted in: `automation/panel_state.json`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "API call to classify idle panel output before seeding",
+          "title": "API call to classify idle panel output before seeding",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Handle \"OK\" button after Keep Edits if confirmation needed",
+          "title": "Handle \"OK\" button after Keep Edits if confirmation needed",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Add retry logic if New Chat fails to open",
+          "title": "Add retry logic if New Chat fails to open",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Better error recovery for failed seeding attempts",
+          "title": "Better error recovery for failed seeding attempts",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Feature Enhancements"
+        },
+        {
+          "text": "Document model picker UI dependencies",
+          "title": "Document model picker UI dependencies",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "Create troubleshooting guide for common failures",
+          "title": "Create troubleshooting guide for common failures",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "Multi-repo support with separate prompt batches",
+          "title": "Multi-repo support with separate prompt batches",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Agent assignment tracking (which prompt \u2192 which panel)",
+          "title": "Agent assignment tracking (which prompt \u2192 which panel)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Feedback loop to parse agent responses",
+          "title": "Feedback loop to parse agent responses",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Cost tracking for OpenAI spend",
+          "title": "Cost tracking for OpenAI spend",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced Features"
+        },
+        {
+          "text": "Add comprehensive error handling throughout",
+          "title": "Add comprehensive error handling throughout",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Code Quality"
+        },
+        {
+          "text": "Validate dry-run on real test panel (\"Testing window functionality - desktop-agent-automation\") - Depends on: test panel setup, dry-run mode enabled",
+          "title": "Validate dry-run on real test panel (\"Testing window functionality - desktop-agent-automation\") - Depends on: test panel setup, dry-run mode enabled",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled",
+          "title": "Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active",
+          "title": "Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Immediate (High Priority)"
+        },
+        {
+          "text": "Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking",
+          "title": "Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection",
+          "title": "Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation",
+          "title": "Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates",
+          "title": "Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Short-term (Medium Priority)"
+        },
+        {
+          "text": "Handle \"OK\" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling",
+          "title": "Handle \"OK\" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries",
+          "title": "Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification",
+          "title": "Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Medium-term (Low Priority)"
+        },
+        {
+          "text": "Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management",
+          "title": "Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata",
+          "title": "Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates",
+          "title": "Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics",
+          "title": "Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Advanced (Future)"
+        },
+        {
+          "text": "Fix window scanning on inactive desktops when using cache",
+          "title": "Fix window scanning on inactive desktops when using cache",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Update README.md with finished-panel follow-through section",
+          "title": "Update README.md with finished-panel follow-through section",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Deepen quick panel detection depth so Allow dialogs classify as live",
+          "title": "Deepen quick panel detection depth so Allow dialogs classify as live",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Always sweep idle windows to catch stray Allow dialogs after live passes",
+          "title": "Always sweep idle windows to catch stray Allow dialogs after live passes",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Reacquire cached window handles after desktop switches to click Trading allows reliably",
+          "title": "Reacquire cached window handles after desktop switches to click Trading allows reliably",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Add environment variable reference table",
+          "title": "Add environment variable reference table",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Fix type errors in panel_tracker.py (uiautomation stubs)",
+          "title": "Fix type errors in panel_tracker.py (uiautomation stubs)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Refactor duplicated code across modules (logging utils)",
+          "title": "Refactor duplicated code across modules (logging utils)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 8, 2025)"
+        },
+        {
+          "text": "Validate finished panel follow-through on real test panel",
+          "title": "Validate finished panel follow-through on real test panel",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Test live mode with benign prompt",
+          "title": "Test live mode with benign prompt",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Monitor logs for false positives",
+          "title": "Monitor logs for false positives",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Implement prompt queue/round-robin",
+          "title": "Implement prompt queue/round-robin",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Add repo-root detection from foreground VS Code window title",
+          "title": "Add repo-root detection from foreground VS Code window title",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Add metrics tracking for seeded prompts and model selections",
+          "title": "Add metrics tracking for seeded prompts and model selections",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recent Completions (December 7, 2025)"
+        },
+        {
+          "text": "Implement finished panel detection",
+          "title": "Implement finished panel detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Add dry-run mode for safe testing",
+          "title": "Add dry-run mode for safe testing",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Create unit tests for finished panel followups",
+          "title": "Create unit tests for finished panel followups",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Update system prompt for master orchestrator",
+          "title": "Update system prompt for master orchestrator",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Add workspace detection for docs folders",
+          "title": "Add workspace detection for docs folders",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)",
+          "title": "Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Validate finished panel follow-through with validation infrastructure",
+          "title": "Validate finished panel follow-through with validation infrastructure",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Create live mode testing prerequisites checker",
+          "title": "Create live mode testing prerequisites checker",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement log analysis tool for false positive detection",
+          "title": "Implement log analysis tool for false positive detection",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Implement comprehensive metrics tracking for prompts and models",
+          "title": "Implement comprehensive metrics tracking for prompts and models",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Previous Completions"
+        },
+        {
+          "text": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
+          "title": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "Prompt file location: `tasks/generated_prompts/latest.txt`",
+          "title": "Prompt file location: `tasks/generated_prompts/latest.txt`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "Panel state persisted in: `automation/panel_state.json`",
+          "title": "Panel state persisted in: `automation/panel_state.json`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        }
+      ]
+    },
+    {
+      "repo_name": "Doc Sync Harmonizer",
+      "todo_paths": [
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Doc Sync Harmonizer\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Doc Sync Harmonizer\\todo.md"
+      ],
+      "parsed_at": "2025-12-12T13:53:24.017283+00:00",
+      "items": [
+        {
+          "text": "Restore DocSync CLI access in the staged workspace so agents can run `docsync scan` / `docsync validate` and capture WARN/ERROR logs for every repo.",
+          "title": "Restore DocSync CLI access in the staged workspace so agents can run `docsync scan` / `docsync validate` and capture WARN/ERROR logs for every repo.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Estate-Level"
+        },
+        {
+          "text": "Publish `ml-contracts/REPO_AUDIT.md` to the upstream repository and introduce a changelog that records contract governance milestones.",
+          "title": "Publish `ml-contracts/REPO_AUDIT.md` to the upstream repository and introduce a changelog that records contract governance milestones.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Estate-Level"
+        },
+        {
+          "text": "Align the shared responsibilities matrix wording across `ml-contracts`, `TF_1`, and `Trading-Win` READMEs now that Trading-Win established the latest format.",
+          "title": "Align the shared responsibilities matrix wording across `ml-contracts`, `TF_1`, and `Trading-Win` READMEs now that Trading-Win established the latest format.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Estate-Level"
+        },
+        {
+          "text": "Once DocSync tooling is available, rerun `docsync scan` and `docsync validate` from the repo root and archive the resulting reports with the work order.",
+          "title": "Once DocSync tooling is available, rerun `docsync scan` and `docsync validate` from the repo root and archive the resulting reports with the work order.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "ml-contracts"
+        },
+        {
+          "text": "Run `ruff format --check src/ tests/` (or apply the formatter) to resolve the 33 files currently failing the formatting gate.",
+          "title": "Run `ruff format --check src/ tests/` (or apply the formatter) to resolve the 33 files currently failing the formatting gate.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Scope and execute a plan to address the 662 `mypy` errors (annotation gaps, missing stubs) reported by `mypy src/`.",
+          "title": "Scope and execute a plan to address the 662 `mypy` errors (annotation gaps, missing stubs) reported by `mypy src/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Fix the failing pytest cases (`test_manifest_written`, `test_observability_keys_present_prepare`) by wiring dataset fixtures and updating CLI arguments to the current interface.",
+          "title": "Fix the failing pytest cases (`test_manifest_written`, `test_observability_keys_present_prepare`) by wiring dataset fixtures and updating CLI arguments to the current interface.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Document the MBP vs MBO data contract explicitly in `README.md` and `.github/copilot-instructions.md`, referencing the conversion workflow.",
+          "title": "Document the MBP vs MBO data contract explicitly in `README.md` and `.github/copilot-instructions.md`, referencing the conversion workflow.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Add guidance on updating the `contracts/` submodule when `ml-contracts` ships new schemas, including command sequence and downstream notification expectations.",
+          "title": "Add guidance on updating the `contracts/` submodule when `ml-contracts` ships new schemas, including command sequence and downstream notification expectations.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Introduce a quick-reference quality-gate table (Ruff, pytest \u226585% coverage, mypy/basedpyright) in the README/Copilot docs.",
+          "title": "Introduce a quick-reference quality-gate table (Ruff, pytest \u226585% coverage, mypy/basedpyright) in the README/Copilot docs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Re-run `python -m pytest -p no:sugar tests/` to capture a clean test result after the progress plugin interruption.",
+          "title": "Re-run `python -m pytest -p no:sugar tests/` to capture a clean test result after the progress plugin interruption.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Trading-Win"
+        },
+        {
+          "text": "Surface or add a DocSync scan/validate command or task so documentation updates can produce the required artifacts automatically.",
+          "title": "Surface or add a DocSync scan/validate command or task so documentation updates can produce the required artifacts automatically.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Trading-Win"
+        },
+        {
+          "text": "Coordinate with `TF_1` and `ml-contracts` to synchronize the shared responsibilities matrix language across all READMEs.",
+          "title": "Coordinate with `TF_1` and `ml-contracts` to synchronize the shared responsibilities matrix language across all READMEs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Trading-Win"
+        },
+        {
+          "text": "Restore DocSync CLI access in the staged workspace so agents can run `docsync scan` / `docsync validate` and capture WARN/ERROR logs for every repo.",
+          "title": "Restore DocSync CLI access in the staged workspace so agents can run `docsync scan` / `docsync validate` and capture WARN/ERROR logs for every repo.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Estate-Level"
+        },
+        {
+          "text": "Publish `ml-contracts/REPO_AUDIT.md` to the upstream repository and introduce a changelog that records contract governance milestones.",
+          "title": "Publish `ml-contracts/REPO_AUDIT.md` to the upstream repository and introduce a changelog that records contract governance milestones.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Estate-Level"
+        },
+        {
+          "text": "Align the shared responsibilities matrix wording across `ml-contracts`, `TF_1`, and `Trading-Win` READMEs now that Trading-Win established the latest format.",
+          "title": "Align the shared responsibilities matrix wording across `ml-contracts`, `TF_1`, and `Trading-Win` READMEs now that Trading-Win established the latest format.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Estate-Level"
+        },
+        {
+          "text": "Once DocSync tooling is available, rerun `docsync scan` and `docsync validate` from the repo root and archive the resulting reports with the work order.",
+          "title": "Once DocSync tooling is available, rerun `docsync scan` and `docsync validate` from the repo root and archive the resulting reports with the work order.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "ml-contracts"
+        },
+        {
+          "text": "Run `ruff format --check src/ tests/` (or apply the formatter) to resolve the 33 files currently failing the formatting gate.",
+          "title": "Run `ruff format --check src/ tests/` (or apply the formatter) to resolve the 33 files currently failing the formatting gate.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Scope and execute a plan to address the 662 `mypy` errors (annotation gaps, missing stubs) reported by `mypy src/`.",
+          "title": "Scope and execute a plan to address the 662 `mypy` errors (annotation gaps, missing stubs) reported by `mypy src/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Fix the failing pytest cases (`test_manifest_written`, `test_observability_keys_present_prepare`) by wiring dataset fixtures and updating CLI arguments to the current interface.",
+          "title": "Fix the failing pytest cases (`test_manifest_written`, `test_observability_keys_present_prepare`) by wiring dataset fixtures and updating CLI arguments to the current interface.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Document the MBP vs MBO data contract explicitly in `README.md` and `.github/copilot-instructions.md`, referencing the conversion workflow.",
+          "title": "Document the MBP vs MBO data contract explicitly in `README.md` and `.github/copilot-instructions.md`, referencing the conversion workflow.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Add guidance on updating the `contracts/` submodule when `ml-contracts` ships new schemas, including command sequence and downstream notification expectations.",
+          "title": "Add guidance on updating the `contracts/` submodule when `ml-contracts` ships new schemas, including command sequence and downstream notification expectations.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Introduce a quick-reference quality-gate table (Ruff, pytest \u226585% coverage, mypy/basedpyright) in the README/Copilot docs.",
+          "title": "Introduce a quick-reference quality-gate table (Ruff, pytest \u226585% coverage, mypy/basedpyright) in the README/Copilot docs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "TF_1"
+        },
+        {
+          "text": "Re-run `python -m pytest -p no:sugar tests/` to capture a clean test result after the progress plugin interruption.",
+          "title": "Re-run `python -m pytest -p no:sugar tests/` to capture a clean test result after the progress plugin interruption.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Trading-Win"
+        },
+        {
+          "text": "Surface or add a DocSync scan/validate command or task so documentation updates can produce the required artifacts automatically.",
+          "title": "Surface or add a DocSync scan/validate command or task so documentation updates can produce the required artifacts automatically.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Trading-Win"
+        },
+        {
+          "text": "Coordinate with `TF_1` and `ml-contracts` to synchronize the shared responsibilities matrix language across all READMEs.",
+          "title": "Coordinate with `TF_1` and `ml-contracts` to synchronize the shared responsibilities matrix language across all READMEs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Trading-Win"
+        }
+      ]
+    },
+    {
+      "repo_name": "HomeAssistant",
+      "todo_paths": [
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\HomeAssistant\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\HomeAssistant\\todo.md"
+      ],
+      "parsed_at": "2025-12-12T13:53:24.028290+00:00",
+      "items": [
+        {
+          "text": "**Why it matters:** Entity coverage remains at 34\u202f% because the checked-in registry snapshot lacks the Aqara FP2 binary sensors. Presence automations are referencing orphaned proxies.",
+          "title": "**Why it matters:** Entity coverage remains at 34\u202f% because the checked-in registry snapshot lacks the Aqara FP2 binary sensors. Presence automations are referencing orphaned proxies.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "**Blocked until:** Fresh `.storage/core.device_registry` and `.storage/core.entity_registry` files are pulled from the live HA instance **and** a valid `HA_LONG_LIVED_TOKEN` is available for the API sync.",
+          "title": "**Blocked until:** Fresh `.storage/core.device_registry` and `.storage/core.entity_registry` files are pulled from the live HA instance **and** a valid `HA_LONG_LIVED_TOKEN` is available for the API sync.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "**Actions (in order):**",
+          "title": "**Actions (in order):**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Copy updated `.storage/core.*` into `storage/` from the running HA host.",
+          "title": "Copy updated `.storage/core.*` into `storage/` from the running HA host.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Rerun `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --strict --enforce-coverage --exclude-file config/excludes/audit_exclude.yaml`.",
+          "title": "Rerun `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --strict --enforce-coverage --exclude-file config/excludes/audit_exclude.yaml`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Execute `python scripts\\device_sync_api.py --log-json --token <HA_LONG_LIVED_TOKEN>` (or Master CLI option 10) and archive the new report.",
+          "title": "Execute `python scripts\\device_sync_api.py --log-json --token <HA_LONG_LIVED_TOKEN>` (or Master CLI option 10) and archive the new report.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Update `config/packages/aqara_fp2_presence.yaml` proxies and related automations with the real FP2 entity IDs.",
+          "title": "Update `config/packages/aqara_fp2_presence.yaml` proxies and related automations with the real FP2 entity IDs.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Re-run the strict audit until coverage \u226575\u202f%, then capture results in `docs/device_audit_followup.md` and close this item.",
+          "title": "Re-run the strict audit until coverage \u226575\u202f%, then capture results in `docs/device_audit_followup.md` and close this item.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "**Fix critical parse error in templates-problematic.yaml:340**",
+          "title": "**Fix critical parse error in templates-problematic.yaml:340**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "Status: \u2705 COMPLETED - Added to .gitignore (file not used in active config)",
+          "title": "Status: \u2705 COMPLETED - Added to .gitignore (file not used in active config)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "Impact: Blocks deployment",
+          "title": "Impact: Blocks deployment",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "Action: Investigate and fix or remove file",
+          "title": "Action: Investigate and fix or remove file",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "**Add missing helper definitions or remove references**",
+          "title": "**Add missing helper definitions or remove references**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 Added `input_boolean.auto_red_lights_enabled`",
+          "title": "\u2705 Added `input_boolean.auto_red_lights_enabled`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "title": "\u2705 Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 Added `input_number.night_setback_temperature`",
+          "title": "\u2705 Added `input_number.night_setback_temperature`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 `input_select.thermostat_mode` was already defined",
+          "title": "\u2705 `input_select.thermostat_mode` was already defined",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "Status: \u2705 COMPLETED",
+          "title": "Status: \u2705 COMPLETED",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "Impact: Automations will fail at runtime",
+          "title": "Impact: Automations will fail at runtime",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "**Validate and fix service calls**",
+          "title": "**Validate and fix service calls**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "\u2705 Verified backup.create/restore are used correctly",
+          "title": "\u2705 Verified backup.create/restore are used correctly",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "\u2705 hassio.backup_full/restore_full only in comments",
+          "title": "\u2705 hassio.backup_full/restore_full only in comments",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "\u2705 All service calls validated",
+          "title": "\u2705 All service calls validated",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "Status: \u2705 COMPLETED",
+          "title": "Status: \u2705 COMPLETED",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "**Run pre-deploy audit with auto-link** \u26a0\ufe0f REQUIRES STORAGE FILES",
+          "title": "**Run pre-deploy audit with auto-link** \u26a0\ufe0f REQUIRES STORAGE FILES",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Command: `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --auto-link --dry-run`",
+          "title": "Command: `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --auto-link --dry-run`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Status: Completed 2025-10-08 against checked-in registry snapshot (coverage ~37%, action items logged in artifacts)",
+          "title": "Status: Completed 2025-10-08 against checked-in registry snapshot (coverage ~37%, action items logged in artifacts)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Impact: 100 untracked entities, 426 orphaned references",
+          "title": "Impact: 100 untracked entities, 426 orphaned references",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Next: Re-run on live HA once updated registries are available",
+          "title": "Next: Re-run on live HA once updated registries are available",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "**Fix night_red_lights.yaml (11 lines: 78-97)** \u2705",
+          "title": "**Fix night_red_lights.yaml (11 lines: 78-97)** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "5. Indentation Issues (24 warnings)"
+        },
+        {
+          "text": "**Fix night_red_lights_optimized.yaml (11 lines: 75-94)** \u2705",
+          "title": "**Fix night_red_lights_optimized.yaml (11 lines: 75-94)** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "5. Indentation Issues (24 warnings)"
+        },
+        {
+          "text": "**Fix templates-backup.yaml** - Added to .gitignore \u2705",
+          "title": "**Fix templates-backup.yaml** - Added to .gitignore \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "5. Indentation Issues (24 warnings)"
+        },
+        {
+          "text": "**Consolidate night red lights files** \u2705",
+          "title": "**Consolidate night red lights files** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Primary: night_red_lights_optimized.yaml (active)",
+          "title": "Primary: night_red_lights_optimized.yaml (active)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Archived: night_red_lights.yaml, improved_night_red_lights.yaml",
+          "title": "Archived: night_red_lights.yaml, improved_night_red_lights.yaml",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "**Consolidate template files** \u2705",
+          "title": "**Consolidate template files** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Primary: templates.yaml (active)",
+          "title": "Primary: templates.yaml (active)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Archived: templates-backup.yaml, templates-problematic.yaml, templates-minimal.yaml (in .gitignore)",
+          "title": "Archived: templates-backup.yaml, templates-problematic.yaml, templates-minimal.yaml (in .gitignore)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "**Add tests for climate automations**",
+          "title": "**Add tests for climate automations**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2705 Extended `tests/test_climate_presence.py` with YAML-backed assertions for `climate_presence_control`, `climate_night_setback`, and FP2 heating optimisation (2025-10-07)",
+          "title": "\u2705 Extended `tests/test_climate_presence.py` with YAML-backed assertions for `climate_presence_control`, `climate_night_setback`, and FP2 heating optimisation (2025-10-07)",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "**Add tests for presence detection**",
+          "title": "**Add tests for presence detection**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2705 Added FP2 alias coverage checks in `tests/test_climate_presence.py` to guard lounge/kitchen zone mappings (2025-10-07)",
+          "title": "\u2705 Added FP2 alias coverage checks in `tests/test_climate_presence.py` to guard lounge/kitchen zone mappings (2025-10-07)",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "**Add tests for backup functionality**",
+          "title": "**Add tests for backup functionality**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2705 Added `tests/test_backup_automation.py` with YAML parity assertions and python_script cleanup harness (2025-10-07)",
+          "title": "\u2705 Added `tests/test_backup_automation.py` with YAML parity assertions and python_script cleanup harness (2025-10-07)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2b06\ufe0f Escalated to **Critical** \u2014 see \"FP2 Presence Coverage Gap\" above for the current action list and blockers.",
+          "title": "\u2b06\ufe0f Escalated to **Critical** \u2014 see \"FP2 Presence Coverage Gap\" above for the current action list and blockers.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "8. Incomplete Sensor References"
+        },
+        {
+          "text": "**Initialize git repository** \u2705",
+          "title": "**Initialize git repository** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "9. Git Not Initialized"
+        },
+        {
+          "text": "Git repository initialized (was already present)",
+          "title": "Git repository initialized (was already present)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "9. Git Not Initialized"
+        },
+        {
+          "text": "Changes staged for commit",
+          "title": "Changes staged for commit",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "9. Git Not Initialized"
+        },
+        {
+          "text": "**Remove or document unused helpers**",
+          "title": "**Remove or document unused helpers**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "10. Unused Helpers"
+        },
+        {
+          "text": "Removed obsolete `input_number.presence_timeout` and `input_text.notification_recipients`",
+          "title": "Removed obsolete `input_number.presence_timeout` and `input_text.notification_recipients`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "10. Unused Helpers"
+        },
+        {
+          "text": "Added helper definitions for `input_boolean.disable_automations`, blind position presets, and notification priority to align with active automations (warnings resolved via `scripts/validate_project.py`).",
+          "title": "Added helper definitions for `input_boolean.disable_automations`, blind position presets, and notification priority to align with active automations (warnings resolved via `scripts/validate_project.py`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "10. Unused Helpers"
+        },
+        {
+          "text": "**Create config/excludes/audit_exclude.yaml** \u2705",
+          "title": "**Create config/excludes/audit_exclude.yaml** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "11. Missing Exclude File"
+        },
+        {
+          "text": "Created with system entities (sun.sun, sensor.date, etc.)",
+          "title": "Created with system entities (sun.sun, sensor.date, etc.)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "11. Missing Exclude File"
+        },
+        {
+          "text": "Ready for use with pre_deploy_audit.py",
+          "title": "Ready for use with pre_deploy_audit.py",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "11. Missing Exclude File"
+        },
+        {
+          "text": "**Add VDI files to .gitignore** \u2705",
+          "title": "**Add VDI files to .gitignore** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "12. Large VDI File in Repo"
+        },
+        {
+          "text": "Added *.vdi, *.vmdk, *.ova patterns",
+          "title": "Added *.vdi, *.vmdk, *.ova patterns",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "12. Large VDI File in Repo"
+        },
+        {
+          "text": "Note: Existing VDI file (15.9GB) can be moved manually if needed",
+          "title": "Note: Existing VDI file (15.9GB) can be moved manually if needed",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "12. Large VDI File in Repo"
+        },
+        {
+          "text": "**Audit and update outdated docs**",
+          "title": "**Audit and update outdated docs**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "README quick start now references Master CLI option 9 for the complete update workflow",
+          "title": "README quick start now references Master CLI option 9 for the complete update workflow",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "title": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "Device autolinker quickstart published at `docs/device_autolinker_quickstart.md` (option 10 workflow, 2025-10-07)",
+          "title": "Device autolinker quickstart published at `docs/device_autolinker_quickstart.md` (option 10 workflow, 2025-10-07)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "**Add GitHub Actions workflow for validation**",
+          "title": "**Add GitHub Actions workflow for validation**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "14. CI/CD Pipeline"
+        },
+        {
+          "text": "`ci.yml` now installs pinned requirements, runs dry-run validators, executes pytest (including blinds/env/backup suites), and publishes audit artifacts for review.",
+          "title": "`ci.yml` now installs pinned requirements, runs dry-run validators, executes pytest (including blinds/env/backup suites), and publishes audit artifacts for review.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "14. CI/CD Pipeline"
+        },
+        {
+          "text": "**Standardize on secrets.yaml + .env**",
+          "title": "**Standardize on secrets.yaml + .env**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "15. Environment Variable Management"
+        },
+        {
+          "text": "Added template-aligned environment overview (`print_env.py`) and doc updates; `complete_update.py` now prefers `HA_LONG_LIVED_TOKEN` with legacy fallback.",
+          "title": "Added template-aligned environment overview (`print_env.py`) and doc updates; `complete_update.py` now prefers `HA_LONG_LIVED_TOKEN` with legacy fallback.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "15. Environment Variable Management"
+        },
+        {
+          "text": "**Verify python_script integration enabled**",
+          "title": "**Verify python_script integration enabled**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "16. Backup Strategy"
+        },
+        {
+          "text": "**Test backup_cleanup.py script**",
+          "title": "**Test backup_cleanup.py script**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "16. Backup Strategy"
+        },
+        {
+          "text": "Added pytest coverage (`tests/test_backup_cleanup_script.py`) leveraging controlled backup directory overrides and confirmed `python_script` integration is active in `configuration.yaml`.",
+          "title": "Added pytest coverage (`tests/test_backup_cleanup_script.py`) leveraging controlled backup directory overrides and confirmed `python_script` integration is active in `configuration.yaml`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "16. Backup Strategy"
+        },
+        {
+          "text": "**Expand test suite beyond lights**",
+          "title": "**Expand test suite beyond lights**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "17. Integration Tests"
+        },
+        {
+          "text": "Added `tests/test_env_management.py`, `tests/test_backup_cleanup_script.py`, and `tests/test_blinds_package.py`; README Section 9 tracks remaining future expansions (blind presets, backup restore path, FP2 zone fixtures).",
+          "title": "Added `tests/test_env_management.py`, `tests/test_backup_cleanup_script.py`, and `tests/test_blinds_package.py`; README Section 9 tracks remaining future expansions (blind presets, backup restore path, FP2 zone fixtures).",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "17. Integration Tests"
+        },
+        {
+          "text": "**YAML Parse Errors** - \u2705 Added problematic template files to .gitignore",
+          "title": "**YAML Parse Errors** - \u2705 Added problematic template files to .gitignore",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**Missing Helper Definitions** - \u2705 Added all 16 missing helpers",
+          "title": "**Missing Helper Definitions** - \u2705 Added all 16 missing helpers",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Added `input_boolean.auto_red_lights_enabled`",
+          "title": "Added `input_boolean.auto_red_lights_enabled`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "title": "Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Added `input_number.night_setback_temperature`",
+          "title": "Added `input_number.night_setback_temperature`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Added all climate, red lights, and wakeup helpers",
+          "title": "Added all climate, red lights, and wakeup helpers",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**Indentation Issues** - \u2705 Fixed all 24 indentation warnings in night_red_lights files",
+          "title": "**Indentation Issues** - \u2705 Fixed all 24 indentation warnings in night_red_lights files",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**Unknown Service Calls** - \u2705 Verified backup.create/restore are correctly used",
+          "title": "**Unknown Service Calls** - \u2705 Verified backup.create/restore are correctly used",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**YAML Validation**: 36 files scanned, **0 errors, 0 warnings** \u2705",
+          "title": "**YAML Validation**: 36 files scanned, **0 errors, 0 warnings** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Project Validation**: 33 files scanned, **0 errors**, 12 warnings (unused helpers) \u2705",
+          "title": "**Project Validation**: 33 files scanned, **0 errors**, 12 warnings (unused helpers) \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Service Calls**: All unknown services resolved \u2705",
+          "title": "**Service Calls**: All unknown services resolved \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Test Suite**: 15 passed, 2 skipped \u2705",
+          "title": "**Test Suite**: 15 passed, 2 skipped \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Duplicate Files Consolidated** - Legacy files archived",
+          "title": "**Duplicate Files Consolidated** - Legacy files archived",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "**Git Repository** - Initialized and ready for commits",
+          "title": "**Git Repository** - Initialized and ready for commits",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "**Exclude File** - Created for audit script",
+          "title": "**Exclude File** - Created for audit script",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "**VDI Files** - Added to .gitignore",
+          "title": "**VDI Files** - Added to .gitignore",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "12 unused helpers (informational - not blocking)",
+          "title": "12 unused helpers (informational - not blocking)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Remaining Minor Issues (12 warnings)"
+        },
+        {
+          "text": "Can be cleaned up later or kept for future use",
+          "title": "Can be cleaned up later or kept for future use",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Remaining Minor Issues (12 warnings)"
+        },
+        {
+          "text": "Run validation after each milestone: `python scripts\\complete_update.py`",
+          "title": "Run validation after each milestone: `python scripts\\complete_update.py`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcdd NOTES"
+        },
+        {
+          "text": "Keep artifacts for debugging: `artifacts/*.json`",
+          "title": "Keep artifacts for debugging: `artifacts/*.json`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcdd NOTES"
+        },
+        {
+          "text": "Test coverage target: 80%+",
+          "title": "Test coverage target: 80%+",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcdd NOTES"
+        },
+        {
+          "text": "**Why it matters:** Entity coverage remains at 34\u202f% because the checked-in registry snapshot lacks the Aqara FP2 binary sensors. Presence automations are referencing orphaned proxies.",
+          "title": "**Why it matters:** Entity coverage remains at 34\u202f% because the checked-in registry snapshot lacks the Aqara FP2 binary sensors. Presence automations are referencing orphaned proxies.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "**Blocked until:** Fresh `.storage/core.device_registry` and `.storage/core.entity_registry` files are pulled from the live HA instance **and** a valid `HA_LONG_LIVED_TOKEN` is available for the API sync.",
+          "title": "**Blocked until:** Fresh `.storage/core.device_registry` and `.storage/core.entity_registry` files are pulled from the live HA instance **and** a valid `HA_LONG_LIVED_TOKEN` is available for the API sync.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "**Actions (in order):**",
+          "title": "**Actions (in order):**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Copy updated `.storage/core.*` into `storage/` from the running HA host.",
+          "title": "Copy updated `.storage/core.*` into `storage/` from the running HA host.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Rerun `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --strict --enforce-coverage --exclude-file config/excludes/audit_exclude.yaml`.",
+          "title": "Rerun `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --strict --enforce-coverage --exclude-file config/excludes/audit_exclude.yaml`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Execute `python scripts\\device_sync_api.py --log-json --token <HA_LONG_LIVED_TOKEN>` (or Master CLI option 10) and archive the new report.",
+          "title": "Execute `python scripts\\device_sync_api.py --log-json --token <HA_LONG_LIVED_TOKEN>` (or Master CLI option 10) and archive the new report.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Update `config/packages/aqara_fp2_presence.yaml` proxies and related automations with the real FP2 entity IDs.",
+          "title": "Update `config/packages/aqara_fp2_presence.yaml` proxies and related automations with the real FP2 entity IDs.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "Re-run the strict audit until coverage \u226575\u202f%, then capture results in `docs/device_audit_followup.md` and close this item.",
+          "title": "Re-run the strict audit until coverage \u226575\u202f%, then capture results in `docs/device_audit_followup.md` and close this item.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "[ ] FP2 Presence Coverage Gap (Requires Live HA Access)"
+        },
+        {
+          "text": "**Fix critical parse error in templates-problematic.yaml:340**",
+          "title": "**Fix critical parse error in templates-problematic.yaml:340**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "Status: \u2705 COMPLETED - Added to .gitignore (file not used in active config)",
+          "title": "Status: \u2705 COMPLETED - Added to .gitignore (file not used in active config)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "Impact: Blocks deployment",
+          "title": "Impact: Blocks deployment",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "Action: Investigate and fix or remove file",
+          "title": "Action: Investigate and fix or remove file",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "1. YAML Parse Errors"
+        },
+        {
+          "text": "**Add missing helper definitions or remove references**",
+          "title": "**Add missing helper definitions or remove references**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 Added `input_boolean.auto_red_lights_enabled`",
+          "title": "\u2705 Added `input_boolean.auto_red_lights_enabled`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "title": "\u2705 Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 Added `input_number.night_setback_temperature`",
+          "title": "\u2705 Added `input_number.night_setback_temperature`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "\u2705 `input_select.thermostat_mode` was already defined",
+          "title": "\u2705 `input_select.thermostat_mode` was already defined",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "Status: \u2705 COMPLETED",
+          "title": "Status: \u2705 COMPLETED",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "Impact: Automations will fail at runtime",
+          "title": "Impact: Automations will fail at runtime",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "2. Missing Helper Definitions"
+        },
+        {
+          "text": "**Validate and fix service calls**",
+          "title": "**Validate and fix service calls**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "\u2705 Verified backup.create/restore are used correctly",
+          "title": "\u2705 Verified backup.create/restore are used correctly",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "\u2705 hassio.backup_full/restore_full only in comments",
+          "title": "\u2705 hassio.backup_full/restore_full only in comments",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "\u2705 All service calls validated",
+          "title": "\u2705 All service calls validated",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "Status: \u2705 COMPLETED",
+          "title": "Status: \u2705 COMPLETED",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "3. Unknown Service Calls (209 instances)"
+        },
+        {
+          "text": "**Run pre-deploy audit with auto-link** \u26a0\ufe0f REQUIRES STORAGE FILES",
+          "title": "**Run pre-deploy audit with auto-link** \u26a0\ufe0f REQUIRES STORAGE FILES",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Command: `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --auto-link --dry-run`",
+          "title": "Command: `python scripts\\pre_deploy_audit.py --mode registry --storage-path storage --auto-link --dry-run`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Status: Completed 2025-10-08 against checked-in registry snapshot (coverage ~37%, action items logged in artifacts)",
+          "title": "Status: Completed 2025-10-08 against checked-in registry snapshot (coverage ~37%, action items logged in artifacts)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Impact: 100 untracked entities, 426 orphaned references",
+          "title": "Impact: 100 untracked entities, 426 orphaned references",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "Next: Re-run on live HA once updated registries are available",
+          "title": "Next: Re-run on live HA once updated registries are available",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "4. Low Entity Coverage (41%)"
+        },
+        {
+          "text": "**Fix night_red_lights.yaml (11 lines: 78-97)** \u2705",
+          "title": "**Fix night_red_lights.yaml (11 lines: 78-97)** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "5. Indentation Issues (24 warnings)"
+        },
+        {
+          "text": "**Fix night_red_lights_optimized.yaml (11 lines: 75-94)** \u2705",
+          "title": "**Fix night_red_lights_optimized.yaml (11 lines: 75-94)** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "5. Indentation Issues (24 warnings)"
+        },
+        {
+          "text": "**Fix templates-backup.yaml** - Added to .gitignore \u2705",
+          "title": "**Fix templates-backup.yaml** - Added to .gitignore \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "5. Indentation Issues (24 warnings)"
+        },
+        {
+          "text": "**Consolidate night red lights files** \u2705",
+          "title": "**Consolidate night red lights files** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Primary: night_red_lights_optimized.yaml (active)",
+          "title": "Primary: night_red_lights_optimized.yaml (active)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Archived: night_red_lights.yaml, improved_night_red_lights.yaml",
+          "title": "Archived: night_red_lights.yaml, improved_night_red_lights.yaml",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "**Consolidate template files** \u2705",
+          "title": "**Consolidate template files** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Primary: templates.yaml (active)",
+          "title": "Primary: templates.yaml (active)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "Archived: templates-backup.yaml, templates-problematic.yaml, templates-minimal.yaml (in .gitignore)",
+          "title": "Archived: templates-backup.yaml, templates-problematic.yaml, templates-minimal.yaml (in .gitignore)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "6. Duplicate/Legacy Files"
+        },
+        {
+          "text": "**Add tests for climate automations**",
+          "title": "**Add tests for climate automations**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2705 Extended `tests/test_climate_presence.py` with YAML-backed assertions for `climate_presence_control`, `climate_night_setback`, and FP2 heating optimisation (2025-10-07)",
+          "title": "\u2705 Extended `tests/test_climate_presence.py` with YAML-backed assertions for `climate_presence_control`, `climate_night_setback`, and FP2 heating optimisation (2025-10-07)",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "**Add tests for presence detection**",
+          "title": "**Add tests for presence detection**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2705 Added FP2 alias coverage checks in `tests/test_climate_presence.py` to guard lounge/kitchen zone mappings (2025-10-07)",
+          "title": "\u2705 Added FP2 alias coverage checks in `tests/test_climate_presence.py` to guard lounge/kitchen zone mappings (2025-10-07)",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "**Add tests for backup functionality**",
+          "title": "**Add tests for backup functionality**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2705 Added `tests/test_backup_automation.py` with YAML parity assertions and python_script cleanup harness (2025-10-07)",
+          "title": "\u2705 Added `tests/test_backup_automation.py` with YAML parity assertions and python_script cleanup harness (2025-10-07)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "7. Missing Test Coverage"
+        },
+        {
+          "text": "\u2b06\ufe0f Escalated to **Critical** \u2014 see \"FP2 Presence Coverage Gap\" above for the current action list and blockers.",
+          "title": "\u2b06\ufe0f Escalated to **Critical** \u2014 see \"FP2 Presence Coverage Gap\" above for the current action list and blockers.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "8. Incomplete Sensor References"
+        },
+        {
+          "text": "**Initialize git repository** \u2705",
+          "title": "**Initialize git repository** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "9. Git Not Initialized"
+        },
+        {
+          "text": "Git repository initialized (was already present)",
+          "title": "Git repository initialized (was already present)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "9. Git Not Initialized"
+        },
+        {
+          "text": "Changes staged for commit",
+          "title": "Changes staged for commit",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "9. Git Not Initialized"
+        },
+        {
+          "text": "**Remove or document unused helpers**",
+          "title": "**Remove or document unused helpers**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "10. Unused Helpers"
+        },
+        {
+          "text": "Removed obsolete `input_number.presence_timeout` and `input_text.notification_recipients`",
+          "title": "Removed obsolete `input_number.presence_timeout` and `input_text.notification_recipients`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "10. Unused Helpers"
+        },
+        {
+          "text": "Added helper definitions for `input_boolean.disable_automations`, blind position presets, and notification priority to align with active automations (warnings resolved via `scripts/validate_project.py`).",
+          "title": "Added helper definitions for `input_boolean.disable_automations`, blind position presets, and notification priority to align with active automations (warnings resolved via `scripts/validate_project.py`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "10. Unused Helpers"
+        },
+        {
+          "text": "**Create config/excludes/audit_exclude.yaml** \u2705",
+          "title": "**Create config/excludes/audit_exclude.yaml** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "11. Missing Exclude File"
+        },
+        {
+          "text": "Created with system entities (sun.sun, sensor.date, etc.)",
+          "title": "Created with system entities (sun.sun, sensor.date, etc.)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "11. Missing Exclude File"
+        },
+        {
+          "text": "Ready for use with pre_deploy_audit.py",
+          "title": "Ready for use with pre_deploy_audit.py",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "11. Missing Exclude File"
+        },
+        {
+          "text": "**Add VDI files to .gitignore** \u2705",
+          "title": "**Add VDI files to .gitignore** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "12. Large VDI File in Repo"
+        },
+        {
+          "text": "Added *.vdi, *.vmdk, *.ova patterns",
+          "title": "Added *.vdi, *.vmdk, *.ova patterns",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "12. Large VDI File in Repo"
+        },
+        {
+          "text": "Note: Existing VDI file (15.9GB) can be moved manually if needed",
+          "title": "Note: Existing VDI file (15.9GB) can be moved manually if needed",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "12. Large VDI File in Repo"
+        },
+        {
+          "text": "**Audit and update outdated docs**",
+          "title": "**Audit and update outdated docs**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "README quick start now references Master CLI option 9 for the complete update workflow",
+          "title": "README quick start now references Master CLI option 9 for the complete update workflow",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "title": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "Device autolinker quickstart published at `docs/device_autolinker_quickstart.md` (option 10 workflow, 2025-10-07)",
+          "title": "Device autolinker quickstart published at `docs/device_autolinker_quickstart.md` (option 10 workflow, 2025-10-07)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "13. Documentation Updates"
+        },
+        {
+          "text": "**Add GitHub Actions workflow for validation**",
+          "title": "**Add GitHub Actions workflow for validation**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "14. CI/CD Pipeline"
+        },
+        {
+          "text": "`ci.yml` now installs pinned requirements, runs dry-run validators, executes pytest (including blinds/env/backup suites), and publishes audit artifacts for review.",
+          "title": "`ci.yml` now installs pinned requirements, runs dry-run validators, executes pytest (including blinds/env/backup suites), and publishes audit artifacts for review.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "14. CI/CD Pipeline"
+        },
+        {
+          "text": "**Standardize on secrets.yaml + .env**",
+          "title": "**Standardize on secrets.yaml + .env**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "15. Environment Variable Management"
+        },
+        {
+          "text": "Added template-aligned environment overview (`print_env.py`) and doc updates; `complete_update.py` now prefers `HA_LONG_LIVED_TOKEN` with legacy fallback.",
+          "title": "Added template-aligned environment overview (`print_env.py`) and doc updates; `complete_update.py` now prefers `HA_LONG_LIVED_TOKEN` with legacy fallback.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "15. Environment Variable Management"
+        },
+        {
+          "text": "**Verify python_script integration enabled**",
+          "title": "**Verify python_script integration enabled**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "16. Backup Strategy"
+        },
+        {
+          "text": "**Test backup_cleanup.py script**",
+          "title": "**Test backup_cleanup.py script**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "16. Backup Strategy"
+        },
+        {
+          "text": "Added pytest coverage (`tests/test_backup_cleanup_script.py`) leveraging controlled backup directory overrides and confirmed `python_script` integration is active in `configuration.yaml`.",
+          "title": "Added pytest coverage (`tests/test_backup_cleanup_script.py`) leveraging controlled backup directory overrides and confirmed `python_script` integration is active in `configuration.yaml`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "16. Backup Strategy"
+        },
+        {
+          "text": "**Expand test suite beyond lights**",
+          "title": "**Expand test suite beyond lights**",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "17. Integration Tests"
+        },
+        {
+          "text": "Added `tests/test_env_management.py`, `tests/test_backup_cleanup_script.py`, and `tests/test_blinds_package.py`; README Section 9 tracks remaining future expansions (blind presets, backup restore path, FP2 zone fixtures).",
+          "title": "Added `tests/test_env_management.py`, `tests/test_backup_cleanup_script.py`, and `tests/test_blinds_package.py`; README Section 9 tracks remaining future expansions (blind presets, backup restore path, FP2 zone fixtures).",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "17. Integration Tests"
+        },
+        {
+          "text": "**YAML Parse Errors** - \u2705 Added problematic template files to .gitignore",
+          "title": "**YAML Parse Errors** - \u2705 Added problematic template files to .gitignore",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**Missing Helper Definitions** - \u2705 Added all 16 missing helpers",
+          "title": "**Missing Helper Definitions** - \u2705 Added all 16 missing helpers",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Added `input_boolean.auto_red_lights_enabled`",
+          "title": "Added `input_boolean.auto_red_lights_enabled`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "title": "Fixed `input_boolean.travel_mode_active` \u2192 `travel_mode`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Added `input_number.night_setback_temperature`",
+          "title": "Added `input_number.night_setback_temperature`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "Added all climate, red lights, and wakeup helpers",
+          "title": "Added all climate, red lights, and wakeup helpers",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**Indentation Issues** - \u2705 Fixed all 24 indentation warnings in night_red_lights files",
+          "title": "**Indentation Issues** - \u2705 Fixed all 24 indentation warnings in night_red_lights files",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**Unknown Service Calls** - \u2705 Verified backup.create/restore are correctly used",
+          "title": "**Unknown Service Calls** - \u2705 Verified backup.create/restore are correctly used",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Critical Issues Resolved \u2705"
+        },
+        {
+          "text": "**YAML Validation**: 36 files scanned, **0 errors, 0 warnings** \u2705",
+          "title": "**YAML Validation**: 36 files scanned, **0 errors, 0 warnings** \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Project Validation**: 33 files scanned, **0 errors**, 12 warnings (unused helpers) \u2705",
+          "title": "**Project Validation**: 33 files scanned, **0 errors**, 12 warnings (unused helpers) \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Service Calls**: All unknown services resolved \u2705",
+          "title": "**Service Calls**: All unknown services resolved \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Test Suite**: 15 passed, 2 skipped \u2705",
+          "title": "**Test Suite**: 15 passed, 2 skipped \u2705",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Validation Results \u2705"
+        },
+        {
+          "text": "**Duplicate Files Consolidated** - Legacy files archived",
+          "title": "**Duplicate Files Consolidated** - Legacy files archived",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "**Git Repository** - Initialized and ready for commits",
+          "title": "**Git Repository** - Initialized and ready for commits",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "**Exclude File** - Created for audit script",
+          "title": "**Exclude File** - Created for audit script",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "**VDI Files** - Added to .gitignore",
+          "title": "**VDI Files** - Added to .gitignore",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "High Priority Tasks Completed \u2705"
+        },
+        {
+          "text": "12 unused helpers (informational - not blocking)",
+          "title": "12 unused helpers (informational - not blocking)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Remaining Minor Issues (12 warnings)"
+        },
+        {
+          "text": "Can be cleaned up later or kept for future use",
+          "title": "Can be cleaned up later or kept for future use",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Remaining Minor Issues (12 warnings)"
+        },
+        {
+          "text": "Run validation after each milestone: `python scripts\\complete_update.py`",
+          "title": "Run validation after each milestone: `python scripts\\complete_update.py`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcdd NOTES"
+        },
+        {
+          "text": "Keep artifacts for debugging: `artifacts/*.json`",
+          "title": "Keep artifacts for debugging: `artifacts/*.json`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcdd NOTES"
+        },
+        {
+          "text": "Test coverage target: 80%+",
+          "title": "Test coverage target: 80%+",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcdd NOTES"
+        }
+      ]
+    },
+    {
+      "repo_name": "Trading-Win",
+      "todo_paths": [
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\todo.md"
+      ],
+      "parsed_at": "2025-12-12T13:53:24.039289+00:00",
+      "items": [
+        {
+          "text": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
+          "title": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
+          "title": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
+          "title": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
+          "title": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
+          "title": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
+          "title": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Cancelled Tasks"
+        },
+        {
+          "text": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
+          "title": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blocked Tasks"
+        },
+        {
+          "text": "None currently in progress.",
+          "title": "None currently in progress.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P0 (Critical)"
+        },
+        {
+          "text": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
+          "title": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P1 (High)"
+        },
+        {
+          "text": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
+          "title": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P2 (Medium)"
+        },
+        {
+          "text": "None at this time.",
+          "title": "None at this time.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P3 (Low)"
+        },
+        {
+          "text": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
+          "title": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
+          "title": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
+          "title": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
+          "title": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
+          "title": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
+          "title": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
+          "title": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Completed Tasks"
+        },
+        {
+          "text": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
+          "title": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Cancelled Tasks"
+        },
+        {
+          "text": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
+          "title": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blocked Tasks"
+        },
+        {
+          "text": "None currently in progress.",
+          "title": "None currently in progress.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P0 (Critical)"
+        },
+        {
+          "text": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
+          "title": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P1 (High)"
+        },
+        {
+          "text": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
+          "title": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P2 (Medium)"
+        },
+        {
+          "text": "None at this time.",
+          "title": "None at this time.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "P3 (Low)"
+        },
+        {
+          "text": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
+          "title": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        },
+        {
+          "text": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
+          "title": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Notes"
+        }
+      ]
+    }
+  ],
+  "prompt_analysis": {
+    "generated_at": "2025-12-12T22:07:49.797850+00:00",
+    "blocklist": [
+      "parse",
+      "user",
+      "input"
+    ],
+    "whitelist": [
+      "implement",
+      "user",
+      "authentication"
+    ],
+    "panel_flags": [],
+    "prompt_performance": [
+      {
+        "prompt_id": "test_prompt_123",
+        "success_rate": 1.0,
+        "error_rate": 0.0,
+        "total_responses": 4,
+        "clarification_requests": 0,
+        "prompt_preview": "Implement user authentication"
+      },
+      {
+        "prompt_id": "test_prompt_456",
+        "success_rate": 0.0,
+        "error_rate": 1.0,
+        "total_responses": 4,
+        "clarification_requests": 0,
+        "prompt_preview": "Parse user input data"
+      }
+    ]
+  }
+}

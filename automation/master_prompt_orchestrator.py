@@ -11,15 +11,22 @@ from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Sequence, Tuple
+
+from automation.agent_selection_policy import AdaptiveAgentSelectionPolicy
 from automation.config import (
     AGENT_SELECTION_MODE,
     CROSS_REPO_TODO_ENABLED,
     MASTER_AGENT_REPO_CONFIGS,
 )
-from automation.agent_selection_policy import AdaptiveAgentSelectionPolicy
 from automation.cost_tracker import get_cost_tracker
+from automation.cross_repo_todo_ingestion import (
+    CrossRepoDependencyAnalysis,
+    CrossRepoTodoIngestionService,
+    TodoItem,
+    get_cross_repo_todo_service,
+)
 from automation.feedback_analyzer import FeedbackAnalyzer, FeedbackInsights, get_feedback_analyzer
-from automation.cross_repo_todo_ingestion import CrossRepoTodoIngestionService, TodoItem, get_cross_repo_todo_service
+from automation.title_parsing import extract_repo_name_from_vscode_window_title
 
 OpenAIClient: Any = None
 try:
@@ -58,8 +65,6 @@ DEFAULT_ALLOWED_EXTENSIONS = {
     ".py",
 }
 DEFAULT_MAX_FILE_SIZE = int(os.environ.get("MASTER_AGENT_MAX_FILE_BYTES", "200000"))
-
-from automation.title_parsing import extract_repo_name_from_vscode_window_title
 
 
 def _extract_repo_name_from_window_title(window_title: str) -> Optional[str]:
@@ -179,8 +184,6 @@ def get_foreground_window_title() -> Optional[str]:
     """
     try:
         import ctypes
-        from ctypes import wintypes
-        
         # Get foreground window handle
         user32 = ctypes.windll.user32
         hwnd = user32.GetForegroundWindow()
@@ -1144,6 +1147,69 @@ class MasterPromptOrchestrator:
             self._log(f"Failed to extract todo dependencies: {e}")
         
         return []
+
+    def _build_dependency_graph_section(self, repo_name: str) -> str:
+        """Render a compact cross-repo dependency graph view for a repo.
+
+        This leverages the cross-repo Todo dependency analysis to show:
+        - an approximate critical path across repos, and
+        - suggested execution order for tasks touching this repo.
+        """
+
+        if not self.cross_repo_todo_service:
+            return ""
+
+        try:
+            analysis: CrossRepoDependencyAnalysis = self.cross_repo_todo_service.analyze_dependencies()
+        except Exception as exc:  # pragma: no cover - defensive logging
+            self._log(f"Cross-repo dependency analysis unavailable: {exc}")
+            return ""
+
+        tasks_for_repo = analysis.tasks_for_repo(repo_name)
+        if not tasks_for_repo:
+            return ""
+
+        lines: List[str] = []
+        lines.append("## Cross-Repo Dependency Graph (summary)")
+
+        critical_path = analysis.iter_critical_path()
+        if critical_path:
+            path_str = " -> ".join(f"{t.repo_name}:{t.title}" for t in critical_path)
+            lines.append("")
+            lines.append("**Critical path across repos:**")
+            lines.append(f"- {path_str}")
+
+        # Suggested execution order for tasks in this repo, respecting cross-repo deps.
+        ordered_for_repo = [t for t in analysis.iter_ordered() if t.repo_name == repo_name]
+        if ordered_for_repo:
+            lines.append("")
+            lines.append(f"**Suggested execution order for {repo_name}:**")
+            for task in ordered_for_repo[:10]:
+                prio = f"[{task.priority}] " if task.priority else ""
+                status_note = " (BLOCKED)" if task.is_blocked or analysis.dependencies.get(task.key) else ""
+                lines.append(f"- {prio}{task.repo_name}:{task.title}{status_note}")
+
+        # Highlight any cycles that touch this repo.
+        cycles_for_repo: List[str] = []
+        for cycle in analysis.cycles:
+            labels = [
+                f"{analysis.tasks[k].repo_name}:{analysis.tasks[k].title}"
+                for k in cycle
+                if k in analysis.tasks
+            ]
+            if not labels:
+                continue
+            if not any(label.startswith(f"{repo_name}:") for label in labels):
+                continue
+            cycles_for_repo.append(" -> ".join(labels))
+
+        if cycles_for_repo:
+            lines.append("")
+            lines.append("**Detected circular dependencies touching this repo:**")
+            for desc in cycles_for_repo[:5]:
+                lines.append(f"- {desc}")
+
+        return "\n".join(lines).strip()
     
     def _request_prompts_with_context(
         self,
@@ -1221,7 +1287,7 @@ class MasterPromptOrchestrator:
                 feedback_section += f"- {pattern}\n"
         
         # Add repository context
-        repo_section = f"\n\nRepository context for prompt generation:"
+        repo_section = "\n\nRepository context for prompt generation:"
         repo_section += f"\n- Primary language: {repo_analysis.primary_language or 'unknown'}"
         repo_section += f"\n- Architecture: {repo_analysis.architecture_style or 'unknown'}"
         
@@ -1285,6 +1351,11 @@ class MasterPromptOrchestrator:
                     dep_section += f"- {priority}{item.title}{blockers}\n"
             
             base_prompt += dep_section
+
+            # Add a compact visualisation of cross-repo dependency structure.
+            graph_section = self._build_dependency_graph_section(repo_analysis.repo_name)
+            if graph_section:
+                base_prompt += "\n\n" + graph_section
         
         # Add guidance on task prioritization
         base_prompt += dedent("""

@@ -714,9 +714,143 @@ If these solutions don't resolve your issue:
    - Steps to reproduce
    - Expected vs actual behavior
 
-## Success Criteria
+---
 
-This guide should resolve 80% of reported issues without additional support. If you're frequently encountering issues not covered here, please contribute updates to improve coverage.
+## VS Code Copilot Panel Troubleshooting (Desktop Agent Automation)
+
+The sections below focus specifically on the VS Code Copilot chat automation path (panel detection, prompt seeding, model selection, state management, and orchestrator behavior). Use them in combination with the main sections above.
+
+### Quick Diagnosis Flow (Panels & Seeding)
+
+```text
+START
+ ├─► Panels visible in VS Code?
+ │     ├─► NO → Fix layout / open Copilot → Panel Detection
+ │     └─► YES
+ │
+ ├─► Logs say "Found 0 chat panels"?
+ │     ├─► YES → Panel Detection
+ │     └─► NO
+ │
+ ├─► Prompts missing from Copilot input box?
+ │     ├─► YES → Prompt Seeding
+ │     └─► NO
+ │
+ ├─► Wrong model or model not changing?
+ │     ├─► YES → Model Selection
+ │     └─► NO
+ │
+ ├─► `panel_state.json` disagrees with on-screen state?
+ │     ├─► YES → State Management
+ │     └─► NO
+ │
+ └─► Orchestrator not generating prompts or very slow?
+       └─► Master Orchestrator / Performance
+```
+
+### Panel Detection – Common Patterns
+
+**Command:**
+
+```powershell
+python -m automation.panel_tracker --list --verbose
+```
+
+**Expected output (success) ✅:**
+
+- At least one entry with:
+  - A VS Code window title containing your repo name.
+  - Panel type indicating a Copilot chat panel.
+  - A non-null handle and desktop index.
+
+**If output is empty or only shows wrong windows:**
+
+- Check that VS Code is open and not minimized.
+- Bring the correct window to the foreground.
+- Re-run with cache disabled:
+
+  ```powershell
+  python -m automation.panel_tracker --list --no-cache
+  ```
+
+### Prompt Seeding – "Could not find input box"
+
+**Command (state check):**
+
+```powershell
+python -c "from automation.panel_state import load_panel_state; print(load_panel_state())"
+```
+
+**Expected output ✅:**
+
+- The target panel entry exists and is marked `IDLE` before seeding.
+
+**Typical failing log:**
+
+```text
+ERROR automation.panel_seeding: Could not find input box for panel
+```
+
+**Fix:**
+
+1. Ensure Copilot finished streaming and the input box is visible.
+2. Run automation again, ideally in dry-run first:
+
+   ```powershell
+   master --run vs-code-automation --dry-run
+   ```
+
+### Model Selection – Picker & Target Model
+
+**Debug command:**
+
+```powershell
+python -m automation.panel_ui --debug-model-picker
+```
+
+**Expected output ✅:**
+
+- Logs showing that the model picker control was located and a list of model entries was read.
+
+**Common variations:**
+
+- Picker exists but is hidden behind a dialog → close dialog and retry.
+- Target model label changed → update `automation/config.json` model names.
+
+### State Management – Quick Reset
+
+**When you see:**
+
+```text
+JSONDecodeError loading automation/panel_state.json
+```
+
+**Safe reset procedure:**
+
+```powershell
+Copy-Item automation/panel_state.json automation/panel_state.json.bak
+Remove-Item automation/panel_state.json
+master --run vs-code-automation
+```
+
+### Master Orchestrator – Dry Runs
+
+**Commands:**
+
+```powershell
+# Detect repo from foreground window
+python -m automation.master_prompt_orchestrator --detect-repo
+
+# Generate prompts without applying them
+python -m automation.master_prompt_orchestrator --dry-run --max-docs 5
+```
+
+**Expected output ✅:**
+
+- Repo path that matches your VS Code workspace.
+- A short list of documents and candidate prompts.
+
+If you repeatedly see "No documents found" or "all prompts filtered", revisit repo detection and quality thresholds as described in the main troubleshooting sections.
 
 ---
 

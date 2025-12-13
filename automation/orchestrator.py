@@ -735,7 +735,6 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                 # ============================================================
                 if not pause_requested_mid_cycle and not rate_limited_detected:
                     try:
-                        from automation.panel_tracker import get_tracker
                         tracker = get_tracker()
                         panels_needing_check = tracker.get_panels_needing_hourly_check()
                         

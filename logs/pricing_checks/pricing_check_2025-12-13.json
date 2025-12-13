@@ -1,0 +1,83 @@
+{
+  "check_date": "2025-12-13T10:30:00+00:00",
+  "checker_version": "1.1.0",
+  "api_source": "mock://openai-pricing",
+  "comparison": {
+    "unchanged_count": 5,
+    "increased_count": 2,
+    "decreased_count": 0,
+    "new_models_count": 1,
+    "deprecated_count": 0
+  },
+  "changes": {
+    "unchanged": [
+      "gpt-4o-mini",
+      "gpt-4.1-mini",
+      "gpt-4.1-preview",
+      "o3-mini",
+      "gpt-4.1"
+    ],
+    "increased": [
+      {
+        "model": "gpt-4o",
+        "rate_type": "input",
+        "old_price": 0.0025,
+        "new_price": 0.003,
+        "change_pct": 20.0,
+        "change_per_1m_tokens": 0.5,
+        "delta": 0.0005
+      },
+      {
+        "model": "gpt-4-turbo",
+        "rate_type": "output",
+        "old_price": 0.01,
+        "new_price": 0.012,
+        "change_pct": 20.0,
+        "change_per_1m_tokens": 2.0,
+        "delta": 0.002
+      }
+    ],
+    "decreased": [],
+    "new_models": [
+      "gpt-5-mini"
+    ],
+    "deprecated": []
+  },
+  "full_pricing": {
+    "current_code": {
+      "gpt-4o": {
+        "input": 0.0025,
+        "output": 0.003,
+        "vision": null
+      },
+      "gpt-4-turbo": {
+        "input": 0.01,
+        "output": 0.01,
+        "vision": null
+      }
+    },
+    "api_latest": {
+      "gpt-4o": {
+        "input": 0.003,
+        "output": 0.003,
+        "vision": null
+      },
+      "gpt-4-turbo": {
+        "input": 0.01,
+        "output": 0.012,
+        "vision": null
+      },
+      "gpt-5-mini": {
+        "input": 0.0001,
+        "output": 0.0002,
+        "vision": null
+      }
+    }
+  },
+  "recommendations": [
+    "Update automation/cost_tracker.py for gpt-4o input rate ($0.0025 -> $0.0030).",
+    "Update automation/cost_tracker.py for gpt-4-turbo output rate ($0.0100 -> $0.0120).",
+    "Evaluate new model 'gpt-5-mini' for potential adoption."
+  ],
+  "local_rates_age_days": 1
+}

@@ -38,6 +38,52 @@ class CrossRepoTodoSnapshot:
     repos: List[RepoTodoSnapshot]
 
 
+@dataclass(frozen=True)
+class TaskRef:
+    """Lightweight reference to a Todo item within a cross-repo snapshot.
+
+    The `key` is stable only within the lifetime of an analysis result and
+    has the form "{repo_name}:{index}" where index is the item's position
+    in that repo's item list.
+    """
+
+    key: str
+    repo_name: str
+    index: int
+    title: str
+    priority: Optional[str]
+    is_blocked: bool
+    blocked_by: List[str]
+
+
+@dataclass(frozen=True)
+class CrossRepoDependencyAnalysis:
+    """Result of building a dependency graph across all discovered Todo items.
+
+    Consumers can use the *_keys collections for stable identifiers and
+    map back to `TaskRef` instances via the `tasks` mapping.
+    """
+
+    tasks: Mapping[str, TaskRef]
+    dependencies: Mapping[str, List[str]]  # task_key -> prerequisite task_keys
+    dependents: Mapping[str, List[str]]  # task_key -> tasks that depend on this key
+    ordered_keys: List[str]  # topological order (best-effort) across all repos
+    blocked_keys: List[str]
+    unblocked_keys: List[str]
+    cycles: List[List[str]]  # each cycle is a list of task_keys
+    critical_path_keys: List[str]
+
+    def iter_ordered(self) -> List[TaskRef]:
+        return [self.tasks[k] for k in self.ordered_keys if k in self.tasks]
+
+    def iter_critical_path(self) -> List[TaskRef]:
+        return [self.tasks[k] for k in self.critical_path_keys if k in self.tasks]
+
+    def tasks_for_repo(self, repo_name: str) -> List[TaskRef]:
+        repo_lower = repo_name.lower()
+        return [t for t in self.tasks.values() if t.repo_name.lower() == repo_lower]
+
+
 _PRIORITY_RE = re.compile(
     r"(?i)(?:\[\s*)?(?:prio|priority|p)\s*[:\-]?\s*(p?[0-3]|high|medium|med|low)(?:\s*\])?"
 )
@@ -60,6 +106,26 @@ def _normalize_priority(raw: str) -> str:
     if raw_norm.isdigit() and raw_norm in {"0", "1", "2", "3"}:
         return f"P{raw_norm}"
     return raw_norm
+
+
+def _priority_rank(priority: Optional[str]) -> int:
+    """Return a numeric rank for textual priorities.
+
+    Lower numbers represent higher priority.
+    """
+
+    if not priority:
+        return 3
+    p = priority.strip().lower()
+    if p in {"p0", "0", "high"}:
+        return 0
+    if p in {"p1", "1", "medium", "med"}:
+        return 1
+    if p in {"p2", "2", "low"}:
+        return 2
+    if p in {"p3", "3"}:
+        return 3
+    return 3
 
 
 def parse_todo_markdown(content: str, *, repo_name: str, todo_path: Optional[str] = None) -> RepoTodoSnapshot:
@@ -347,6 +413,16 @@ class CrossRepoTodoIngestionService:
 
         return "\n".join(lines).strip() + "\n"
 
+    def analyze_dependencies(self) -> CrossRepoDependencyAnalysis:
+        """Build and cache a dependency graph across all known Todo items.
+
+        This is a higher-level view than the plain snapshot, providing
+        ordering, cycle detection, and an approximate critical path.
+        """
+
+        snapshot = self.get_snapshot()
+        return analyze_cross_repo_dependencies(snapshot)
+
 
 def _snapshot_from_dict(raw: dict) -> CrossRepoTodoSnapshot:
     repos: List[RepoTodoSnapshot] = []
@@ -376,6 +452,206 @@ def _snapshot_from_dict(raw: dict) -> CrossRepoTodoSnapshot:
         version=int(raw.get("version", 1)),
         generated_at=str(raw.get("generated_at", "")),
         repos=repos,
+    )
+
+
+def analyze_cross_repo_dependencies(snapshot: CrossRepoTodoSnapshot) -> CrossRepoDependencyAnalysis:
+    """Analyze dependencies across all repos in a snapshot.
+
+    Dependency edges are inferred from each item's `blocked_by` strings by
+    attempting to match those strings against other items' titles/text. The
+    resulting graph is best-effort and designed to support summarisation and
+    critical-path style reporting rather than strict enforcement.
+    """
+
+    tasks: Dict[str, TaskRef] = {}
+    dependencies: Dict[str, List[str]] = {}
+    dependents: Dict[str, List[str]] = {}
+
+    # Build basic task index keyed by "repo_name:index".
+    indexed_items: List[Tuple[str, str, TodoItem]] = []
+    for repo in snapshot.repos:
+        repo_lower = repo.repo_name.lower()
+        for index, item in enumerate(repo.items):
+            key = f"{repo.repo_name}:{index}"
+            tasks[key] = TaskRef(
+                key=key,
+                repo_name=repo.repo_name,
+                index=index,
+                title=item.title,
+                priority=item.priority,
+                is_blocked=item.is_blocked,
+                blocked_by=list(item.blocked_by or []),
+            )
+            dependencies[key] = []
+            dependents[key] = []
+            indexed_items.append((key, repo_lower, item))
+
+    def _resolve_blocker_ref(blocker_raw: str, current_repo_lower: str) -> Optional[str]:
+        token = (blocker_raw or "").strip().lower()
+        if not token:
+            return None
+
+        # Direct key match (advanced users may reference "repo:index").
+        if token in tasks:
+            return token
+
+        # First, prefer matches within the same repo.
+        for key, repo_lower, item in indexed_items:
+            if repo_lower != current_repo_lower:
+                continue
+            text_l = (item.text or "").lower()
+            title_l = (item.title or "").lower()
+            if token in title_l or token in text_l:
+                return key
+
+        # Fallback: any repo containing this token.
+        for key, _repo_lower, item in indexed_items:
+            text_l = (item.text or "").lower()
+            title_l = (item.title or "").lower()
+            if token in title_l or token in text_l:
+                return key
+        return None
+
+    # Infer dependency edges from blocked_by annotations.
+    for repo in snapshot.repos:
+        current_repo_lower = repo.repo_name.lower()
+        for index, item in enumerate(repo.items):
+            to_key = f"{repo.repo_name}:{index}"
+            for blocker in item.blocked_by or []:
+                dep_key = _resolve_blocker_ref(blocker, current_repo_lower)
+                if not dep_key or dep_key == to_key:
+                    continue
+                if dep_key not in tasks:
+                    continue
+                if dep_key not in dependencies[to_key]:
+                    dependencies[to_key].append(dep_key)
+                if to_key not in dependents[dep_key]:
+                    dependents[dep_key].append(to_key)
+
+    # Topological ordering via Kahn's algorithm with a priority-aware queue.
+    in_degree: Dict[str, int] = {k: len(set(v)) for k, v in dependencies.items()}
+    distance: Dict[str, int] = {k: 0 for k in tasks}
+
+    ready: List[str] = [k for k, deg in in_degree.items() if deg == 0]
+
+    def _sort_ready() -> None:
+        ready.sort(
+            key=lambda k: (
+                _priority_rank(tasks[k].priority),
+                tasks[k].repo_name.lower(),
+                tasks[k].title.lower(),
+            )
+        )
+
+    _sort_ready()
+    ordered_keys: List[str] = []
+    visited: set[str] = set()
+
+    while ready:
+        current = ready.pop(0)
+        ordered_keys.append(current)
+        visited.add(current)
+        for dependent_key in dependents.get(current, []) or []:
+            if dependent_key not in in_degree:
+                continue
+            # Each incoming edge has been accounted for in the initial in_degree.
+            in_degree[dependent_key] -= 1
+            if in_degree[dependent_key] == 0:
+                ready.append(dependent_key)
+                _sort_ready()
+            # Longest-path distance (for DAG nodes only).
+            if distance.get(dependent_key, 0) < distance.get(current, 0) + 1:
+                distance[dependent_key] = distance.get(current, 0) + 1
+
+    # Any nodes not visited are part of at least one cycle.
+    cycle_nodes = set(tasks.keys()) - visited
+
+    # Detect concrete cycles using DFS restricted to nodes suspected of being cyclic.
+    cycles: List[List[str]] = []
+    temp_mark: set[str] = set()
+    perm_mark: set[str] = set()
+    stack: List[str] = []
+
+    def _visit(node: str) -> None:
+        if node in perm_mark:
+            return
+        if node in temp_mark:
+            # Found a cycle; capture the path from first occurrence of node.
+            try:
+                idx = stack.index(node)
+                cycle = stack[idx:] + [node]
+            except ValueError:
+                cycle = [node]
+            if cycle:
+                cycles.append(cycle)
+            return
+        temp_mark.add(node)
+        stack.append(node)
+        for dep_key in dependencies.get(node, []) or []:
+            if dep_key in cycle_nodes:
+                _visit(dep_key)
+        stack.pop()
+        temp_mark.remove(node)
+        perm_mark.add(node)
+
+    for node in cycle_nodes:
+        if node not in perm_mark:
+            _visit(node)
+
+    # Classify blocked vs unblocked using both explicit flags and inferred deps.
+    blocked_keys: List[str] = []
+    unblocked_keys: List[str] = []
+    for key, ref in tasks.items():
+        has_deps = bool(dependencies.get(key))
+        if ref.is_blocked or has_deps:
+            blocked_keys.append(key)
+        else:
+            unblocked_keys.append(key)
+
+    # Compute a best-effort critical path over the DAG portion of the graph.
+    critical_path_keys: List[str] = []
+    if ordered_keys:
+        # Restrict candidate endpoints to nodes that participate in ordering.
+        max_node: Optional[str] = None
+        max_dist = -1
+        for key in ordered_keys:
+            d = distance.get(key, 0)
+            if d >= max_dist:
+                max_dist = d
+                max_node = key
+
+        if max_node is not None and max_dist > 0:
+            path: List[str] = [max_node]
+            current = max_node
+            while True:
+                preds = [
+                    p
+                    for p in dependencies.get(current, []) or []
+                    if p in tasks and distance.get(p, 0) == distance.get(current, 0) - 1
+                ]
+                if not preds:
+                    break
+                preds.sort(
+                    key=lambda k: (
+                        _priority_rank(tasks[k].priority),
+                        tasks[k].repo_name.lower(),
+                        tasks[k].title.lower(),
+                    )
+                )
+                current = preds[0]
+                path.append(current)
+            critical_path_keys = list(reversed(path))
+
+    return CrossRepoDependencyAnalysis(
+        tasks=tasks,
+        dependencies={k: list(v) for k, v in dependencies.items()},
+        dependents={k: list(v) for k, v in dependents.items()},
+        ordered_keys=list(ordered_keys),
+        blocked_keys=blocked_keys,
+        unblocked_keys=unblocked_keys,
+        cycles=cycles,
+        critical_path_keys=critical_path_keys,
     )
 
 

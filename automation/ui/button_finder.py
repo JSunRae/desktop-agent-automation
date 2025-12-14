@@ -231,11 +231,24 @@ def find_all_allow_buttons_in_window(
     search_recursive(vs_win)
 
     if not found_buttons and DEBUG_BUTTON_SCAN:
-        print("[DEBUG] No action buttons matched. Scanned controls:", scanned)
+        def _shorten(items: List[str], limit: int = 8, max_len: int = 160) -> List[str]:
+            out: List[str] = []
+            for it in items[:limit]:
+                s = it.replace("\n", " ")
+                if len(s) > max_len:
+                    s = s[: max_len - 1] + "…"
+                out.append(s)
+            if len(items) > limit:
+                out.append(f"… (+{len(items) - limit} more)")
+            return out
+
+        print("[DEBUG] No action buttons matched.")
+        if scanned:
+            print(f"[DEBUG] Scanned controls: {scanned}")
         if sample_clickable:
-            print("[DEBUG] Sample clickable controls:", sample_clickable)
+            print("[DEBUG] Sample clickable controls:", _shorten(sample_clickable))
         if sample_named_controls:
-            print("[DEBUG] Named controls containing allow/approve/keep/try:", sample_named_controls)
+            print("[DEBUG] Named controls containing allow/approve/keep/try:", _shorten(sample_named_controls))
     return found_buttons
 
 

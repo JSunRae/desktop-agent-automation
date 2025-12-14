@@ -1,190 +1,58 @@
 {
-  "saved_at": "2025-12-13T13:59:17.061391",
+  "saved_at": "2025-12-14T09:24:23.358637",
   "retention_minutes": 60,
   "events": [
     {
-      "timestamp": "2025-12-13T12:59:55.811024",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:36:45.224900",
+      "window": "Functionality audit plan for TF_1 repository - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:00.953436",
-      "window": "TASK: gap-opener-ranking-servi\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:37:10.015553",
+      "window": "TASK: gcop-test-flake-audit | \u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:05.642670",
-      "window": "TASK: gcop-train-hourly-label-\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:37:22.680202",
+      "window": "TASK: gcop-l2-manifest-audit |\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:10.661278",
-      "window": "TASK: fix-test-model-testing |\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:37:32.124060",
+      "window": "Overnight campaign progress and VS Code OOM issue - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:16.681555",
-      "window": "Adding tests for model_io and shadow_utils coverage - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:37:43.661234",
+      "window": "TASK: repo-restore-train-hourl\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:22.647513",
-      "window": "TASK: gcop-coverage-model-test\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:38:41.267832",
+      "window": "TASK: tf1-seconds-data-exports\u2026 - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:40.096335",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:38:46.155743",
+      "window": "Please workon all of these iss\u2026 - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:00:45.009595",
-      "window": "Fixing L2 format alignment test failures - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:38:51.190599",
+      "window": "I just got a OOM error at 8:27\u2026 - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:01:03.802459",
-      "window": "Action the Enhance Pricing Ver\u2026 - desktop-agent-automation - Visual Studio Code"
+      "timestamp": "2025-12-14T08:38:56.046484",
+      "window": "You are assigned to audit back\u2026 - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:01:33.072809",
-      "window": "Audit and testing of pre_deploy_audit.py tool - HomeAssistant - Visual Studio Code"
+      "timestamp": "2025-12-14T08:39:00.832321",
+      "window": "Identifying low-test-coverage functionality hotspots - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:01:38.308119",
-      "window": "Audit and improve deployment scripts for safety - HomeAssistant - Visual Studio Code"
+      "timestamp": "2025-12-14T08:39:05.821588",
+      "window": "You are assigned to audit lint\u2026 - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:03:00.255053",
-      "window": "Audit and testing of pre_deploy_audit.py tool - HomeAssistant - Visual Studio Code"
+      "timestamp": "2025-12-14T08:39:10.890933",
+      "window": "You are assigned to audit docs\u2026 - Trading-Win - Visual Studio Code"
     },
     {
-      "timestamp": "2025-12-13T13:03:05.390941",
-      "window": "Audit and improve deployment scripts for safety - HomeAssistant - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:03:38.903351",
-      "window": "TASK: gcop-train-hourly-label-\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:03:44.316273",
-      "window": "TASK: fix-test-model-testing |\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:03:49.916404",
-      "window": "Adding tests for model_io and shadow_utils coverage - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:03:54.719586",
-      "window": "TASK: gcop-coverage-model-test\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:04:00.003289",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:05:18.700539",
-      "window": "Action the Enhance Pricing Ver\u2026 - desktop-agent-automation - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:06:28.396484",
-      "window": "Audit and testing of pre_deploy_audit.py tool - HomeAssistant - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:06:33.963039",
-      "window": "Audit and improve deployment scripts for safety - HomeAssistant - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:07:29.462230",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:07:42.561365",
-      "window": "TASK: fix-test-model-testing |\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:07:52.041635",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:08:16.241703",
-      "window": "Improving test coverage for utility functions - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:09:02.447926",
-      "window": "Action the Enhance Pricing Ver\u2026 - desktop-agent-automation - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:10:09.335582",
-      "window": "Audit and testing of pre_deploy_audit.py tool - HomeAssistant - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:11:00.870290",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:11:11.533831",
-      "window": "TASK: gcop-train-hourly-label-\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:11:21.288413",
-      "window": "TASK: fix-test-model-testing |\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:11:30.456897",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:14:16.800859",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:16:54.740611",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:17:07.039984",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:19:55.783236",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:20:10.136566",
-      "window": "Sweep file cleanup process and options - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:22:47.960091",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:25:28.285293",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:28:09.445716",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:31:57.741513",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:34:49.591183",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:37:28.192750",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:40:11.021736",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:43:05.863201",
-      "window": "TASK: validation-report-saniti\u2026 - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:47:21.664014",
-      "window": "Improving test coverage for utility functions - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
-    },
-    {
-      "timestamp": "2025-12-13T13:58:30.374030",
-      "window": "Improving test coverage for utility functions - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"
+      "timestamp": "2025-12-14T08:39:17.163741",
+      "window": "You are assigned to audit typi\u2026 - Trading-Win - Visual Studio Code"
     }
   ]
 }

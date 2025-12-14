@@ -93,7 +93,11 @@ from automation.ui import (
     is_try_again_cooldown_active,
     get_try_again_cooldown_remaining,
 )
-from automation.ui.window_utils import get_cursor_pos, get_expected_cursor_pos
+from automation.ui.window_utils import (
+    get_cursor_pos,
+    get_expected_cursor_pos,
+    get_last_automation_cursor_set_at,
+)
 from automation.panel_tracker import get_tracker, process_finished_panels_with_prompts
 from automation.rate_limit import (
     format_rate_status,
@@ -300,6 +304,9 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
     mouse_pause_until: Optional[datetime] = None
     mouse_pause_active = False
 
+    # Track physical mouse movement (anchor stays fixed until threshold exceeded).
+    physical_mouse_anchor: Optional[tuple[int, int]] = None
+
     drift_pause_active = False
     drift_pause_until: Optional[datetime] = None
     drift_last_pos: Optional[tuple[int, int]] = None
@@ -337,6 +344,16 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                 current_mouse_pos = None
 
             if current_mouse_pos is not None:
+                # Ignore cursor deltas that likely come from automation itself.
+                # The button clicker moves/restores the cursor very frequently; without this
+                # guard, the "expected" cursor position can end up tracking user motion and
+                # physical movement won't reliably trigger a pause.
+                automation_set_at = get_last_automation_cursor_set_at()
+                automation_recent = (
+                    automation_set_at is not None
+                    and (now - automation_set_at).total_seconds() <= 0.35
+                )
+
                 expected = get_expected_cursor_pos()
                 baseline = expected if expected is not None else last_mouse_position
 
@@ -439,6 +456,29 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
 
                 last_mouse_position = current_mouse_pos
 
+                # Physical movement detector (ignores automation-driven movement).
+                if not automation_recent:
+                    if physical_mouse_anchor is None:
+                        physical_mouse_anchor = current_mouse_pos
+                    else:
+                        dxp = current_mouse_pos[0] - physical_mouse_anchor[0]
+                        dyp = current_mouse_pos[1] - physical_mouse_anchor[1]
+                        physical_distance = math.hypot(dxp, dyp)
+
+                        if physical_distance >= MOUSE_MOVEMENT_THRESHOLD:
+                            # Use the existing extra-wait mechanism (keeps hotkeys working).
+                            pause_target = now + timedelta(seconds=MOUSE_PAUSE_SECONDS)
+                            set_extra_wait_until(pause_target)
+                            mouse_pause_active = True
+                            mouse_pause_until = pause_target
+                            physical_mouse_anchor = current_mouse_pos
+
+                            print(
+                                f"\n[{now}] 🖱️  Physical mouse movement detected ({physical_distance:.0f}px) - pausing automation for {MOUSE_PAUSE_SECONDS}s"
+                            )
+                            if SPEAK_PAUSE_EVENTS:
+                                speak("Pausing automation")
+
         # If the user manually resumed, clear any drift status line state.
         if drift_pause_active and not is_paused():
             drift_pause_active = False
@@ -487,10 +527,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
         wait_until = extra_wait_until()
         if now < wait_until:
             remaining = (wait_until - now).total_seconds()
-            print(f"[{now}] Extra wait ({remaining:.0f}s left)...")
+            _status_line(f"Extra wait: {remaining:5.0f}s left | {PAUSE_HOTKEY} to toggle pause")
             for _ in range(20):
                 check_hotkeys_polled()
                 time.sleep(0.1)
+            if datetime.now() >= wait_until:
+                _clear_status_line()
             continue
         
         # Check cooldown

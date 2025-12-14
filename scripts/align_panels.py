@@ -649,7 +649,7 @@ def tile_windows_by_monitor_heuristic(
             # Multi-monitor policy (TF desktop):
             # - Count panels (all other VS Code windows)
             # - If <= 12: main fullscreen on the main (landscape) monitor; panels split across two portrait monitors.
-            # - If > 12: split main monitor in half; main on left half; panels split across left portrait, right portrait, and right half.
+            # - If > 12: split main monitor 60/40; main on left 60%; panels split across left portrait, right portrait, and right 40%.
             panel_count = len(other_windows)
             left_panel_monitor, right_panel_monitor = _pick_left_right_panel_monitors(monitors, main_monitor.index)
 
@@ -1090,8 +1090,8 @@ def optimize_current_layout(
             print("Using template: Main + 3x2 grid + 1x6 bottom row")
             
             # Dimensions
-            main_width = int(usable_width * 0.5)  # 50% width for main
-            grid_width = usable_width - main_width  # 50% for grid
+            main_width = int(usable_width * 0.60)  # 60% width for main
+            grid_width = usable_width - main_width  # 40% for grid
             top_height = int(usable_height * 0.65)  # 65% for top area
             bottom_height = usable_height - top_height  # 35% for bottom
             

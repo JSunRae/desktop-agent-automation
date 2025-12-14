@@ -22,6 +22,8 @@ For the original monolithic script (deprecated), see auto_allow_copilot.py
 
 from __future__ import annotations
 
+import argparse
+import time
 from datetime import datetime
 
 # Initialize configuration first
@@ -36,6 +38,20 @@ from automation.orchestrator import run_main_loop
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Desktop Agent Automation")
+    parser.add_argument(
+        "--wait-minutes",
+        type=int,
+        default=0,
+        help="Minutes to wait before starting automation",
+    )
+    args = parser.parse_args()
+
+    if args.wait_minutes > 0:
+        print(f"Waiting {args.wait_minutes} minutes before starting...")
+        time.sleep(args.wait_minutes * 60)
+        print("Wait complete. Starting automation...")
+
     """Main entry point for the automation system."""
     print("=" * 60)
     print("Desktop Agent Automation")

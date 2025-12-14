@@ -38,6 +38,7 @@ class CursorCheckpoint:
 
 
 _last_expected_cursor_pos: Optional[Tuple[int, int]] = None
+_last_automation_cursor_set_at: Optional[datetime] = None
 
 
 def get_expected_cursor_pos() -> Optional[Tuple[int, int]]:
@@ -45,9 +46,19 @@ def get_expected_cursor_pos() -> Optional[Tuple[int, int]]:
     return _last_expected_cursor_pos
 
 
+def get_last_automation_cursor_set_at() -> Optional[datetime]:
+    """Return when automation last set the cursor position."""
+    return _last_automation_cursor_set_at
+
+
 def _set_expected_cursor_pos(pos: Tuple[int, int]) -> None:
     global _last_expected_cursor_pos
     _last_expected_cursor_pos = (int(pos[0]), int(pos[1]))
+
+
+def _mark_automation_cursor_set() -> None:
+    global _last_automation_cursor_set_at
+    _last_automation_cursor_set_at = datetime.now()
 
 
 def _mouse_guard_log_path() -> Path:
@@ -144,6 +155,7 @@ def set_cursor_pos(x: int, y: int) -> None:
     cursor_checkpoint("before_set_cursor")
     ctypes.windll.user32.SetCursorPos(int(x), int(y))
     _set_expected_cursor_pos((int(x), int(y)))
+    _mark_automation_cursor_set()
     cursor_checkpoint("after_set_cursor")
 
 
@@ -158,7 +170,10 @@ def get_foreground_window() -> int:
     Returns:
         Window handle (HWND) of the foreground window
     """
-    return ctypes.windll.user32.GetForegroundWindow()
+    try:
+        return int(ctypes.windll.user32.GetForegroundWindow() or 0)
+    except Exception:
+        return 0
 
 
 def set_foreground_window(hwnd: int) -> bool:
@@ -175,6 +190,112 @@ def set_foreground_window(hwnd: int) -> bool:
         return bool(ctypes.windll.user32.SetForegroundWindow(int(hwnd)))
     except Exception:
         return False
+
+
+def get_root_window(hwnd: int | None) -> int:
+    """Return the top-level (root) window for an HWND.
+
+    Defensive against transient/invalid handles (e.g., `None`/0).
+    """
+    GA_ROOT = 2
+    if not hwnd:
+        return 0
+    try:
+        root = int(ctypes.windll.user32.GetAncestor(int(hwnd), GA_ROOT))
+        return root or int(hwnd)
+    except Exception:
+        return int(hwnd or 0)
+
+
+def force_foreground_window(hwnd: int) -> bool:
+    """Best-effort bring an HWND to the foreground.
+
+    Windows may reject plain SetForegroundWindow calls (focus-stealing rules).
+    This routine tries a common Win32 recipe using ShowWindow/BringWindowToTop
+    and temporary thread-input attachment.
+    """
+
+    hwnd = get_root_window(int(hwnd))
+    if not hwnd:
+        return False
+
+    user32 = ctypes.windll.user32
+    kernel32 = ctypes.windll.kernel32
+
+    # Constants
+    SW_RESTORE = 9
+
+    def _get_thread_id(win_hwnd: int) -> int:
+        try:
+            return int(user32.GetWindowThreadProcessId(int(win_hwnd), 0))
+        except Exception:
+            return 0
+
+    try:
+        # Restore (in case minimized) and bring above others.
+        try:
+            user32.ShowWindow(int(hwnd), SW_RESTORE)
+        except Exception:
+            pass
+        try:
+            user32.BringWindowToTop(int(hwnd))
+        except Exception:
+            pass
+
+        # First attempt: direct.
+        try:
+            user32.SetForegroundWindow(int(hwnd))
+        except Exception:
+            pass
+
+        fg = get_foreground_window()
+        if get_root_window(fg) == hwnd:
+            return True
+
+        # Second attempt: attach thread inputs.
+        fg_tid = _get_thread_id(fg) if fg else 0
+        target_tid = _get_thread_id(hwnd)
+        cur_tid = int(kernel32.GetCurrentThreadId())
+
+        attached_pairs: list[tuple[int, int]] = []
+
+        def _attach(a: int, b: int) -> None:
+            if not a or not b or a == b:
+                return
+            try:
+                if bool(user32.AttachThreadInput(int(a), int(b), True)):
+                    attached_pairs.append((a, b))
+            except Exception:
+                return
+
+        _attach(fg_tid, target_tid)
+        _attach(fg_tid, cur_tid)
+
+        try:
+            user32.ShowWindow(int(hwnd), SW_RESTORE)
+        except Exception:
+            pass
+        try:
+            user32.BringWindowToTop(int(hwnd))
+        except Exception:
+            pass
+        try:
+            user32.SetForegroundWindow(int(hwnd))
+        except Exception:
+            pass
+
+        fg2 = get_foreground_window()
+        return get_root_window(fg2) == hwnd
+    finally:
+        # Always detach in reverse order.
+        try:
+            for a, b in reversed(attached_pairs):
+                try:
+                    user32.AttachThreadInput(int(a), int(b), False)
+                except Exception:
+                    continue
+        except Exception:
+            pass
 
 
 def get_console_window() -> int:
@@ -240,9 +361,10 @@ def send_mouse_click(x: Optional[int] = None, y: Optional[int] = None) -> None:
     if x is not None and y is not None:
         set_cursor_pos(x, y)
     else:
-        # Clicking in-place; update expectation to current position.
-        pos = get_cursor_pos()
-        _set_expected_cursor_pos(pos)
+        # Clicking in-place; do NOT overwrite expected cursor position.
+        # If the user moved the mouse away from where automation last left it, the
+        # cursor drift guard should still be able to detect and pause.
+        pass
     
     # Mouse button down
     ctypes.windll.user32.mouse_event(0x0002, 0, 0, 0, 0)

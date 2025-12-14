@@ -553,6 +553,9 @@ AUTO_PAUSE_ON_CURSOR_DRIFT = os.environ.get("AUTO_PAUSE_ON_CURSOR_DRIFT", "true"
 # Pixels - if cursor is farther than this from the last automation cursor position, pause.
 CURSOR_DRIFT_THRESHOLD_PX = int(os.environ.get("CURSOR_DRIFT_THRESHOLD_PX", "100"))
 
+# Pixels - while paused for drift, require this much motion before extending the pause window
+CURSOR_DRIFT_STABILITY_PX = float(os.environ.get("CURSOR_DRIFT_STABILITY_PX", "5"))
+
 # Persist cursor checkpoints to logs (jsonl)
 CURSOR_GUARD_LOG = os.environ.get("CURSOR_GUARD_LOG", "true").lower() == "true"
 

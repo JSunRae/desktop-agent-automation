@@ -57,6 +57,18 @@ COMMANDS: tuple[CommandSpec, ...] = (
         title="Run Automation (New Modular)",
         args=("run_automation.py",),
         description="Launch the hotkey + panel automation orchestrator with modular routing.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Launch immediately",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Wait before launching",
+                value_flag="--wait-minutes",
+                value_prompt="Minutes to wait: ",
+            ),
+        ),
     ),
     CommandSpec(
         key="legacy-auto-allow",

@@ -24,6 +24,8 @@ from automation.ui.window_utils import (
     get_foreground_window,
     set_foreground_window,
     send_mouse_click,
+    get_root_window,
+    force_foreground_window,
 )
 from automation.ui.scroll import scroll_control_into_view
 from automation.config import (
@@ -33,6 +35,7 @@ from automation.config import (
 )
 
 from automation.title_parsing import is_vscode_window_title
+from automation.core.logging import log_verbose
 
 if TYPE_CHECKING:
     pass
@@ -67,7 +70,8 @@ def _get_window_handle(control: auto.Control) -> int:
     """Return the native window handle for a VS Code window control."""
     try:
         handle = getattr(control, "NativeWindowHandle", 0)
-        return int(handle or 0)
+        hwnd = int(handle or 0)
+        return get_root_window(hwnd) if hwnd else 0
     except Exception:
         return 0
 
@@ -92,7 +96,9 @@ def ensure_window_focus(
         except Exception:
             current = 0
 
-        if current == hwnd:
+        current = int(current or 0)
+
+        if get_root_window(current) == hwnd:
             return True
 
         try:
@@ -101,11 +107,15 @@ def ensure_window_focus(
         except Exception:
             pass
 
-        set_foreground_window(hwnd)
+        # Prefer a stronger focus path; fall back to plain SetForegroundWindow.
+        try:
+            force_foreground_window(hwnd)
+        except Exception:
+            set_foreground_window(hwnd)
         time.sleep(FOCUS_RETRY_DELAY)
 
         try:
-            if get_foreground_window() == hwnd:
+            if get_root_window(int(get_foreground_window() or 0)) == hwnd:
                 return True
         except Exception:
             pass
@@ -684,7 +694,7 @@ def click_all_action_buttons(vs_win: auto.Control) -> tuple:
             win_title = vs_win.Name or "Unknown"
         except Exception:
             win_title = "Unknown"
-        print(f"  [DEBUG] No action buttons found in window: {win_title}")
+        log_verbose(f"  [DEBUG] No action buttons found in window: {win_title}")
     
     for btn in buttons:
         if is_try_again_cooldown_active():

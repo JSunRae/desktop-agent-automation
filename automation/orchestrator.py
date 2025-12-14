@@ -42,6 +42,7 @@ from automation.config import (
     MOUSE_PAUSE_SECONDS,
     AUTO_PAUSE_ON_CURSOR_DRIFT,
     CURSOR_DRIFT_THRESHOLD_PX,
+    CURSOR_DRIFT_STABILITY_PX,
     SPEAK_PAUSE_EVENTS,
     # Keys
     PAUSE_HOTKEY,
@@ -396,8 +397,8 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                                             pos_now[0] - drift_last_pos[0],
                                             pos_now[1] - drift_last_pos[1],
                                         )
-                                        # Any movement resets the timer.
-                                        if moved >= 1.0:
+                                        # Ignore tiny jitters; require noticeable motion before extending.
+                                        if moved >= CURSOR_DRIFT_STABILITY_PX:
                                             drift_last_pos = pos_now
                                             drift_pause_until = now + timedelta(seconds=MOUSE_PAUSE_SECONDS)
 

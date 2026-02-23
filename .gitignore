@@ -2,3 +2,10 @@ automation/config.json
 automation/state.json
 *.log
 __pycache__/
+.venv/
+logs/
+.mypy_cache/
+.pytest_cache/
+desktop_agent_automation.egg-info/
+.coverage
+.env

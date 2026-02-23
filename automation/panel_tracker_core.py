@@ -291,6 +291,10 @@ class PanelTracker:
         except Exception as e:
             print(f"[PanelTracker] Warning: Could not save panel state: {e}")
 
+    def save_state(self) -> None:
+        """Public method to force a state save."""
+        self._save_state()
+
     def record_allow_click(self, window_title: str, panel_id: str = "") -> None:
         now = datetime.now()
         key = self._generate_panel_key(window_title, panel_id)

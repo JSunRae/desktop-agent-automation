@@ -1,0 +1,52 @@
+{
+  "runs": {
+    "2026-01-21T20:02:02Z-3b41ae09": {
+      "agent_hint": null,
+      "details": "This is a test notification after auto-start.",
+      "incoming": [],
+      "last_notification": {
+        "agent_hint": null,
+        "details": "This is a test notification after auto-start.",
+        "next_actions": [
+          "await:command"
+        ],
+        "stage": "ERROR",
+        "summary": "This is a test notification after auto-start."
+      },
+      "next_actions": [
+        "await:command"
+      ],
+      "pause_reason": "This is a test notification after auto-start.",
+      "repo": "desktop-agent-automation",
+      "stage": "ERROR",
+      "summary": "This is a test notification after auto-start.",
+      "task": "alert",
+      "updated_at": "2026-01-21T20:02:02.451525Z",
+      "utc": "2026-01-21T20:02:02.286498Z"
+    },
+    "2026-01-22T11:07:36Z-e42f72cf": {
+      "agent_hint": null,
+      "details": "⚠️ Automation Alert: Rate dropped >70% (Current: 26.0, Peak: 106.0). Activate more agents.",
+      "incoming": [],
+      "last_notification": {
+        "agent_hint": null,
+        "details": "⚠️ Automation Alert: Rate dropped >70% (Current: 26.0, Peak: 106.0). Activate more agents.",
+        "next_actions": [
+          "await:command"
+        ],
+        "stage": "ERROR",
+        "summary": "⚠️ Automation Alert: Rate dropped >70% (Current: 26.0, Peak: 106.0). Activate more agents."
+      },
+      "next_actions": [
+        "await:command"
+      ],
+      "pause_reason": "⚠️ Automation Alert: Rate dropped >70% (Current: 26.0, Peak: 106.0). Activate more agents.",
+      "repo": "desktop-agent-automation",
+      "stage": "ERROR",
+      "summary": "⚠️ Automation Alert: Rate dropped >70% (Current: 26.0, Peak: 106.0). Activate more agents.",
+      "task": "alert",
+      "updated_at": "2026-01-22T11:07:36.500797Z",
+      "utc": "2026-01-22T11:07:36.290585Z"
+    }
+  }
+}

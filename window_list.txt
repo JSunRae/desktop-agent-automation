@@ -1,6 +1,7 @@
 Listing all top-level windows:
 
 --------------------------------------------------------------------------------
+Window: World Clock Pro - TimeZone Widgets
 --------------------------------------------------------------------------------
 
 VS Code candidate windows found:

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generated_at": "2025-12-12T13:53:24.039790+00:00",
+  "generated_at": "2026-02-01T10:56:14.278440+00:00",
   "repos": [
     {
       "repo_name": "desktop-agent-automation",
@@ -9,7 +9,7 @@
         "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\desktop-agent-automation\\docs\\todo.md",
         "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\desktop-agent-automation\\docs\\TODO.md"
       ],
-      "parsed_at": "2025-12-12T13:53:24.010283+00:00",
+      "parsed_at": "2026-02-01T10:56:14.272440+00:00",
       "items": [
         {
           "text": "API call to classify idle panel output before seeding",
@@ -60,6 +60,22 @@
           "section": "Documentation"
         },
         {
+          "text": "Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)",
+          "title": "Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.",
+          "title": "First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recurring Reminders"
+        },
+        {
           "text": "Multi-repo support with separate prompt batches",
           "title": "Multi-repo support with separate prompt batches",
           "priority": null,
@@ -402,6 +418,22 @@
           "is_blocked": false,
           "blocked_by": [],
           "section": "Previous Completions"
+        },
+        {
+          "text": "**Python:** `>=3.11` (see `pyproject.toml` \u2192 `requires-python`)",
+          "title": "**Python:** `>=3.11` (see `pyproject.toml` \u2192 `requires-python`)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Prerequisites"
+        },
+        {
+          "text": "**Repo dependencies:** install via `requirements.txt` or editable install (recommended)",
+          "title": "**Repo dependencies:** install via `requirements.txt` or editable install (recommended)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Prerequisites"
         },
         {
           "text": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
@@ -476,6 +508,22 @@
           "section": "Documentation"
         },
         {
+          "text": "Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)",
+          "title": "Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.",
+          "title": "First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recurring Reminders"
+        },
+        {
           "text": "Multi-repo support with separate prompt batches",
           "title": "Multi-repo support with separate prompt batches",
           "priority": null,
@@ -818,6 +866,22 @@
           "is_blocked": false,
           "blocked_by": [],
           "section": "Previous Completions"
+        },
+        {
+          "text": "**Python:** `>=3.11` (see `pyproject.toml` \u2192 `requires-python`)",
+          "title": "**Python:** `>=3.11` (see `pyproject.toml` \u2192 `requires-python`)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Prerequisites"
+        },
+        {
+          "text": "**Repo dependencies:** install via `requirements.txt` or editable install (recommended)",
+          "title": "**Repo dependencies:** install via `requirements.txt` or editable install (recommended)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Prerequisites"
         },
         {
           "text": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
@@ -892,6 +956,22 @@
           "section": "Documentation"
         },
         {
+          "text": "Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)",
+          "title": "Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Documentation"
+        },
+        {
+          "text": "First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.",
+          "title": "First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recurring Reminders"
+        },
+        {
           "text": "Multi-repo support with separate prompt batches",
           "title": "Multi-repo support with separate prompt batches",
           "priority": null,
@@ -1234,6 +1314,22 @@
           "is_blocked": false,
           "blocked_by": [],
           "section": "Previous Completions"
+        },
+        {
+          "text": "**Python:** `>=3.11` (see `pyproject.toml` \u2192 `requires-python`)",
+          "title": "**Python:** `>=3.11` (see `pyproject.toml` \u2192 `requires-python`)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Prerequisites"
+        },
+        {
+          "text": "**Repo dependencies:** install via `requirements.txt` or editable install (recommended)",
+          "title": "**Repo dependencies:** install via `requirements.txt` or editable install (recommended)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Prerequisites"
         },
         {
           "text": "Test panel name: \"Testing window functionality - desktop-agent-automation\"",
@@ -1267,7 +1363,7 @@
         "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Doc Sync Harmonizer\\Todo.md",
         "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Doc Sync Harmonizer\\todo.md"
       ],
-      "parsed_at": "2025-12-12T13:53:24.017283+00:00",
+      "parsed_at": "2026-02-01T10:56:14.272440+00:00",
       "items": [
         {
           "text": "Restore DocSync CLI access in the staged workspace so agents can run `docsync scan` / `docsync validate` and capture WARN/ERROR logs for every repo.",
@@ -1485,7 +1581,7 @@
         "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\HomeAssistant\\Todo.md",
         "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\HomeAssistant\\todo.md"
       ],
-      "parsed_at": "2025-12-12T13:53:24.028290+00:00",
+      "parsed_at": "2026-02-01T10:56:14.274440+00:00",
       "items": [
         {
           "text": "**Why it matters:** Entity coverage remains at 34\u202f% because the checked-in registry snapshot lacks the Aqara FP2 binary sensors. Presence automations are referencing orphaned proxies.",
@@ -1960,8 +2056,8 @@
           "section": "13. Documentation Updates"
         },
         {
-          "text": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
-          "title": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "text": "`docs/AGENTS.md` includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "title": "`docs/AGENTS.md` includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
@@ -2688,8 +2784,8 @@
           "section": "13. Documentation Updates"
         },
         {
-          "text": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
-          "title": "AGENTS.md includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "text": "`docs/AGENTS.md` includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
+          "title": "`docs/AGENTS.md` includes Master CLI guidance in setup and development workflow sections and calls out the environment overview helper (option 3)",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
@@ -2946,226 +3042,1865 @@
       ]
     },
     {
-      "repo_name": "Trading-Win",
+      "repo_name": "Hypertrophy App",
       "todo_paths": [
-        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\Todo.md",
-        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\todo.md"
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Hypertrophy App\\docs\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Hypertrophy App\\docs\\todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Hypertrophy App\\docs\\TODO.md"
       ],
-      "parsed_at": "2025-12-12T13:53:24.039289+00:00",
+      "parsed_at": "2026-02-01T10:56:14.275940+00:00",
       "items": [
         {
-          "text": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
-          "title": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
+          "text": "[How To Use This File](#how-to-use-this-file)",
+          "title": "[How To Use This File](#how-to-use-this-file)",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Table of Contents"
         },
         {
-          "text": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
-          "title": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
+          "text": "[Backlog](#backlog)",
+          "title": "[Backlog](#backlog)",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Table of Contents"
         },
         {
-          "text": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
-          "title": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
+          "text": "[Work Log](#work-log)",
+          "title": "[Work Log](#work-log)",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Table of Contents"
         },
         {
-          "text": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
-          "title": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
+          "text": "[Repo Hygiene Cleanup Plan (Task A8)](#repo-hygiene-cleanup-plan-task-a8)",
+          "title": "[Repo Hygiene Cleanup Plan (Task A8)](#repo-hygiene-cleanup-plan-task-a8)",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Table of Contents"
         },
         {
-          "text": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
-          "title": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
+          "text": "Use this file as the running log of what needs doing and what was done.",
+          "title": "Use this file as the running log of what needs doing and what was done.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "How To Use This File"
         },
         {
-          "text": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
-          "title": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
+          "text": "For parallel work, claims/ownership live in `docs/TASK_ASSIGNMENTS.md`.",
+          "title": "For parallel work, claims/ownership live in `docs/TASK_ASSIGNMENTS.md`.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Cancelled Tasks"
+          "section": "How To Use This File"
         },
         {
-          "text": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
-          "title": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
+          "text": "When you complete or block a task, add a short entry under [Work Log](#work-log).",
+          "title": "When you complete or block a task, add a short entry under [Work Log](#work-log).",
           "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "Restore native iOS sources (`iOS/HypertrophyApp`, `iOS/HypertrophyAppTests`) so CI/build/test steps stop gating on missing modules.",
+          "title": "Restore native iOS sources (`iOS/HypertrophyApp`, `iOS/HypertrophyAppTests`) so CI/build/test steps stop gating on missing modules.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Reconcile migration docs/claims vs the restored sources (ensure filenames and parsers match `MIGRATION_IMPLEMENTATION_COMPLETE.md`).",
+          "title": "Reconcile migration docs/claims vs the restored sources (ensure filenames and parsers match `MIGRATION_IMPLEMENTATION_COMPLETE.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Keep docs link integrity in sync as new architecture changes land (README, AGENTS, topical guides).",
+          "title": "Keep docs link integrity in sync as new architecture changes land (README, AGENTS, topical guides).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Promote a single environment configuration module (migrate `docs/archive/react-native-legacy/src/config/environment.ts` logic into `src/config/environment.ts` and wire Expo entrypoints/tests to use it).",
+          "title": "Promote a single environment configuration module (migrate `docs/archive/react-native-legacy/src/config/environment.ts` logic into `src/config/environment.ts` and wire Expo entrypoints/tests to use it).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Align the store implementation so Expo + any future native shell share the same reducer/persistence stack.",
+          "title": "Align the store implementation so Expo + any future native shell share the same reducer/persistence stack.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Document/automate config validation CLI outputs (A13 follow-up: publish `validation_report.json` expectations).",
+          "title": "Document/automate config validation CLI outputs (A13 follow-up: publish `validation_report.json` expectations).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Decide whether to fully remove or formally package the React Native CLI skeleton (now archived at `docs/archive/react-native-legacy/`).",
+          "title": "Decide whether to fully remove or formally package the React Native CLI skeleton (now archived at `docs/archive/react-native-legacy/`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Continue improving Windows DX scripts and optional automation once the Expo shell stabilises.",
+          "title": "Continue improving Windows DX scripts and optional automation once the Expo shell stabilises.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "(Add entries as work completes. Keep each entry short and link to tasks / files.)",
+          "title": "(Add entries as work completes. Keep each entry short and link to tasks / files.)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Established agent coordination system: added `docs/TASK_ASSIGNMENTS.md` (task board) and `docs/AGENT_PROMPTS.md` (10 claimable prompts); updated `.github/copilot-instructions.md` to require claiming + logging.",
+          "title": "Established agent coordination system: added `docs/TASK_ASSIGNMENTS.md` (task board) and `docs/AGENT_PROMPTS.md` (10 claimable prompts); updated `.github/copilot-instructions.md` to require claiming + logging.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "P9 cleanup + doc link audit: confirmed no `%BACKUP_DIR%` / `%BDIR%` folders present; `.gitignore` already covers observed build/dependency artifacts; spot-checked `README.md`, `AGENTS.md`, and `docs/*.md` cross-links/anchors referenced by ToCs and dashboards.",
+          "title": "P9 cleanup + doc link audit: confirmed no `%BACKUP_DIR%` / `%BDIR%` folders present; `.gitignore` already covers observed build/dependency artifacts; spot-checked `README.md`, `AGENTS.md`, and `docs/*.md` cross-links/anchors referenced by ToCs and dashboards.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A6 (Migration): Reconciled migration docs with checkout reality (native `iOS/` missing); added verified vs blocked sections in `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`; made `test_migration_system.sh` exit early with a clear blocked message when native sources are absent.",
+          "title": "A6 (Migration): Reconciled migration docs with checkout reality (native `iOS/` missing); added verified vs blocked sections in `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`; made `test_migration_system.sh` exit early with a clear blocked message when native sources are absent.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A5 (Security/CI): added `.gitignore` protections for `.env*`, `.npmrc`, key/cert/provisioning files, and `logs/`; replaced `.github/workflows/ios.yml` with native-source gating (PRs skip with notice; pushes fail fast). No checked-in secrets found via quick pattern scan.",
+          "title": "A5 (Security/CI): added `.gitignore` protections for `.env*`, `.npmrc`, key/cert/provisioning files, and `logs/`; replaced `.github/workflows/ios.yml` with native-source gating (PRs skip with notice; pushes fail fast). No checked-in secrets found via quick pattern scan.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A7: Audited `Package.swift`/iOS CI and updated `.github/workflows/ios.yml` to skip native steps on PRs when `iOS/HypertrophyApp` is missing, and to fail fast with a clear error on pushes; noted coverage export likely mismatched with `xcodebuild` outputs.",
+          "title": "A7: Audited `Package.swift`/iOS CI and updated `.github/workflows/ios.yml` to skip native steps on PRs when `iOS/HypertrophyApp` is missing, and to fail fast with a clear error on pushes; noted coverage export likely mismatched with `xcodebuild` outputs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A1 (Docs): fixed stale config references and resolved doc contradictions across `AGENTS.md`, `docs/programming-engine.md`, and `docs/CONSOLIDATED_ACTION_PLAN.md` (aligning metrics/status with `validation_report.json`).",
+          "title": "A1 (Docs): fixed stale config references and resolved doc contradictions across `AGENTS.md`, `docs/programming-engine.md`, and `docs/CONSOLIDATED_ACTION_PLAN.md` (aligning metrics/status with `validation_report.json`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A6 (Migration follow-up): Added an explicit verification matrix + blocked status callouts to `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`, and expanded `test_migration_system.sh` guidance so it points contributors to `docs/SETUP.md` when the native module is missing.",
+          "title": "A6 (Migration follow-up): Added an explicit verification matrix + blocked status callouts to `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`, and expanded `test_migration_system.sh` guidance so it points contributors to `docs/SETUP.md` when the native module is missing.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A3 (Testing): Hardened Jest determinism by pinning timezone (`jest.setup.js`), enabling safe mock cleanup (`jest.config.js`), removing perf-threshold assertions, and making test fixtures deterministic (fixed IDs/timestamps + stable theme via `useColorScheme` mocking). Verified `npm test` passes twice consecutively.",
+          "title": "A3 (Testing): Hardened Jest determinism by pinning timezone (`jest.setup.js`), enabling safe mock cleanup (`jest.config.js`), removing perf-threshold assertions, and making test fixtures deterministic (fixed IDs/timestamps + stable theme via `useColorScheme` mocking). Verified `npm test` passes twice consecutively.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A8 (Repo hygiene): Compared Expo `src/` (63 files) vs legacy `react-native/src/` (10 files) and found only 9 overlapping paths (mainly `components/workout/LoggingInterface`, `services/ai/*`, and `types/Workout`). Documented duplication/staleness risks plus a no-deletion cleanup plan (see below) covering the empty `react-native/App.tsx`, divergent store/environment configs, and duplicate RN CLI configs that no longer match the Expo shell.",
+          "title": "A8 (Repo hygiene): Compared Expo `src/` (63 files) vs legacy `react-native/src/` (10 files) and found only 9 overlapping paths (mainly `components/workout/LoggingInterface`, `services/ai/*`, and `types/Workout`). Documented duplication/staleness risks plus a no-deletion cleanup plan (see below) covering the empty `react-native/App.tsx`, divergent store/environment configs, and duplicate RN CLI configs that no longer match the Expo shell.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Repo hygiene follow-up: archived the entire `react-native/` tree to `docs/archive/react-native-legacy/`, added a README explaining the freeze, and updated `README.md`, `AGENTS.md`, and `docs/AGENT_PROMPTS.md` so contributors treat `src/` as the only active Expo shell.",
+          "title": "Repo hygiene follow-up: archived the entire `react-native/` tree to `docs/archive/react-native-legacy/`, added a README explaining the freeze, and updated `README.md`, `AGENTS.md`, and `docs/AGENT_PROMPTS.md` so contributors treat `src/` as the only active Expo shell.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A4 (Config/Data): Added invariant validators for `config/*.json` and `data/exercises.json` via `src/services/ConfigValidation.ts` and extended `src/__tests__/ConfigValidation.test.ts`. Invariants enforced include: exercise IDs are non-empty and unique; `primaryMuscles`/`secondaryMuscles`/`instructions` are string arrays; exercise-constants muscle allocation weights are finite, within 0..1, and sum ~1.0; ROM is defined for each allocated exercise and is >0 for dynamic exercises (allow explicit static entries like `planks` = 0); fatigue factors are `position_N` and non-increasing. Verified `npm test` passes.",
+          "title": "A4 (Config/Data): Added invariant validators for `config/*.json` and `data/exercises.json` via `src/services/ConfigValidation.ts` and extended `src/__tests__/ConfigValidation.test.ts`. Invariants enforced include: exercise IDs are non-empty and unique; `primaryMuscles`/`secondaryMuscles`/`instructions` are string arrays; exercise-constants muscle allocation weights are finite, within 0..1, and sum ~1.0; ROM is defined for each allocated exercise and is >0 for dynamic exercises (allow explicit static entries like `planks` = 0); fatigue factors are `position_N` and non-increasing. Verified `npm test` passes.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A9 (DX/Windows scripts): Improved `scripts/dev-start.cmd` and `scripts/fix-path-and-restart-code.cmd` messaging/failure handling (safer npm-exec fallback; no babel config overwrites; PATH updates validate Node and dedupe entries). Updated Windows docs (`README.md`, `docs/SETUP.md`, `docs/EXPO_DEVELOPMENT_GUIDE.md`, `AGENTS.md`, `docs/ios-development-workflow.md`). Verified `npm run lint`, `npm run typecheck`, `npm test` all pass.",
+          "title": "A9 (DX/Windows scripts): Improved `scripts/dev-start.cmd` and `scripts/fix-path-and-restart-code.cmd` messaging/failure handling (safer npm-exec fallback; no babel config overwrites; PATH updates validate Node and dedupe entries). Updated Windows docs (`README.md`, `docs/SETUP.md`, `docs/EXPO_DEVELOPMENT_GUIDE.md`, `AGENTS.md`, `docs/ios-development-workflow.md`). Verified `npm run lint`, `npm run typecheck`, `npm test` all pass.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A11 (DX/Testing): Captured ESLint failure (`process` undefined in `jest.setup.js`), added `/* eslint-env node */`, and verified on Windows: `npm run lint` (pass), `npm run typecheck` (pass), `npm test` (pass).",
+          "title": "A11 (DX/Testing): Captured ESLint failure (`process` undefined in `jest.setup.js`), added `/* eslint-env node */`, and verified on Windows: `npm run lint` (pass), `npm run typecheck` (pass), `npm test` (pass).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A10 (Product/QA): Cross-checked Checklist AC-1..AC-10 against Expo services/tests; captured the coverage matrix below and flagged gaps (Programming Fit, Logging UX performance, data integrity resiliency, HealthKit stubs, CSV export tests).",
+          "title": "A10 (Product/QA): Cross-checked Checklist AC-1..AC-10 against Expo services/tests; captured the coverage matrix below and flagged gaps (Programming Fit, Logging UX performance, data integrity resiliency, HealthKit stubs, CSV export tests).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Add Expo-accessible plan simulation tests (or mocked engine) so AC-1 can be validated without the Swift package.",
+          "title": "Add Expo-accessible plan simulation tests (or mocked engine) so AC-1 can be validated without the Swift package.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Extend the workout store tests to cover tap counts, undo stack, and persistence latency for AC-7; include perf budgets in `ActiveWorkout` interactions.",
+          "title": "Extend the workout store tests to cover tap counts, undo stack, and persistence latency for AC-7; include perf budgets in `ActiveWorkout` interactions.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Write AsyncStorage-backed tests for `WorkoutPersistence` covering crash recovery, checksum mismatches, and duplicate suppression (AC-8).",
+          "title": "Write AsyncStorage-backed tests for `WorkoutPersistence` covering crash recovery, checksum mismatches, and duplicate suppression (AC-8).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Document that AC-9 remains blocked without the native HealthKit module and consider adding a no-op Expo shim that records the request intent.",
+          "title": "Document that AC-9 remains blocked without the native HealthKit module and consider adding a no-op Expo shim that records the request intent.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Add Jest/unit tests for `WorkoutExporter` that stub `expo-file-system`/`expo-sharing` to prove the 90-day CSV + muscle volume export path (AC-10).",
+          "title": "Add Jest/unit tests for `WorkoutExporter` that stub `expo-file-system`/`expo-sharing` to prove the 90-day CSV + muscle volume export path (AC-10).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "[How To Use This File](#how-to-use-this-file)",
+          "title": "[How To Use This File](#how-to-use-this-file)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "[Backlog](#backlog)",
+          "title": "[Backlog](#backlog)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "[Work Log](#work-log)",
+          "title": "[Work Log](#work-log)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "[Repo Hygiene Cleanup Plan (Task A8)](#repo-hygiene-cleanup-plan-task-a8)",
+          "title": "[Repo Hygiene Cleanup Plan (Task A8)](#repo-hygiene-cleanup-plan-task-a8)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "Use this file as the running log of what needs doing and what was done.",
+          "title": "Use this file as the running log of what needs doing and what was done.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "For parallel work, claims/ownership live in `docs/TASK_ASSIGNMENTS.md`.",
+          "title": "For parallel work, claims/ownership live in `docs/TASK_ASSIGNMENTS.md`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "When you complete or block a task, add a short entry under [Work Log](#work-log).",
+          "title": "When you complete or block a task, add a short entry under [Work Log](#work-log).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "Restore native iOS sources (`iOS/HypertrophyApp`, `iOS/HypertrophyAppTests`) so CI/build/test steps stop gating on missing modules.",
+          "title": "Restore native iOS sources (`iOS/HypertrophyApp`, `iOS/HypertrophyAppTests`) so CI/build/test steps stop gating on missing modules.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Reconcile migration docs/claims vs the restored sources (ensure filenames and parsers match `MIGRATION_IMPLEMENTATION_COMPLETE.md`).",
+          "title": "Reconcile migration docs/claims vs the restored sources (ensure filenames and parsers match `MIGRATION_IMPLEMENTATION_COMPLETE.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Keep docs link integrity in sync as new architecture changes land (README, AGENTS, topical guides).",
+          "title": "Keep docs link integrity in sync as new architecture changes land (README, AGENTS, topical guides).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Promote a single environment configuration module (migrate `docs/archive/react-native-legacy/src/config/environment.ts` logic into `src/config/environment.ts` and wire Expo entrypoints/tests to use it).",
+          "title": "Promote a single environment configuration module (migrate `docs/archive/react-native-legacy/src/config/environment.ts` logic into `src/config/environment.ts` and wire Expo entrypoints/tests to use it).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Align the store implementation so Expo + any future native shell share the same reducer/persistence stack.",
+          "title": "Align the store implementation so Expo + any future native shell share the same reducer/persistence stack.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Document/automate config validation CLI outputs (A13 follow-up: publish `validation_report.json` expectations).",
+          "title": "Document/automate config validation CLI outputs (A13 follow-up: publish `validation_report.json` expectations).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Decide whether to fully remove or formally package the React Native CLI skeleton (now archived at `docs/archive/react-native-legacy/`).",
+          "title": "Decide whether to fully remove or formally package the React Native CLI skeleton (now archived at `docs/archive/react-native-legacy/`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Continue improving Windows DX scripts and optional automation once the Expo shell stabilises.",
+          "title": "Continue improving Windows DX scripts and optional automation once the Expo shell stabilises.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "(Add entries as work completes. Keep each entry short and link to tasks / files.)",
+          "title": "(Add entries as work completes. Keep each entry short and link to tasks / files.)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Established agent coordination system: added `docs/TASK_ASSIGNMENTS.md` (task board) and `docs/AGENT_PROMPTS.md` (10 claimable prompts); updated `.github/copilot-instructions.md` to require claiming + logging.",
+          "title": "Established agent coordination system: added `docs/TASK_ASSIGNMENTS.md` (task board) and `docs/AGENT_PROMPTS.md` (10 claimable prompts); updated `.github/copilot-instructions.md` to require claiming + logging.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "P9 cleanup + doc link audit: confirmed no `%BACKUP_DIR%` / `%BDIR%` folders present; `.gitignore` already covers observed build/dependency artifacts; spot-checked `README.md`, `AGENTS.md`, and `docs/*.md` cross-links/anchors referenced by ToCs and dashboards.",
+          "title": "P9 cleanup + doc link audit: confirmed no `%BACKUP_DIR%` / `%BDIR%` folders present; `.gitignore` already covers observed build/dependency artifacts; spot-checked `README.md`, `AGENTS.md`, and `docs/*.md` cross-links/anchors referenced by ToCs and dashboards.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A6 (Migration): Reconciled migration docs with checkout reality (native `iOS/` missing); added verified vs blocked sections in `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`; made `test_migration_system.sh` exit early with a clear blocked message when native sources are absent.",
+          "title": "A6 (Migration): Reconciled migration docs with checkout reality (native `iOS/` missing); added verified vs blocked sections in `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`; made `test_migration_system.sh` exit early with a clear blocked message when native sources are absent.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A5 (Security/CI): added `.gitignore` protections for `.env*`, `.npmrc`, key/cert/provisioning files, and `logs/`; replaced `.github/workflows/ios.yml` with native-source gating (PRs skip with notice; pushes fail fast). No checked-in secrets found via quick pattern scan.",
+          "title": "A5 (Security/CI): added `.gitignore` protections for `.env*`, `.npmrc`, key/cert/provisioning files, and `logs/`; replaced `.github/workflows/ios.yml` with native-source gating (PRs skip with notice; pushes fail fast). No checked-in secrets found via quick pattern scan.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A7: Audited `Package.swift`/iOS CI and updated `.github/workflows/ios.yml` to skip native steps on PRs when `iOS/HypertrophyApp` is missing, and to fail fast with a clear error on pushes; noted coverage export likely mismatched with `xcodebuild` outputs.",
+          "title": "A7: Audited `Package.swift`/iOS CI and updated `.github/workflows/ios.yml` to skip native steps on PRs when `iOS/HypertrophyApp` is missing, and to fail fast with a clear error on pushes; noted coverage export likely mismatched with `xcodebuild` outputs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A1 (Docs): fixed stale config references and resolved doc contradictions across `AGENTS.md`, `docs/programming-engine.md`, and `docs/CONSOLIDATED_ACTION_PLAN.md` (aligning metrics/status with `validation_report.json`).",
+          "title": "A1 (Docs): fixed stale config references and resolved doc contradictions across `AGENTS.md`, `docs/programming-engine.md`, and `docs/CONSOLIDATED_ACTION_PLAN.md` (aligning metrics/status with `validation_report.json`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A6 (Migration follow-up): Added an explicit verification matrix + blocked status callouts to `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`, and expanded `test_migration_system.sh` guidance so it points contributors to `docs/SETUP.md` when the native module is missing.",
+          "title": "A6 (Migration follow-up): Added an explicit verification matrix + blocked status callouts to `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`, and expanded `test_migration_system.sh` guidance so it points contributors to `docs/SETUP.md` when the native module is missing.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A3 (Testing): Hardened Jest determinism by pinning timezone (`jest.setup.js`), enabling safe mock cleanup (`jest.config.js`), removing perf-threshold assertions, and making test fixtures deterministic (fixed IDs/timestamps + stable theme via `useColorScheme` mocking). Verified `npm test` passes twice consecutively.",
+          "title": "A3 (Testing): Hardened Jest determinism by pinning timezone (`jest.setup.js`), enabling safe mock cleanup (`jest.config.js`), removing perf-threshold assertions, and making test fixtures deterministic (fixed IDs/timestamps + stable theme via `useColorScheme` mocking). Verified `npm test` passes twice consecutively.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A8 (Repo hygiene): Compared Expo `src/` (63 files) vs legacy `react-native/src/` (10 files) and found only 9 overlapping paths (mainly `components/workout/LoggingInterface`, `services/ai/*`, and `types/Workout`). Documented duplication/staleness risks plus a no-deletion cleanup plan (see below) covering the empty `react-native/App.tsx`, divergent store/environment configs, and duplicate RN CLI configs that no longer match the Expo shell.",
+          "title": "A8 (Repo hygiene): Compared Expo `src/` (63 files) vs legacy `react-native/src/` (10 files) and found only 9 overlapping paths (mainly `components/workout/LoggingInterface`, `services/ai/*`, and `types/Workout`). Documented duplication/staleness risks plus a no-deletion cleanup plan (see below) covering the empty `react-native/App.tsx`, divergent store/environment configs, and duplicate RN CLI configs that no longer match the Expo shell.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Repo hygiene follow-up: archived the entire `react-native/` tree to `docs/archive/react-native-legacy/`, added a README explaining the freeze, and updated `README.md`, `AGENTS.md`, and `docs/AGENT_PROMPTS.md` so contributors treat `src/` as the only active Expo shell.",
+          "title": "Repo hygiene follow-up: archived the entire `react-native/` tree to `docs/archive/react-native-legacy/`, added a README explaining the freeze, and updated `README.md`, `AGENTS.md`, and `docs/AGENT_PROMPTS.md` so contributors treat `src/` as the only active Expo shell.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A4 (Config/Data): Added invariant validators for `config/*.json` and `data/exercises.json` via `src/services/ConfigValidation.ts` and extended `src/__tests__/ConfigValidation.test.ts`. Invariants enforced include: exercise IDs are non-empty and unique; `primaryMuscles`/`secondaryMuscles`/`instructions` are string arrays; exercise-constants muscle allocation weights are finite, within 0..1, and sum ~1.0; ROM is defined for each allocated exercise and is >0 for dynamic exercises (allow explicit static entries like `planks` = 0); fatigue factors are `position_N` and non-increasing. Verified `npm test` passes.",
+          "title": "A4 (Config/Data): Added invariant validators for `config/*.json` and `data/exercises.json` via `src/services/ConfigValidation.ts` and extended `src/__tests__/ConfigValidation.test.ts`. Invariants enforced include: exercise IDs are non-empty and unique; `primaryMuscles`/`secondaryMuscles`/`instructions` are string arrays; exercise-constants muscle allocation weights are finite, within 0..1, and sum ~1.0; ROM is defined for each allocated exercise and is >0 for dynamic exercises (allow explicit static entries like `planks` = 0); fatigue factors are `position_N` and non-increasing. Verified `npm test` passes.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A9 (DX/Windows scripts): Improved `scripts/dev-start.cmd` and `scripts/fix-path-and-restart-code.cmd` messaging/failure handling (safer npm-exec fallback; no babel config overwrites; PATH updates validate Node and dedupe entries). Updated Windows docs (`README.md`, `docs/SETUP.md`, `docs/EXPO_DEVELOPMENT_GUIDE.md`, `AGENTS.md`, `docs/ios-development-workflow.md`). Verified `npm run lint`, `npm run typecheck`, `npm test` all pass.",
+          "title": "A9 (DX/Windows scripts): Improved `scripts/dev-start.cmd` and `scripts/fix-path-and-restart-code.cmd` messaging/failure handling (safer npm-exec fallback; no babel config overwrites; PATH updates validate Node and dedupe entries). Updated Windows docs (`README.md`, `docs/SETUP.md`, `docs/EXPO_DEVELOPMENT_GUIDE.md`, `AGENTS.md`, `docs/ios-development-workflow.md`). Verified `npm run lint`, `npm run typecheck`, `npm test` all pass.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A11 (DX/Testing): Captured ESLint failure (`process` undefined in `jest.setup.js`), added `/* eslint-env node */`, and verified on Windows: `npm run lint` (pass), `npm run typecheck` (pass), `npm test` (pass).",
+          "title": "A11 (DX/Testing): Captured ESLint failure (`process` undefined in `jest.setup.js`), added `/* eslint-env node */`, and verified on Windows: `npm run lint` (pass), `npm run typecheck` (pass), `npm test` (pass).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A10 (Product/QA): Cross-checked Checklist AC-1..AC-10 against Expo services/tests; captured the coverage matrix below and flagged gaps (Programming Fit, Logging UX performance, data integrity resiliency, HealthKit stubs, CSV export tests).",
+          "title": "A10 (Product/QA): Cross-checked Checklist AC-1..AC-10 against Expo services/tests; captured the coverage matrix below and flagged gaps (Programming Fit, Logging UX performance, data integrity resiliency, HealthKit stubs, CSV export tests).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Add Expo-accessible plan simulation tests (or mocked engine) so AC-1 can be validated without the Swift package.",
+          "title": "Add Expo-accessible plan simulation tests (or mocked engine) so AC-1 can be validated without the Swift package.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Extend the workout store tests to cover tap counts, undo stack, and persistence latency for AC-7; include perf budgets in `ActiveWorkout` interactions.",
+          "title": "Extend the workout store tests to cover tap counts, undo stack, and persistence latency for AC-7; include perf budgets in `ActiveWorkout` interactions.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Write AsyncStorage-backed tests for `WorkoutPersistence` covering crash recovery, checksum mismatches, and duplicate suppression (AC-8).",
+          "title": "Write AsyncStorage-backed tests for `WorkoutPersistence` covering crash recovery, checksum mismatches, and duplicate suppression (AC-8).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Document that AC-9 remains blocked without the native HealthKit module and consider adding a no-op Expo shim that records the request intent.",
+          "title": "Document that AC-9 remains blocked without the native HealthKit module and consider adding a no-op Expo shim that records the request intent.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Add Jest/unit tests for `WorkoutExporter` that stub `expo-file-system`/`expo-sharing` to prove the 90-day CSV + muscle volume export path (AC-10).",
+          "title": "Add Jest/unit tests for `WorkoutExporter` that stub `expo-file-system`/`expo-sharing` to prove the 90-day CSV + muscle volume export path (AC-10).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "[How To Use This File](#how-to-use-this-file)",
+          "title": "[How To Use This File](#how-to-use-this-file)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "[Backlog](#backlog)",
+          "title": "[Backlog](#backlog)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "[Work Log](#work-log)",
+          "title": "[Work Log](#work-log)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "[Repo Hygiene Cleanup Plan (Task A8)](#repo-hygiene-cleanup-plan-task-a8)",
+          "title": "[Repo Hygiene Cleanup Plan (Task A8)](#repo-hygiene-cleanup-plan-task-a8)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Table of Contents"
+        },
+        {
+          "text": "Use this file as the running log of what needs doing and what was done.",
+          "title": "Use this file as the running log of what needs doing and what was done.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "For parallel work, claims/ownership live in `docs/TASK_ASSIGNMENTS.md`.",
+          "title": "For parallel work, claims/ownership live in `docs/TASK_ASSIGNMENTS.md`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "When you complete or block a task, add a short entry under [Work Log](#work-log).",
+          "title": "When you complete or block a task, add a short entry under [Work Log](#work-log).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "How To Use This File"
+        },
+        {
+          "text": "Restore native iOS sources (`iOS/HypertrophyApp`, `iOS/HypertrophyAppTests`) so CI/build/test steps stop gating on missing modules.",
+          "title": "Restore native iOS sources (`iOS/HypertrophyApp`, `iOS/HypertrophyAppTests`) so CI/build/test steps stop gating on missing modules.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Reconcile migration docs/claims vs the restored sources (ensure filenames and parsers match `MIGRATION_IMPLEMENTATION_COMPLETE.md`).",
+          "title": "Reconcile migration docs/claims vs the restored sources (ensure filenames and parsers match `MIGRATION_IMPLEMENTATION_COMPLETE.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Keep docs link integrity in sync as new architecture changes land (README, AGENTS, topical guides).",
+          "title": "Keep docs link integrity in sync as new architecture changes land (README, AGENTS, topical guides).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Promote a single environment configuration module (migrate `docs/archive/react-native-legacy/src/config/environment.ts` logic into `src/config/environment.ts` and wire Expo entrypoints/tests to use it).",
+          "title": "Promote a single environment configuration module (migrate `docs/archive/react-native-legacy/src/config/environment.ts` logic into `src/config/environment.ts` and wire Expo entrypoints/tests to use it).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Align the store implementation so Expo + any future native shell share the same reducer/persistence stack.",
+          "title": "Align the store implementation so Expo + any future native shell share the same reducer/persistence stack.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Document/automate config validation CLI outputs (A13 follow-up: publish `validation_report.json` expectations).",
+          "title": "Document/automate config validation CLI outputs (A13 follow-up: publish `validation_report.json` expectations).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Decide whether to fully remove or formally package the React Native CLI skeleton (now archived at `docs/archive/react-native-legacy/`).",
+          "title": "Decide whether to fully remove or formally package the React Native CLI skeleton (now archived at `docs/archive/react-native-legacy/`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "Continue improving Windows DX scripts and optional automation once the Expo shell stabilises.",
+          "title": "Continue improving Windows DX scripts and optional automation once the Expo shell stabilises.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Backlog"
+        },
+        {
+          "text": "(Add entries as work completes. Keep each entry short and link to tasks / files.)",
+          "title": "(Add entries as work completes. Keep each entry short and link to tasks / files.)",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Established agent coordination system: added `docs/TASK_ASSIGNMENTS.md` (task board) and `docs/AGENT_PROMPTS.md` (10 claimable prompts); updated `.github/copilot-instructions.md` to require claiming + logging.",
+          "title": "Established agent coordination system: added `docs/TASK_ASSIGNMENTS.md` (task board) and `docs/AGENT_PROMPTS.md` (10 claimable prompts); updated `.github/copilot-instructions.md` to require claiming + logging.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "P9 cleanup + doc link audit: confirmed no `%BACKUP_DIR%` / `%BDIR%` folders present; `.gitignore` already covers observed build/dependency artifacts; spot-checked `README.md`, `AGENTS.md`, and `docs/*.md` cross-links/anchors referenced by ToCs and dashboards.",
+          "title": "P9 cleanup + doc link audit: confirmed no `%BACKUP_DIR%` / `%BDIR%` folders present; `.gitignore` already covers observed build/dependency artifacts; spot-checked `README.md`, `AGENTS.md`, and `docs/*.md` cross-links/anchors referenced by ToCs and dashboards.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A6 (Migration): Reconciled migration docs with checkout reality (native `iOS/` missing); added verified vs blocked sections in `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`; made `test_migration_system.sh` exit early with a clear blocked message when native sources are absent.",
+          "title": "A6 (Migration): Reconciled migration docs with checkout reality (native `iOS/` missing); added verified vs blocked sections in `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`; made `test_migration_system.sh` exit early with a clear blocked message when native sources are absent.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A5 (Security/CI): added `.gitignore` protections for `.env*`, `.npmrc`, key/cert/provisioning files, and `logs/`; replaced `.github/workflows/ios.yml` with native-source gating (PRs skip with notice; pushes fail fast). No checked-in secrets found via quick pattern scan.",
+          "title": "A5 (Security/CI): added `.gitignore` protections for `.env*`, `.npmrc`, key/cert/provisioning files, and `logs/`; replaced `.github/workflows/ios.yml` with native-source gating (PRs skip with notice; pushes fail fast). No checked-in secrets found via quick pattern scan.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A7: Audited `Package.swift`/iOS CI and updated `.github/workflows/ios.yml` to skip native steps on PRs when `iOS/HypertrophyApp` is missing, and to fail fast with a clear error on pushes; noted coverage export likely mismatched with `xcodebuild` outputs.",
+          "title": "A7: Audited `Package.swift`/iOS CI and updated `.github/workflows/ios.yml` to skip native steps on PRs when `iOS/HypertrophyApp` is missing, and to fail fast with a clear error on pushes; noted coverage export likely mismatched with `xcodebuild` outputs.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A1 (Docs): fixed stale config references and resolved doc contradictions across `AGENTS.md`, `docs/programming-engine.md`, and `docs/CONSOLIDATED_ACTION_PLAN.md` (aligning metrics/status with `validation_report.json`).",
+          "title": "A1 (Docs): fixed stale config references and resolved doc contradictions across `AGENTS.md`, `docs/programming-engine.md`, and `docs/CONSOLIDATED_ACTION_PLAN.md` (aligning metrics/status with `validation_report.json`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A6 (Migration follow-up): Added an explicit verification matrix + blocked status callouts to `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`, and expanded `test_migration_system.sh` guidance so it points contributors to `docs/SETUP.md` when the native module is missing.",
+          "title": "A6 (Migration follow-up): Added an explicit verification matrix + blocked status callouts to `MIGRATION_IMPLEMENTATION_COMPLETE.md` and `docs/IMPORT_STATUS.md`, and expanded `test_migration_system.sh` guidance so it points contributors to `docs/SETUP.md` when the native module is missing.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A3 (Testing): Hardened Jest determinism by pinning timezone (`jest.setup.js`), enabling safe mock cleanup (`jest.config.js`), removing perf-threshold assertions, and making test fixtures deterministic (fixed IDs/timestamps + stable theme via `useColorScheme` mocking). Verified `npm test` passes twice consecutively.",
+          "title": "A3 (Testing): Hardened Jest determinism by pinning timezone (`jest.setup.js`), enabling safe mock cleanup (`jest.config.js`), removing perf-threshold assertions, and making test fixtures deterministic (fixed IDs/timestamps + stable theme via `useColorScheme` mocking). Verified `npm test` passes twice consecutively.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A8 (Repo hygiene): Compared Expo `src/` (63 files) vs legacy `react-native/src/` (10 files) and found only 9 overlapping paths (mainly `components/workout/LoggingInterface`, `services/ai/*`, and `types/Workout`). Documented duplication/staleness risks plus a no-deletion cleanup plan (see below) covering the empty `react-native/App.tsx`, divergent store/environment configs, and duplicate RN CLI configs that no longer match the Expo shell.",
+          "title": "A8 (Repo hygiene): Compared Expo `src/` (63 files) vs legacy `react-native/src/` (10 files) and found only 9 overlapping paths (mainly `components/workout/LoggingInterface`, `services/ai/*`, and `types/Workout`). Documented duplication/staleness risks plus a no-deletion cleanup plan (see below) covering the empty `react-native/App.tsx`, divergent store/environment configs, and duplicate RN CLI configs that no longer match the Expo shell.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Repo hygiene follow-up: archived the entire `react-native/` tree to `docs/archive/react-native-legacy/`, added a README explaining the freeze, and updated `README.md`, `AGENTS.md`, and `docs/AGENT_PROMPTS.md` so contributors treat `src/` as the only active Expo shell.",
+          "title": "Repo hygiene follow-up: archived the entire `react-native/` tree to `docs/archive/react-native-legacy/`, added a README explaining the freeze, and updated `README.md`, `AGENTS.md`, and `docs/AGENT_PROMPTS.md` so contributors treat `src/` as the only active Expo shell.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A4 (Config/Data): Added invariant validators for `config/*.json` and `data/exercises.json` via `src/services/ConfigValidation.ts` and extended `src/__tests__/ConfigValidation.test.ts`. Invariants enforced include: exercise IDs are non-empty and unique; `primaryMuscles`/`secondaryMuscles`/`instructions` are string arrays; exercise-constants muscle allocation weights are finite, within 0..1, and sum ~1.0; ROM is defined for each allocated exercise and is >0 for dynamic exercises (allow explicit static entries like `planks` = 0); fatigue factors are `position_N` and non-increasing. Verified `npm test` passes.",
+          "title": "A4 (Config/Data): Added invariant validators for `config/*.json` and `data/exercises.json` via `src/services/ConfigValidation.ts` and extended `src/__tests__/ConfigValidation.test.ts`. Invariants enforced include: exercise IDs are non-empty and unique; `primaryMuscles`/`secondaryMuscles`/`instructions` are string arrays; exercise-constants muscle allocation weights are finite, within 0..1, and sum ~1.0; ROM is defined for each allocated exercise and is >0 for dynamic exercises (allow explicit static entries like `planks` = 0); fatigue factors are `position_N` and non-increasing. Verified `npm test` passes.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A9 (DX/Windows scripts): Improved `scripts/dev-start.cmd` and `scripts/fix-path-and-restart-code.cmd` messaging/failure handling (safer npm-exec fallback; no babel config overwrites; PATH updates validate Node and dedupe entries). Updated Windows docs (`README.md`, `docs/SETUP.md`, `docs/EXPO_DEVELOPMENT_GUIDE.md`, `AGENTS.md`, `docs/ios-development-workflow.md`). Verified `npm run lint`, `npm run typecheck`, `npm test` all pass.",
+          "title": "A9 (DX/Windows scripts): Improved `scripts/dev-start.cmd` and `scripts/fix-path-and-restart-code.cmd` messaging/failure handling (safer npm-exec fallback; no babel config overwrites; PATH updates validate Node and dedupe entries). Updated Windows docs (`README.md`, `docs/SETUP.md`, `docs/EXPO_DEVELOPMENT_GUIDE.md`, `AGENTS.md`, `docs/ios-development-workflow.md`). Verified `npm run lint`, `npm run typecheck`, `npm test` all pass.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A11 (DX/Testing): Captured ESLint failure (`process` undefined in `jest.setup.js`), added `/* eslint-env node */`, and verified on Windows: `npm run lint` (pass), `npm run typecheck` (pass), `npm test` (pass).",
+          "title": "A11 (DX/Testing): Captured ESLint failure (`process` undefined in `jest.setup.js`), added `/* eslint-env node */`, and verified on Windows: `npm run lint` (pass), `npm run typecheck` (pass), `npm test` (pass).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "A10 (Product/QA): Cross-checked Checklist AC-1..AC-10 against Expo services/tests; captured the coverage matrix below and flagged gaps (Programming Fit, Logging UX performance, data integrity resiliency, HealthKit stubs, CSV export tests).",
+          "title": "A10 (Product/QA): Cross-checked Checklist AC-1..AC-10 against Expo services/tests; captured the coverage matrix below and flagged gaps (Programming Fit, Logging UX performance, data integrity resiliency, HealthKit stubs, CSV export tests).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Work Log"
+        },
+        {
+          "text": "Add Expo-accessible plan simulation tests (or mocked engine) so AC-1 can be validated without the Swift package.",
+          "title": "Add Expo-accessible plan simulation tests (or mocked engine) so AC-1 can be validated without the Swift package.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Extend the workout store tests to cover tap counts, undo stack, and persistence latency for AC-7; include perf budgets in `ActiveWorkout` interactions.",
+          "title": "Extend the workout store tests to cover tap counts, undo stack, and persistence latency for AC-7; include perf budgets in `ActiveWorkout` interactions.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Write AsyncStorage-backed tests for `WorkoutPersistence` covering crash recovery, checksum mismatches, and duplicate suppression (AC-8).",
+          "title": "Write AsyncStorage-backed tests for `WorkoutPersistence` covering crash recovery, checksum mismatches, and duplicate suppression (AC-8).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Document that AC-9 remains blocked without the native HealthKit module and consider adding a no-op Expo shim that records the request intent.",
+          "title": "Document that AC-9 remains blocked without the native HealthKit module and consider adding a no-op Expo shim that records the request intent.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        },
+        {
+          "text": "Add Jest/unit tests for `WorkoutExporter` that stub `expo-file-system`/`expo-sharing` to prove the 90-day CSV + muscle volume export path (AC-10).",
+          "title": "Add Jest/unit tests for `WorkoutExporter` that stub `expo-file-system`/`expo-sharing` to prove the 90-day CSV + muscle volume export path (AC-10).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Follow-ups"
+        }
+      ]
+    },
+    {
+      "repo_name": "Trading-Win",
+      "todo_paths": [
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\docs\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\docs\\todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\Trading-Win\\docs\\TODO.md"
+      ],
+      "parsed_at": "2026-02-01T10:56:14.276941+00:00",
+      "items": [
+        {
+          "text": "**TF1-L2-depth investigation (P0)** - Completed 2025-12-11; Databento exports now retain MBP depth and evidence lives in `docs/completed/L2_DataDepth_20251211.md`.",
+          "title": "**TF1-L2-depth investigation (P0)** - Completed 2025-12-11; Databento exports now retain MBP depth and evidence lives in `docs/completed/L2_DataDepth_20251211.md`.",
+          "priority": "P0",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recently Completed"
+        },
+        {
+          "text": "**Agent ledger audit (P2)** - 2025-12-12 sweep reconciled stale statuses and produced `artifacts/ledger_audit_20251212.json` for traceability.",
+          "title": "**Agent ledger audit (P2)** - 2025-12-12 sweep reconciled stale statuses and produced `artifacts/ledger_audit_20251212.json` for traceability.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recently Completed"
+        },
+        {
+          "text": "**docs-open-tasks-cleanup-20251207 (P2)** - Completed 2026-01-21; audit prompts archived to `docs/completed/AUDIT_AGENT_PROMPTS.md` and indexes refreshed.",
+          "title": "**docs-open-tasks-cleanup-20251207 (P2)** - Completed 2026-01-21; audit prompts archived to `docs/completed/AUDIT_AGENT_PROMPTS.md` and indexes refreshed.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recently Completed"
+        },
+        {
+          "text": "**TF_1 seconds data exports (P1)** - IB Gateway API still not listening (port 7497 closed); `ensure_symbol_data_ready --remediate-seconds` cancelled after connection attempts on 2026-01-18. Bring Gateway API up, rerun for GME/ADXN/ALEC, then validate via `scripts/validate_seconds_export.py`.",
+          "title": "**TF_1 seconds data exports (P1)** - IB Gateway API still not listening (port 7497 closed); `ensure_symbol_data_ready --remediate-seconds` cancelled after connection attempts on 2026-01-18. Bring Gateway API up, rerun for GME/ADXN/ALEC, then validate via `scripts/validate_seconds_export.py`.",
+          "priority": "P1",
           "is_blocked": true,
           "blocked_by": [],
           "section": "Blocked Tasks"
         },
         {
-          "text": "None currently in progress.",
-          "title": "None currently in progress.",
+          "text": "**VS Code terminal profile / dev_shell.ps1** - VS Code was quoting the `-File` path when launching PowerShell, which produced `Processing -File '\"C:\\Users\\Pilot\\Documents\\Vs' failed: Illegal characters in path` and exit code `-196608`. Fixes landed on 2025-12-14: (1) `dev_shell.ps1` now logs to `%LOCALAPPDATA%\\Trading-Win\\logs\\dev_shell.log` and tolerates root detection errors, and (2) `.vscode/settings.json` passes `${workspaceFolder}\\\\dev_shell.ps1` directly to `-File`. If the issue resurfaces, inspect the log file first, then confirm the VS Code profile still matches the current repo settings.",
+          "title": "**VS Code terminal profile / dev_shell.ps1** - VS Code was quoting the `-File` path when launching PowerShell, which produced `Processing -File '\"C:\\Users\\Pilot\\Documents\\Vs' failed: Illegal characters in path` and exit code `-196608`. Fixes landed on 2025-12-14: (1) `dev_shell.ps1` now logs to `%LOCALAPPDATA%\\Trading-Win\\logs\\dev_shell.log` and tolerates root detection errors, and (2) `.vscode/settings.json` passes `${workspaceFolder}\\\\dev_shell.ps1` directly to `-File`. If the issue resurfaces, inspect the log file first, then confirm the VS Code profile still matches the current repo settings.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P0 (Critical)"
+          "section": "Troubleshooting Notes"
         },
         {
-          "text": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
-          "title": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
+          "text": "Active scope: TF_1 paper-trading readiness for the promoted seconds model (with bracket TP/SL) plus gap-scanner stability and 7-year hourly gappers discovery with downstream seconds/L2/ticks pulls.",
+          "title": "Active scope: TF_1 paper-trading readiness for the promoted seconds model (with bracket TP/SL) plus gap-scanner stability and 7-year hourly gappers discovery with downstream seconds/L2/ticks pulls.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P1 (High)"
+          "section": "Focus shift (through 2026-03-01)"
         },
         {
-          "text": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
-          "title": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
+          "text": "All other open tasks are paused until 2026-03-01; statuses remain in the ledger but should be treated as dormant unless they block the active scope.",
+          "title": "All other open tasks are paused until 2026-03-01; statuses remain in the ledger but should be treated as dormant unless they block the active scope.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P2 (Medium)"
+          "section": "Focus shift (through 2026-03-01)"
         },
         {
-          "text": "None at this time.",
-          "title": "None at this time.",
+          "text": "**tf1-paper-trading-seconds-brackets-20260124** (in_progress, P0) - Prep TF_1 repo for paper trading with the top seconds model using bracket TP/SL; run threshold sweep 0-1 to pick the best PnL band and publish the runnable checklist.",
+          "title": "**tf1-paper-trading-seconds-brackets-20260124** (in_progress, P0) - Prep TF_1 repo for paper trading with the top seconds model using bracket TP/SL; run threshold sweep 0-1 to pick the best PnL band and publish the runnable checklist.",
+          "priority": "P0",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-scanner-and-hourly-gappers-20260124** (in_progress, P0) - Fix gap-scanner hangs, enforce price/float/premarket RV filters, emit top-5 output, build 7y hourly manifest, and pull seconds/L2/ticks for selected symbols via backorder filler.",
+          "title": "**gap-scanner-and-hourly-gappers-20260124** (in_progress, P0) - Fix gap-scanner hangs, enforce price/float/premarket RV filters, emit top-5 output, build 7y hourly manifest, and pull seconds/L2/ticks for selected symbols via backorder filler.",
+          "priority": "P0",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**tf1-seconds-data-exports-20251207** (blocked, P1) - Gateway 7497 down; rerun `ensure_symbol_data_ready` + `export_seconds_bars` for GME/ADXN/ALEC once IB is reachable.",
+          "title": "**tf1-seconds-data-exports-20251207** (blocked, P1) - Gateway 7497 down; rerun `ensure_symbol_data_ready` + `export_seconds_bars` for GME/ADXN/ALEC once IB is reachable.",
+          "priority": "P1",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**twops-gap-data-batch-20251208** (in_progress, P1) - Deliver >=30 gap sessions and seconds bars with hashes; depends on the seconds export unblock.",
+          "title": "**twops-gap-data-batch-20251208** (in_progress, P1) - Deliver >=30 gap sessions and seconds bars with hashes; depends on the seconds export unblock.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-determinism-20251213** (in_progress, P1) - Scanner hung on 2026-01-23; needs IB session debug + refreshed fixtures to get deterministic NDJSON + logging.",
+          "title": "**gap-determinism-20251213** (in_progress, P1) - Scanner hung on 2026-01-23; needs IB session debug + refreshed fixtures to get deterministic NDJSON + logging.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**hourly-bars-databento-fallback-20260123** (in_progress, P1) - IB-first hourly fetch with Databento fallback for gappers coverage.",
+          "title": "**hourly-bars-databento-fallback-20260123** (in_progress, P1) - IB-first hourly fetch with Databento fallback for gappers coverage.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-opener-hourly-training-20260123** (in_progress, P1) - Build hourly gap training dataset/manifests (top-20/day across 7y ML_BASE_PATH symbols).",
+          "title": "**gap-opener-hourly-training-20260123** (in_progress, P1) - Build hourly gap training dataset/manifests (top-20/day across 7y ML_BASE_PATH symbols).",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**tf1-gap-opener-migration-20251209** (blocked, P0) - Gap opener export missing/stale; waiting for fresh sessions + manifests before TF_1 alignment can proceed.",
+          "title": "**tf1-gap-opener-migration-20251209** (blocked, P0) - Gap opener export missing/stale; waiting for fresh sessions + manifests before TF_1 alignment can proceed.",
+          "priority": "P0",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "IB Gateway API not listening on 7497/4002; blocks seconds export and gap-scanner dry-runs until gateway is restored.",
+          "title": "IB Gateway API not listening on 7497/4002; blocks seconds export and gap-scanner dry-runs until gateway is restored.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blockers"
+        },
+        {
+          "text": "Gap scanner hung during premarket run (2026-01-23); requires IB session debugging before the next scan.",
+          "title": "Gap scanner hung during premarket run (2026-01-23); requires IB session debugging before the next scan.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blockers"
+        },
+        {
+          "text": "Audit/governance sweep tasks: `typing-health-audit-20251213`, `strategic-alignment-audit-20251212`, `architecture-health-audit-20251212`, `data-flow-audit-20251212`, `coverage-hotspots-20251213`, `env-vars-audit-20251214`, `docs-audit-functional-20251213`, `setup-flow-audit-20251213`.",
+          "title": "Audit/governance sweep tasks: `typing-health-audit-20251213`, `strategic-alignment-audit-20251212`, `architecture-health-audit-20251212`, `data-flow-audit-20251212`, `coverage-hotspots-20251213`, `env-vars-audit-20251214`, `docs-audit-functional-20251213`, `setup-flow-audit-20251213`.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P3 (Low)"
+          "section": "Paused until 2026-03-01 (per focus shift)"
         },
         {
-          "text": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
-          "title": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
+          "text": "Tooling/CI health: `lint-and-coverage-fix-20251207`, `lint-format-parity-audit-20251213`, `master-cli-audit-20251213`, `excel-parquet-migration-20251209`, `backtesting-series-scalar-20251214`, `historical-data-stats-typing-20251214`, `add-tests-*` coverage items.",
+          "title": "Tooling/CI health: `lint-and-coverage-fix-20251207`, `lint-format-parity-audit-20251213`, `master-cli-audit-20251213`, `excel-parquet-migration-20251209`, `backtesting-series-scalar-20251214`, `historical-data-stats-typing-20251214`, `add-tests-*` coverage items.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Notes"
+          "section": "Paused until 2026-03-01 (per focus shift)"
         },
         {
-          "text": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
-          "title": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
+          "text": "TF_1 migration tranche outside gap/seconds scope: `tf1-ml-migration-feature-engineering-20251128`, `tf1-ml-migration-sweeps-package-20251128`, `tf1-sweeps-orchestrator-migration`, `tf1-sweeps-tests-migration`, `tf1-sweeps-validation`.",
+          "title": "TF_1 migration tranche outside gap/seconds scope: `tf1-ml-migration-feature-engineering-20251128`, `tf1-ml-migration-sweeps-package-20251128`, `tf1-sweeps-orchestrator-migration`, `tf1-sweeps-tests-migration`, `tf1-sweeps-validation`.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Notes"
+          "section": "Paused until 2026-03-01 (per focus shift)"
         },
         {
-          "text": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
-          "title": "**tf1-sweeps-metrics-migration**: [TF_1] Migrate metrics.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/trading_metrics.py`.",
+          "text": "`docs/pnl_evaluation_handoff_2026-01-18.md` - Open: extend metrics (Sharpe/Sortino/VaR/ES), daily/hourly outputs, manifest writing. Keep in place (not completed/archived).",
+          "title": "`docs/pnl_evaluation_handoff_2026-01-18.md` - Open: extend metrics (Sharpe/Sortino/VaR/ES), daily/hourly outputs, manifest writing. Keep in place (not completed/archived).",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Reference docs and reports (focus-relevant)"
         },
         {
-          "text": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
-          "title": "**tf1-sweeps-baseline-model-migration**: [TF_1] Migrate baseline_model.py - COMPLETED (2025-12-07). Confirmed by TF_1 team as migrated to `src/ml_trading/models/gap_opener_model.py`.",
+          "text": "`reports/gap_scanner/pre_market/*` and `reports/gap_scanner/live/*` - Historical scanner runs retained for context; no open checklist attached, leave under `reports/`.",
+          "title": "`reports/gap_scanner/pre_market/*` and `reports/gap_scanner/live/*` - Historical scanner runs retained for context; no open checklist attached, leave under `reports/`.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Reference docs and reports (focus-relevant)"
         },
         {
-          "text": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
-          "title": "**coverage-refresh-20251201**: Refresh Coverage Metrics - COMPLETED (2025-12-07). Fixed 5 failing tests in `tests/data/test_data_manager_branches.py` achieving 98.6% coverage for `src/data/data_manager.py`. Global coverage refresh attempted (partial ~17.4% due to timeouts).",
+          "text": "TF_1 alignment guidance remains active in `docs/TF_1_ALIGNMENT.md` and should not be archived.",
+          "title": "TF_1 alignment guidance remains active in `docs/TF_1_ALIGNMENT.md` and should not be archived.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Reference docs and reports (focus-relevant)"
         },
         {
-          "text": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
-          "title": "**fix-manifest-test-coverage-20251207**: Fix manifest rebuild test and update coverage - Fixed manifest rebuild bug and test. Ran full coverage in batches to bypass environment hangs. Coverage report generated.",
-          "priority": null,
+          "text": "**TF1-L2-depth investigation (P0)** - Completed 2025-12-11; Databento exports now retain MBP depth and evidence lives in `docs/completed/L2_DataDepth_20251211.md`.",
+          "title": "**TF1-L2-depth investigation (P0)** - Completed 2025-12-11; Databento exports now retain MBP depth and evidence lives in `docs/completed/L2_DataDepth_20251211.md`.",
+          "priority": "P0",
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Recently Completed"
         },
         {
-          "text": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
-          "title": "Archived history now lives in docs/completed/TODO-archive-20251207.md so this file can highlight open work.",
-          "priority": null,
+          "text": "**Agent ledger audit (P2)** - 2025-12-12 sweep reconciled stale statuses and produced `artifacts/ledger_audit_20251212.json` for traceability.",
+          "title": "**Agent ledger audit (P2)** - 2025-12-12 sweep reconciled stale statuses and produced `artifacts/ledger_audit_20251212.json` for traceability.",
+          "priority": "P2",
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Completed Tasks"
+          "section": "Recently Completed"
         },
         {
-          "text": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
-          "title": "**baseline-model-training-20251127**: CANCELLED ML training remains in TF_1; see the archive for the rationale.",
-          "priority": null,
+          "text": "**docs-open-tasks-cleanup-20251207 (P2)** - Completed 2026-01-21; audit prompts archived to `docs/completed/AUDIT_AGENT_PROMPTS.md` and indexes refreshed.",
+          "title": "**docs-open-tasks-cleanup-20251207 (P2)** - Completed 2026-01-21; audit prompts archived to `docs/completed/AUDIT_AGENT_PROMPTS.md` and indexes refreshed.",
+          "priority": "P2",
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Cancelled Tasks"
+          "section": "Recently Completed"
         },
         {
-          "text": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
-          "title": "None (no tasks currently marked \blocked in \u0007gent_assignments.json).",
-          "priority": null,
+          "text": "**TF_1 seconds data exports (P1)** - IB Gateway API still not listening (port 7497 closed); `ensure_symbol_data_ready --remediate-seconds` cancelled after connection attempts on 2026-01-18. Bring Gateway API up, rerun for GME/ADXN/ALEC, then validate via `scripts/validate_seconds_export.py`.",
+          "title": "**TF_1 seconds data exports (P1)** - IB Gateway API still not listening (port 7497 closed); `ensure_symbol_data_ready --remediate-seconds` cancelled after connection attempts on 2026-01-18. Bring Gateway API up, rerun for GME/ADXN/ALEC, then validate via `scripts/validate_seconds_export.py`.",
+          "priority": "P1",
           "is_blocked": true,
           "blocked_by": [],
           "section": "Blocked Tasks"
         },
         {
-          "text": "None currently in progress.",
-          "title": "None currently in progress.",
+          "text": "**VS Code terminal profile / dev_shell.ps1** - VS Code was quoting the `-File` path when launching PowerShell, which produced `Processing -File '\"C:\\Users\\Pilot\\Documents\\Vs' failed: Illegal characters in path` and exit code `-196608`. Fixes landed on 2025-12-14: (1) `dev_shell.ps1` now logs to `%LOCALAPPDATA%\\Trading-Win\\logs\\dev_shell.log` and tolerates root detection errors, and (2) `.vscode/settings.json` passes `${workspaceFolder}\\\\dev_shell.ps1` directly to `-File`. If the issue resurfaces, inspect the log file first, then confirm the VS Code profile still matches the current repo settings.",
+          "title": "**VS Code terminal profile / dev_shell.ps1** - VS Code was quoting the `-File` path when launching PowerShell, which produced `Processing -File '\"C:\\Users\\Pilot\\Documents\\Vs' failed: Illegal characters in path` and exit code `-196608`. Fixes landed on 2025-12-14: (1) `dev_shell.ps1` now logs to `%LOCALAPPDATA%\\Trading-Win\\logs\\dev_shell.log` and tolerates root detection errors, and (2) `.vscode/settings.json` passes `${workspaceFolder}\\\\dev_shell.ps1` directly to `-File`. If the issue resurfaces, inspect the log file first, then confirm the VS Code profile still matches the current repo settings.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P0 (Critical)"
+          "section": "Troubleshooting Notes"
         },
         {
-          "text": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
-          "title": "**TF_1 migration backlog**: Metrics, baseline model, hyperparameter sweep, supporting tests, and the final validation remain planned for TF_1; monitor each entry and coordinate tf1-sweeps-validation once TF_1 indicates readiness.",
+          "text": "Active scope: TF_1 paper-trading readiness for the promoted seconds model (with bracket TP/SL) plus gap-scanner stability and 7-year hourly gappers discovery with downstream seconds/L2/ticks pulls.",
+          "title": "Active scope: TF_1 paper-trading readiness for the promoted seconds model (with bracket TP/SL) plus gap-scanner stability and 7-year hourly gappers discovery with downstream seconds/L2/ticks pulls.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P1 (High)"
+          "section": "Focus shift (through 2026-03-01)"
         },
         {
-          "text": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
-          "title": "**deprecation-legacy-ui-shims-20251127**: Track the planned retirement of src/ib_Main.py once MODERN_UI_V1 rollout completes; confirm README/docs point to the modern UI path.",
+          "text": "All other open tasks are paused until 2026-03-01; statuses remain in the ledger but should be treated as dormant unless they block the active scope.",
+          "title": "All other open tasks are paused until 2026-03-01; statuses remain in the ledger but should be treated as dormant unless they block the active scope.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P2 (Medium)"
+          "section": "Focus shift (through 2026-03-01)"
         },
         {
-          "text": "None at this time.",
-          "title": "None at this time.",
-          "priority": null,
+          "text": "**tf1-paper-trading-seconds-brackets-20260124** (in_progress, P0) - Prep TF_1 repo for paper trading with the top seconds model using bracket TP/SL; run threshold sweep 0-1 to pick the best PnL band and publish the runnable checklist.",
+          "title": "**tf1-paper-trading-seconds-brackets-20260124** (in_progress, P0) - Prep TF_1 repo for paper trading with the top seconds model using bracket TP/SL; run threshold sweep 0-1 to pick the best PnL band and publish the runnable checklist.",
+          "priority": "P0",
           "is_blocked": false,
           "blocked_by": [],
-          "section": "P3 (Low)"
+          "section": "Current Priorities (P0 focus)"
         },
         {
-          "text": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
-          "title": "The completed-audit history, environment sanity checks, Parquet investigations, and gap/opener research are archived in docs/completed/TODO-archive-20251207.md so TODO stays focused on live work.",
-          "priority": null,
+          "text": "**gap-scanner-and-hourly-gappers-20260124** (in_progress, P0) - Fix gap-scanner hangs, enforce price/float/premarket RV filters, emit top-5 output, build 7y hourly manifest, and pull seconds/L2/ticks for selected symbols via backorder filler.",
+          "title": "**gap-scanner-and-hourly-gappers-20260124** (in_progress, P0) - Fix gap-scanner hangs, enforce price/float/premarket RV filters, emit top-5 output, build 7y hourly manifest, and pull seconds/L2/ticks for selected symbols via backorder filler.",
+          "priority": "P0",
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Notes"
+          "section": "Current Priorities (P0 focus)"
         },
         {
-          "text": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
-          "title": "`docs/open_tasks/` currently has no active briefs; the CT.2 client ID range plan moved to `docs/completed/CT.2_client_id_ranges.md` on 2025-12-11.",
+          "text": "**tf1-seconds-data-exports-20251207** (blocked, P1) - Gateway 7497 down; rerun `ensure_symbol_data_ready` + `export_seconds_bars` for GME/ADXN/ALEC once IB is reachable.",
+          "title": "**tf1-seconds-data-exports-20251207** (blocked, P1) - Gateway 7497 down; rerun `ensure_symbol_data_ready` + `export_seconds_bars` for GME/ADXN/ALEC once IB is reachable.",
+          "priority": "P1",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**twops-gap-data-batch-20251208** (in_progress, P1) - Deliver >=30 gap sessions and seconds bars with hashes; depends on the seconds export unblock.",
+          "title": "**twops-gap-data-batch-20251208** (in_progress, P1) - Deliver >=30 gap sessions and seconds bars with hashes; depends on the seconds export unblock.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-determinism-20251213** (in_progress, P1) - Scanner hung on 2026-01-23; needs IB session debug + refreshed fixtures to get deterministic NDJSON + logging.",
+          "title": "**gap-determinism-20251213** (in_progress, P1) - Scanner hung on 2026-01-23; needs IB session debug + refreshed fixtures to get deterministic NDJSON + logging.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**hourly-bars-databento-fallback-20260123** (in_progress, P1) - IB-first hourly fetch with Databento fallback for gappers coverage.",
+          "title": "**hourly-bars-databento-fallback-20260123** (in_progress, P1) - IB-first hourly fetch with Databento fallback for gappers coverage.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-opener-hourly-training-20260123** (in_progress, P1) - Build hourly gap training dataset/manifests (top-20/day across 7y ML_BASE_PATH symbols).",
+          "title": "**gap-opener-hourly-training-20260123** (in_progress, P1) - Build hourly gap training dataset/manifests (top-20/day across 7y ML_BASE_PATH symbols).",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**tf1-gap-opener-migration-20251209** (blocked, P0) - Gap opener export missing/stale; waiting for fresh sessions + manifests before TF_1 alignment can proceed.",
+          "title": "**tf1-gap-opener-migration-20251209** (blocked, P0) - Gap opener export missing/stale; waiting for fresh sessions + manifests before TF_1 alignment can proceed.",
+          "priority": "P0",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "IB Gateway API not listening on 7497/4002; blocks seconds export and gap-scanner dry-runs until gateway is restored.",
+          "title": "IB Gateway API not listening on 7497/4002; blocks seconds export and gap-scanner dry-runs until gateway is restored.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blockers"
+        },
+        {
+          "text": "Gap scanner hung during premarket run (2026-01-23); requires IB session debugging before the next scan.",
+          "title": "Gap scanner hung during premarket run (2026-01-23); requires IB session debugging before the next scan.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blockers"
+        },
+        {
+          "text": "Audit/governance sweep tasks: `typing-health-audit-20251213`, `strategic-alignment-audit-20251212`, `architecture-health-audit-20251212`, `data-flow-audit-20251212`, `coverage-hotspots-20251213`, `env-vars-audit-20251214`, `docs-audit-functional-20251213`, `setup-flow-audit-20251213`.",
+          "title": "Audit/governance sweep tasks: `typing-health-audit-20251213`, `strategic-alignment-audit-20251212`, `architecture-health-audit-20251212`, `data-flow-audit-20251212`, `coverage-hotspots-20251213`, `env-vars-audit-20251214`, `docs-audit-functional-20251213`, `setup-flow-audit-20251213`.",
           "priority": null,
           "is_blocked": false,
           "blocked_by": [],
-          "section": "Notes"
+          "section": "Paused until 2026-03-01 (per focus shift)"
+        },
+        {
+          "text": "Tooling/CI health: `lint-and-coverage-fix-20251207`, `lint-format-parity-audit-20251213`, `master-cli-audit-20251213`, `excel-parquet-migration-20251209`, `backtesting-series-scalar-20251214`, `historical-data-stats-typing-20251214`, `add-tests-*` coverage items.",
+          "title": "Tooling/CI health: `lint-and-coverage-fix-20251207`, `lint-format-parity-audit-20251213`, `master-cli-audit-20251213`, `excel-parquet-migration-20251209`, `backtesting-series-scalar-20251214`, `historical-data-stats-typing-20251214`, `add-tests-*` coverage items.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Paused until 2026-03-01 (per focus shift)"
+        },
+        {
+          "text": "TF_1 migration tranche outside gap/seconds scope: `tf1-ml-migration-feature-engineering-20251128`, `tf1-ml-migration-sweeps-package-20251128`, `tf1-sweeps-orchestrator-migration`, `tf1-sweeps-tests-migration`, `tf1-sweeps-validation`.",
+          "title": "TF_1 migration tranche outside gap/seconds scope: `tf1-ml-migration-feature-engineering-20251128`, `tf1-ml-migration-sweeps-package-20251128`, `tf1-sweeps-orchestrator-migration`, `tf1-sweeps-tests-migration`, `tf1-sweeps-validation`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Paused until 2026-03-01 (per focus shift)"
+        },
+        {
+          "text": "`docs/pnl_evaluation_handoff_2026-01-18.md` - Open: extend metrics (Sharpe/Sortino/VaR/ES), daily/hourly outputs, manifest writing. Keep in place (not completed/archived).",
+          "title": "`docs/pnl_evaluation_handoff_2026-01-18.md` - Open: extend metrics (Sharpe/Sortino/VaR/ES), daily/hourly outputs, manifest writing. Keep in place (not completed/archived).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Reference docs and reports (focus-relevant)"
+        },
+        {
+          "text": "`reports/gap_scanner/pre_market/*` and `reports/gap_scanner/live/*` - Historical scanner runs retained for context; no open checklist attached, leave under `reports/`.",
+          "title": "`reports/gap_scanner/pre_market/*` and `reports/gap_scanner/live/*` - Historical scanner runs retained for context; no open checklist attached, leave under `reports/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Reference docs and reports (focus-relevant)"
+        },
+        {
+          "text": "TF_1 alignment guidance remains active in `docs/TF_1_ALIGNMENT.md` and should not be archived.",
+          "title": "TF_1 alignment guidance remains active in `docs/TF_1_ALIGNMENT.md` and should not be archived.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Reference docs and reports (focus-relevant)"
+        },
+        {
+          "text": "**TF1-L2-depth investigation (P0)** - Completed 2025-12-11; Databento exports now retain MBP depth and evidence lives in `docs/completed/L2_DataDepth_20251211.md`.",
+          "title": "**TF1-L2-depth investigation (P0)** - Completed 2025-12-11; Databento exports now retain MBP depth and evidence lives in `docs/completed/L2_DataDepth_20251211.md`.",
+          "priority": "P0",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recently Completed"
+        },
+        {
+          "text": "**Agent ledger audit (P2)** - 2025-12-12 sweep reconciled stale statuses and produced `artifacts/ledger_audit_20251212.json` for traceability.",
+          "title": "**Agent ledger audit (P2)** - 2025-12-12 sweep reconciled stale statuses and produced `artifacts/ledger_audit_20251212.json` for traceability.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recently Completed"
+        },
+        {
+          "text": "**docs-open-tasks-cleanup-20251207 (P2)** - Completed 2026-01-21; audit prompts archived to `docs/completed/AUDIT_AGENT_PROMPTS.md` and indexes refreshed.",
+          "title": "**docs-open-tasks-cleanup-20251207 (P2)** - Completed 2026-01-21; audit prompts archived to `docs/completed/AUDIT_AGENT_PROMPTS.md` and indexes refreshed.",
+          "priority": "P2",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Recently Completed"
+        },
+        {
+          "text": "**TF_1 seconds data exports (P1)** - IB Gateway API still not listening (port 7497 closed); `ensure_symbol_data_ready --remediate-seconds` cancelled after connection attempts on 2026-01-18. Bring Gateway API up, rerun for GME/ADXN/ALEC, then validate via `scripts/validate_seconds_export.py`.",
+          "title": "**TF_1 seconds data exports (P1)** - IB Gateway API still not listening (port 7497 closed); `ensure_symbol_data_ready --remediate-seconds` cancelled after connection attempts on 2026-01-18. Bring Gateway API up, rerun for GME/ADXN/ALEC, then validate via `scripts/validate_seconds_export.py`.",
+          "priority": "P1",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blocked Tasks"
+        },
+        {
+          "text": "**VS Code terminal profile / dev_shell.ps1** - VS Code was quoting the `-File` path when launching PowerShell, which produced `Processing -File '\"C:\\Users\\Pilot\\Documents\\Vs' failed: Illegal characters in path` and exit code `-196608`. Fixes landed on 2025-12-14: (1) `dev_shell.ps1` now logs to `%LOCALAPPDATA%\\Trading-Win\\logs\\dev_shell.log` and tolerates root detection errors, and (2) `.vscode/settings.json` passes `${workspaceFolder}\\\\dev_shell.ps1` directly to `-File`. If the issue resurfaces, inspect the log file first, then confirm the VS Code profile still matches the current repo settings.",
+          "title": "**VS Code terminal profile / dev_shell.ps1** - VS Code was quoting the `-File` path when launching PowerShell, which produced `Processing -File '\"C:\\Users\\Pilot\\Documents\\Vs' failed: Illegal characters in path` and exit code `-196608`. Fixes landed on 2025-12-14: (1) `dev_shell.ps1` now logs to `%LOCALAPPDATA%\\Trading-Win\\logs\\dev_shell.log` and tolerates root detection errors, and (2) `.vscode/settings.json` passes `${workspaceFolder}\\\\dev_shell.ps1` directly to `-File`. If the issue resurfaces, inspect the log file first, then confirm the VS Code profile still matches the current repo settings.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Troubleshooting Notes"
+        },
+        {
+          "text": "Active scope: TF_1 paper-trading readiness for the promoted seconds model (with bracket TP/SL) plus gap-scanner stability and 7-year hourly gappers discovery with downstream seconds/L2/ticks pulls.",
+          "title": "Active scope: TF_1 paper-trading readiness for the promoted seconds model (with bracket TP/SL) plus gap-scanner stability and 7-year hourly gappers discovery with downstream seconds/L2/ticks pulls.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Focus shift (through 2026-03-01)"
+        },
+        {
+          "text": "All other open tasks are paused until 2026-03-01; statuses remain in the ledger but should be treated as dormant unless they block the active scope.",
+          "title": "All other open tasks are paused until 2026-03-01; statuses remain in the ledger but should be treated as dormant unless they block the active scope.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Focus shift (through 2026-03-01)"
+        },
+        {
+          "text": "**tf1-paper-trading-seconds-brackets-20260124** (in_progress, P0) - Prep TF_1 repo for paper trading with the top seconds model using bracket TP/SL; run threshold sweep 0-1 to pick the best PnL band and publish the runnable checklist.",
+          "title": "**tf1-paper-trading-seconds-brackets-20260124** (in_progress, P0) - Prep TF_1 repo for paper trading with the top seconds model using bracket TP/SL; run threshold sweep 0-1 to pick the best PnL band and publish the runnable checklist.",
+          "priority": "P0",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-scanner-and-hourly-gappers-20260124** (in_progress, P0) - Fix gap-scanner hangs, enforce price/float/premarket RV filters, emit top-5 output, build 7y hourly manifest, and pull seconds/L2/ticks for selected symbols via backorder filler.",
+          "title": "**gap-scanner-and-hourly-gappers-20260124** (in_progress, P0) - Fix gap-scanner hangs, enforce price/float/premarket RV filters, emit top-5 output, build 7y hourly manifest, and pull seconds/L2/ticks for selected symbols via backorder filler.",
+          "priority": "P0",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**tf1-seconds-data-exports-20251207** (blocked, P1) - Gateway 7497 down; rerun `ensure_symbol_data_ready` + `export_seconds_bars` for GME/ADXN/ALEC once IB is reachable.",
+          "title": "**tf1-seconds-data-exports-20251207** (blocked, P1) - Gateway 7497 down; rerun `ensure_symbol_data_ready` + `export_seconds_bars` for GME/ADXN/ALEC once IB is reachable.",
+          "priority": "P1",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**twops-gap-data-batch-20251208** (in_progress, P1) - Deliver >=30 gap sessions and seconds bars with hashes; depends on the seconds export unblock.",
+          "title": "**twops-gap-data-batch-20251208** (in_progress, P1) - Deliver >=30 gap sessions and seconds bars with hashes; depends on the seconds export unblock.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-determinism-20251213** (in_progress, P1) - Scanner hung on 2026-01-23; needs IB session debug + refreshed fixtures to get deterministic NDJSON + logging.",
+          "title": "**gap-determinism-20251213** (in_progress, P1) - Scanner hung on 2026-01-23; needs IB session debug + refreshed fixtures to get deterministic NDJSON + logging.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**hourly-bars-databento-fallback-20260123** (in_progress, P1) - IB-first hourly fetch with Databento fallback for gappers coverage.",
+          "title": "**hourly-bars-databento-fallback-20260123** (in_progress, P1) - IB-first hourly fetch with Databento fallback for gappers coverage.",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**gap-opener-hourly-training-20260123** (in_progress, P1) - Build hourly gap training dataset/manifests (top-20/day across 7y ML_BASE_PATH symbols).",
+          "title": "**gap-opener-hourly-training-20260123** (in_progress, P1) - Build hourly gap training dataset/manifests (top-20/day across 7y ML_BASE_PATH symbols).",
+          "priority": "P1",
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "**tf1-gap-opener-migration-20251209** (blocked, P0) - Gap opener export missing/stale; waiting for fresh sessions + manifests before TF_1 alignment can proceed.",
+          "title": "**tf1-gap-opener-migration-20251209** (blocked, P0) - Gap opener export missing/stale; waiting for fresh sessions + manifests before TF_1 alignment can proceed.",
+          "priority": "P0",
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Current Priorities (P0 focus)"
+        },
+        {
+          "text": "IB Gateway API not listening on 7497/4002; blocks seconds export and gap-scanner dry-runs until gateway is restored.",
+          "title": "IB Gateway API not listening on 7497/4002; blocks seconds export and gap-scanner dry-runs until gateway is restored.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blockers"
+        },
+        {
+          "text": "Gap scanner hung during premarket run (2026-01-23); requires IB session debugging before the next scan.",
+          "title": "Gap scanner hung during premarket run (2026-01-23); requires IB session debugging before the next scan.",
+          "priority": null,
+          "is_blocked": true,
+          "blocked_by": [],
+          "section": "Blockers"
+        },
+        {
+          "text": "Audit/governance sweep tasks: `typing-health-audit-20251213`, `strategic-alignment-audit-20251212`, `architecture-health-audit-20251212`, `data-flow-audit-20251212`, `coverage-hotspots-20251213`, `env-vars-audit-20251214`, `docs-audit-functional-20251213`, `setup-flow-audit-20251213`.",
+          "title": "Audit/governance sweep tasks: `typing-health-audit-20251213`, `strategic-alignment-audit-20251212`, `architecture-health-audit-20251212`, `data-flow-audit-20251212`, `coverage-hotspots-20251213`, `env-vars-audit-20251214`, `docs-audit-functional-20251213`, `setup-flow-audit-20251213`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Paused until 2026-03-01 (per focus shift)"
+        },
+        {
+          "text": "Tooling/CI health: `lint-and-coverage-fix-20251207`, `lint-format-parity-audit-20251213`, `master-cli-audit-20251213`, `excel-parquet-migration-20251209`, `backtesting-series-scalar-20251214`, `historical-data-stats-typing-20251214`, `add-tests-*` coverage items.",
+          "title": "Tooling/CI health: `lint-and-coverage-fix-20251207`, `lint-format-parity-audit-20251213`, `master-cli-audit-20251213`, `excel-parquet-migration-20251209`, `backtesting-series-scalar-20251214`, `historical-data-stats-typing-20251214`, `add-tests-*` coverage items.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Paused until 2026-03-01 (per focus shift)"
+        },
+        {
+          "text": "TF_1 migration tranche outside gap/seconds scope: `tf1-ml-migration-feature-engineering-20251128`, `tf1-ml-migration-sweeps-package-20251128`, `tf1-sweeps-orchestrator-migration`, `tf1-sweeps-tests-migration`, `tf1-sweeps-validation`.",
+          "title": "TF_1 migration tranche outside gap/seconds scope: `tf1-ml-migration-feature-engineering-20251128`, `tf1-ml-migration-sweeps-package-20251128`, `tf1-sweeps-orchestrator-migration`, `tf1-sweeps-tests-migration`, `tf1-sweeps-validation`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Paused until 2026-03-01 (per focus shift)"
+        },
+        {
+          "text": "`docs/pnl_evaluation_handoff_2026-01-18.md` - Open: extend metrics (Sharpe/Sortino/VaR/ES), daily/hourly outputs, manifest writing. Keep in place (not completed/archived).",
+          "title": "`docs/pnl_evaluation_handoff_2026-01-18.md` - Open: extend metrics (Sharpe/Sortino/VaR/ES), daily/hourly outputs, manifest writing. Keep in place (not completed/archived).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Reference docs and reports (focus-relevant)"
+        },
+        {
+          "text": "`reports/gap_scanner/pre_market/*` and `reports/gap_scanner/live/*` - Historical scanner runs retained for context; no open checklist attached, leave under `reports/`.",
+          "title": "`reports/gap_scanner/pre_market/*` and `reports/gap_scanner/live/*` - Historical scanner runs retained for context; no open checklist attached, leave under `reports/`.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Reference docs and reports (focus-relevant)"
+        },
+        {
+          "text": "TF_1 alignment guidance remains active in `docs/TF_1_ALIGNMENT.md` and should not be archived.",
+          "title": "TF_1 alignment guidance remains active in `docs/TF_1_ALIGNMENT.md` and should not be archived.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "Reference docs and reports (focus-relevant)"
+        }
+      ]
+    },
+    {
+      "repo_name": "visa-platform",
+      "todo_paths": [
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\visa-platform\\docs\\Todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\visa-platform\\docs\\todo.md",
+        "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\visa-platform\\docs\\TODO.md"
+      ],
+      "parsed_at": "2026-02-01T10:56:14.278440+00:00",
+      "items": [
+        {
+          "text": "**Security Headers**: Implement `async headers()` in `next.config.js` (CSP, HSTS, etc.) & Middleware.",
+          "title": "**Security Headers**: Implement `async headers()` in `next.config.js` (CSP, HSTS, etc.) & Middleware.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Rate Limiting**: Add upstash/redis limiter to `createOrder`, `getOrder`, and Stripe webhooks.",
+          "title": "**Rate Limiting**: Add upstash/redis limiter to `createOrder`, `getOrder`, and Stripe webhooks.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Data Encryption**: Encrypt `applicantData`, `passportData` in Prisma (Schema & Middleware/Logic). `apps/web/prisma/schema.prisma`",
+          "title": "**Data Encryption**: Encrypt `applicantData`, `passportData` in Prisma (Schema & Middleware/Logic). `apps/web/prisma/schema.prisma`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Schema Constraints**: Enforce decimals for money, enums for locale, string caps.",
+          "title": "**Schema Constraints**: Enforce decimals for money, enums for locale, string caps.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Sanitization**: Harden validators with `.trim()`, `.max()` and add server-side sanitization.",
+          "title": "**Sanitization**: Harden validators with `.trim()`, `.max()` and add server-side sanitization.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Dependency Audit**: Add `pnpm audit` to CI.",
+          "title": "**Dependency Audit**: Add `pnpm audit` to CI.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Secrets & Telemetry**: Emit rate-limit logs, document secret rotation.",
+          "title": "**Secrets & Telemetry**: Emit rate-limit logs, document secret rotation.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Testing Infra**: Add testing infrastructure (mentioned in `README.md`).",
+          "title": "**Testing Infra**: Add testing infrastructure (mentioned in `README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "**Monitoring**: Set up monitoring dashboards (mentioned in `README.md`).",
+          "title": "**Monitoring**: Set up monitoring dashboards (mentioned in `README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "**Logging**: Implement structured logging (mentioned in `infra/README.md`).",
+          "title": "**Logging**: Implement structured logging (mentioned in `infra/README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "`apps/web/src/app/actions/admin.ts`: Pull real approval info from submission result for \"application_approved\" email.",
+          "title": "`apps/web/src/app/actions/admin.ts`: Pull real approval info from submission result for \"application_approved\" email.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcbb Codebase Technical Debt"
+        },
+        {
+          "text": "`apps/web/src/app/actions/admin.ts`: Fix/Verify Review Request scheduling logic.",
+          "title": "`apps/web/src/app/actions/admin.ts`: Fix/Verify Review Request scheduling logic.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcbb Codebase Technical Debt"
+        },
+        {
+          "text": "**Sensitive Data Scan**: Verify no sensitive data is logged in plaintext.",
+          "title": "**Sensitive Data Scan**: Verify no sensitive data is logged in plaintext.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Retention Automations**: Implement automatic deletion after retention period.",
+          "title": "**Retention Automations**: Implement automatic deletion after retention period.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Legal Review Audit**: Verify \"Independent Service Provider\" and \"Fee Breakdown\" visibility on all new pages.",
+          "title": "**Legal Review Audit**: Verify \"Independent Service Provider\" and \"Fee Breakdown\" visibility on all new pages.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**i18n Fallback Check**: Ensure no legal pages fallback to English unexpectedly.",
+          "title": "**i18n Fallback Check**: Ensure no legal pages fallback to English unexpectedly.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Printing**: Download/print option for orders (`docs/specs/mvp.md`).",
+          "title": "**Printing**: Download/print option for orders (`docs/specs/mvp.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcc9 Feature Gaps (Low Priority / MVP+)"
+        },
+        {
+          "text": "**Analytics**: Internal Analytics dashboard (`docs/specs/mvp.md`).",
+          "title": "**Analytics**: Internal Analytics dashboard (`docs/specs/mvp.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcc9 Feature Gaps (Low Priority / MVP+)"
+        },
+        {
+          "text": "**Security Headers**: Implement `async headers()` in `next.config.js` (CSP, HSTS, etc.) & Middleware.",
+          "title": "**Security Headers**: Implement `async headers()` in `next.config.js` (CSP, HSTS, etc.) & Middleware.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Rate Limiting**: Add upstash/redis limiter to `createOrder`, `getOrder`, and Stripe webhooks.",
+          "title": "**Rate Limiting**: Add upstash/redis limiter to `createOrder`, `getOrder`, and Stripe webhooks.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Data Encryption**: Encrypt `applicantData`, `passportData` in Prisma (Schema & Middleware/Logic). `apps/web/prisma/schema.prisma`",
+          "title": "**Data Encryption**: Encrypt `applicantData`, `passportData` in Prisma (Schema & Middleware/Logic). `apps/web/prisma/schema.prisma`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Schema Constraints**: Enforce decimals for money, enums for locale, string caps.",
+          "title": "**Schema Constraints**: Enforce decimals for money, enums for locale, string caps.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Sanitization**: Harden validators with `.trim()`, `.max()` and add server-side sanitization.",
+          "title": "**Sanitization**: Harden validators with `.trim()`, `.max()` and add server-side sanitization.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Dependency Audit**: Add `pnpm audit` to CI.",
+          "title": "**Dependency Audit**: Add `pnpm audit` to CI.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Secrets & Telemetry**: Emit rate-limit logs, document secret rotation.",
+          "title": "**Secrets & Telemetry**: Emit rate-limit logs, document secret rotation.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Testing Infra**: Add testing infrastructure (mentioned in `README.md`).",
+          "title": "**Testing Infra**: Add testing infrastructure (mentioned in `README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "**Monitoring**: Set up monitoring dashboards (mentioned in `README.md`).",
+          "title": "**Monitoring**: Set up monitoring dashboards (mentioned in `README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "**Logging**: Implement structured logging (mentioned in `infra/README.md`).",
+          "title": "**Logging**: Implement structured logging (mentioned in `infra/README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "`apps/web/src/app/actions/admin.ts`: Pull real approval info from submission result for \"application_approved\" email.",
+          "title": "`apps/web/src/app/actions/admin.ts`: Pull real approval info from submission result for \"application_approved\" email.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcbb Codebase Technical Debt"
+        },
+        {
+          "text": "`apps/web/src/app/actions/admin.ts`: Fix/Verify Review Request scheduling logic.",
+          "title": "`apps/web/src/app/actions/admin.ts`: Fix/Verify Review Request scheduling logic.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcbb Codebase Technical Debt"
+        },
+        {
+          "text": "**Sensitive Data Scan**: Verify no sensitive data is logged in plaintext.",
+          "title": "**Sensitive Data Scan**: Verify no sensitive data is logged in plaintext.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Retention Automations**: Implement automatic deletion after retention period.",
+          "title": "**Retention Automations**: Implement automatic deletion after retention period.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Legal Review Audit**: Verify \"Independent Service Provider\" and \"Fee Breakdown\" visibility on all new pages.",
+          "title": "**Legal Review Audit**: Verify \"Independent Service Provider\" and \"Fee Breakdown\" visibility on all new pages.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**i18n Fallback Check**: Ensure no legal pages fallback to English unexpectedly.",
+          "title": "**i18n Fallback Check**: Ensure no legal pages fallback to English unexpectedly.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Printing**: Download/print option for orders (`docs/specs/mvp.md`).",
+          "title": "**Printing**: Download/print option for orders (`docs/specs/mvp.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcc9 Feature Gaps (Low Priority / MVP+)"
+        },
+        {
+          "text": "**Analytics**: Internal Analytics dashboard (`docs/specs/mvp.md`).",
+          "title": "**Analytics**: Internal Analytics dashboard (`docs/specs/mvp.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcc9 Feature Gaps (Low Priority / MVP+)"
+        },
+        {
+          "text": "**Security Headers**: Implement `async headers()` in `next.config.js` (CSP, HSTS, etc.) & Middleware.",
+          "title": "**Security Headers**: Implement `async headers()` in `next.config.js` (CSP, HSTS, etc.) & Middleware.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Rate Limiting**: Add upstash/redis limiter to `createOrder`, `getOrder`, and Stripe webhooks.",
+          "title": "**Rate Limiting**: Add upstash/redis limiter to `createOrder`, `getOrder`, and Stripe webhooks.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Data Encryption**: Encrypt `applicantData`, `passportData` in Prisma (Schema & Middleware/Logic). `apps/web/prisma/schema.prisma`",
+          "title": "**Data Encryption**: Encrypt `applicantData`, `passportData` in Prisma (Schema & Middleware/Logic). `apps/web/prisma/schema.prisma`",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Schema Constraints**: Enforce decimals for money, enums for locale, string caps.",
+          "title": "**Schema Constraints**: Enforce decimals for money, enums for locale, string caps.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Sanitization**: Harden validators with `.trim()`, `.max()` and add server-side sanitization.",
+          "title": "**Sanitization**: Harden validators with `.trim()`, `.max()` and add server-side sanitization.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Dependency Audit**: Add `pnpm audit` to CI.",
+          "title": "**Dependency Audit**: Add `pnpm audit` to CI.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Secrets & Telemetry**: Emit rate-limit logs, document secret rotation.",
+          "title": "**Secrets & Telemetry**: Emit rate-limit logs, document secret rotation.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udea8 Critical Security Hardening (Track J)"
+        },
+        {
+          "text": "**Testing Infra**: Add testing infrastructure (mentioned in `README.md`).",
+          "title": "**Testing Infra**: Add testing infrastructure (mentioned in `README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "**Monitoring**: Set up monitoring dashboards (mentioned in `README.md`).",
+          "title": "**Monitoring**: Set up monitoring dashboards (mentioned in `README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "**Logging**: Implement structured logging (mentioned in `infra/README.md`).",
+          "title": "**Logging**: Implement structured logging (mentioned in `infra/README.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udee0\ufe0f Infrastructure & Ops"
+        },
+        {
+          "text": "`apps/web/src/app/actions/admin.ts`: Pull real approval info from submission result for \"application_approved\" email.",
+          "title": "`apps/web/src/app/actions/admin.ts`: Pull real approval info from submission result for \"application_approved\" email.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcbb Codebase Technical Debt"
+        },
+        {
+          "text": "`apps/web/src/app/actions/admin.ts`: Fix/Verify Review Request scheduling logic.",
+          "title": "`apps/web/src/app/actions/admin.ts`: Fix/Verify Review Request scheduling logic.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcbb Codebase Technical Debt"
+        },
+        {
+          "text": "**Sensitive Data Scan**: Verify no sensitive data is logged in plaintext.",
+          "title": "**Sensitive Data Scan**: Verify no sensitive data is logged in plaintext.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Retention Automations**: Implement automatic deletion after retention period.",
+          "title": "**Retention Automations**: Implement automatic deletion after retention period.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Legal Review Audit**: Verify \"Independent Service Provider\" and \"Fee Breakdown\" visibility on all new pages.",
+          "title": "**Legal Review Audit**: Verify \"Independent Service Provider\" and \"Fee Breakdown\" visibility on all new pages.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**i18n Fallback Check**: Ensure no legal pages fallback to English unexpectedly.",
+          "title": "**i18n Fallback Check**: Ensure no legal pages fallback to English unexpectedly.",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udccb Compliance & Audits"
+        },
+        {
+          "text": "**Printing**: Download/print option for orders (`docs/specs/mvp.md`).",
+          "title": "**Printing**: Download/print option for orders (`docs/specs/mvp.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcc9 Feature Gaps (Low Priority / MVP+)"
+        },
+        {
+          "text": "**Analytics**: Internal Analytics dashboard (`docs/specs/mvp.md`).",
+          "title": "**Analytics**: Internal Analytics dashboard (`docs/specs/mvp.md`).",
+          "priority": null,
+          "is_blocked": false,
+          "blocked_by": [],
+          "section": "\ud83d\udcc9 Feature Gaps (Low Priority / MVP+)"
         }
       ]
     }
   ],
   "prompt_analysis": {
-    "generated_at": "2025-12-12T22:07:49.797850+00:00",
+    "generated_at": "2026-02-01T10:56:14.303447+00:00",
     "blocklist": [
       "parse",
       "user",

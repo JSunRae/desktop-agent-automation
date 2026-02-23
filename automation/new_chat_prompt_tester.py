@@ -11,32 +11,36 @@ import keyboard  # type: ignore[import-not-found]
 import uiautomation as auto
 
 try:
-    from LAGACY_auto_allow_copilot import (
+    from automation.config import (
         MASTER_AGENT_MAX_CHARS,
         MASTER_AGENT_MAX_DOCS,
         MASTER_AGENT_MODEL,
-        click_button_instantly,
-        find_all_vscode_windows,
+    )
+    from automation.ui.button_clicker import click_button_instantly
+    from automation.ui.vscode_windows import find_all_vscode_windows
+    from automation.ui.window_utils import (
         get_cursor_pos,
         set_cursor_pos,
         set_foreground_window,
     )
-    from automation.master_prompt_orchestrator import MasterPromptOrchestrator
-except ModuleNotFoundError:
+    from automation.master_prompt_orchestrator import MasterPromptOrchestrator, RepoConfig
+except ImportError:
     PROJECT_ROOT = Path(__file__).resolve().parents[1]
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
-    from LAGACY_auto_allow_copilot import (
+    from automation.config import (
         MASTER_AGENT_MAX_CHARS,
         MASTER_AGENT_MAX_DOCS,
         MASTER_AGENT_MODEL,
-        click_button_instantly,
-        find_all_vscode_windows,
+    )
+    from automation.ui.button_clicker import click_button_instantly
+    from automation.ui.vscode_windows import find_all_vscode_windows
+    from automation.ui.window_utils import (
         get_cursor_pos,
         set_cursor_pos,
         set_foreground_window,
     )
-    from automation.master_prompt_orchestrator import MasterPromptOrchestrator
+    from automation.master_prompt_orchestrator import MasterPromptOrchestrator, RepoConfig
 
 NEW_CHAT_KEYWORD = "new chat"
 CHAT_INPUT_KEYWORDS: Tuple[str, ...] = (
@@ -241,8 +245,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     docs_dirs = [Path(p) for p in args.docs] if args.docs else None
+    repo_configs = None
+    if docs_dirs:
+        repo_configs = [RepoConfig(name="default", docs_dirs=docs_dirs)]
+
     orchestrator = MasterPromptOrchestrator(
-        docs_dirs=docs_dirs,
+        repo_configs=repo_configs,
         max_docs=args.max_docs,
         max_chars=args.max_chars,
         model=args.model,

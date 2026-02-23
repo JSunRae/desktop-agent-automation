@@ -218,6 +218,8 @@ There are two cooperating mechanisms:
    EOF
    ```
 
+   `format_rate_status()` includes last 60 minutes and total Allow clicks.
+
 2. **Check cooldown state (Try Again path)**
    - Search logs for `RATE LIMITED! 'Try Again' button appeared after Allow click.`
    - Manually open the affected VS Code window and verify that Copilot shows a rate-limited banner.

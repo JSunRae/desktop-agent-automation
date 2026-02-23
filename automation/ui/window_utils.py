@@ -22,7 +22,15 @@ from automation.config import (
     CURSOR_DRIFT_THRESHOLD_PX,
     CURSOR_GUARD_LOG,
 )
-from automation.core.hotkeys import request_manual_pause
+from automation.ui.cursor import (
+    get_cursor_pos,
+    _set_cursor_pos_raw,
+    get_expected_cursor_pos,
+    get_last_automation_cursor_set_at,
+    set_expected_cursor_pos,
+    mark_automation_cursor_set,
+    sync_expected_cursor_to_current,
+)
 from automation.core.logging import log_verbose
 
 
@@ -35,30 +43,6 @@ class CursorCheckpoint:
     dx: Optional[int]
     dy: Optional[int]
     distance: Optional[float]
-
-
-_last_expected_cursor_pos: Optional[Tuple[int, int]] = None
-_last_automation_cursor_set_at: Optional[datetime] = None
-
-
-def get_expected_cursor_pos() -> Optional[Tuple[int, int]]:
-    """Return the last cursor position set/expected by automation."""
-    return _last_expected_cursor_pos
-
-
-def get_last_automation_cursor_set_at() -> Optional[datetime]:
-    """Return when automation last set the cursor position."""
-    return _last_automation_cursor_set_at
-
-
-def _set_expected_cursor_pos(pos: Tuple[int, int]) -> None:
-    global _last_expected_cursor_pos
-    _last_expected_cursor_pos = (int(pos[0]), int(pos[1]))
-
-
-def _mark_automation_cursor_set() -> None:
-    global _last_automation_cursor_set_at
-    _last_automation_cursor_set_at = datetime.now()
 
 
 def _mouse_guard_log_path() -> Path:
@@ -81,7 +65,7 @@ def _write_cursor_checkpoint(cp: CursorCheckpoint) -> None:
 def cursor_checkpoint(label: str, expected: Optional[Tuple[int, int]] = None) -> Tuple[int, int]:
     """Record a cursor checkpoint (and optionally detect drift). Returns actual cursor pos."""
     actual = get_cursor_pos()
-    exp = expected if expected is not None else _last_expected_cursor_pos
+    exp = expected if expected is not None else get_expected_cursor_pos()
 
     dx: Optional[int] = None
     dy: Optional[int] = None
@@ -104,6 +88,7 @@ def cursor_checkpoint(label: str, expected: Optional[Tuple[int, int]] = None) ->
 
     if AUTO_PAUSE_ON_CURSOR_DRIFT and exp is not None and distance is not None:
         if distance >= float(CURSOR_DRIFT_THRESHOLD_PX):
+            from automation.core.hotkeys import request_manual_pause
             request_manual_pause(
                 f"Cursor drift detected ({distance:.0f}px >= {CURSOR_DRIFT_THRESHOLD_PX}px) at '{label}'."
             )
@@ -111,36 +96,6 @@ def cursor_checkpoint(label: str, expected: Optional[Tuple[int, int]] = None) ->
             raise RuntimeError("Cursor drift detected; automation paused")
 
     return actual
-
-
-# ============================================================================
-# WINDOWS API STRUCTURES
-# ============================================================================
-
-class POINT(ctypes.Structure):
-    """Windows POINT structure for cursor position."""
-    _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
-
-
-class LASTINPUTINFO(ctypes.Structure):
-    """Windows LASTINPUTINFO structure for idle detection."""
-    _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_uint)]
-
-
-# ============================================================================
-# CURSOR FUNCTIONS
-# ============================================================================
-
-def get_cursor_pos() -> Tuple[int, int]:
-    """
-    Get current mouse cursor position.
-    
-    Returns:
-        Tuple of (x, y) coordinates
-    """
-    pt = POINT()
-    ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
-    return (pt.x, pt.y)
 
 
 def set_cursor_pos(x: int, y: int) -> None:
@@ -153,10 +108,19 @@ def set_cursor_pos(x: int, y: int) -> None:
     """
     # If the user moved the mouse away from where we last left it, pause before moving it again.
     cursor_checkpoint("before_set_cursor")
-    ctypes.windll.user32.SetCursorPos(int(x), int(y))
-    _set_expected_cursor_pos((int(x), int(y)))
-    _mark_automation_cursor_set()
+    _set_cursor_pos_raw(int(x), int(y))
+    set_expected_cursor_pos((int(x), int(y)))
+    mark_automation_cursor_set()
     cursor_checkpoint("after_set_cursor")
+
+
+# ============================================================================
+# WINDOWS API STRUCTURES
+# ============================================================================
+
+class LASTINPUTINFO(ctypes.Structure):
+    """Windows LASTINPUTINFO structure for idle detection."""
+    _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_uint)]
 
 
 # ============================================================================
@@ -234,7 +198,12 @@ def force_foreground_window(hwnd: int) -> bool:
     try:
         # Restore (in case minimized) and bring above others.
         try:
-            user32.ShowWindow(int(hwnd), SW_RESTORE)
+            # FIX: Only restore if actually minimized (IsIconic).
+            # Unconditional SW_RESTORE causes maximized windows to un-maximize.
+            if user32.IsIconic(int(hwnd)):
+                user32.ShowWindow(int(hwnd), SW_RESTORE)
+            # Original unconditional restore (causes layout issues):
+            # user32.ShowWindow(int(hwnd), SW_RESTORE)
         except Exception:
             pass
         try:
@@ -272,7 +241,11 @@ def force_foreground_window(hwnd: int) -> bool:
         _attach(fg_tid, cur_tid)
 
         try:
-            user32.ShowWindow(int(hwnd), SW_RESTORE)
+            # FIX: Only restore if actually minimized.
+            if user32.IsIconic(int(hwnd)):
+                user32.ShowWindow(int(hwnd), SW_RESTORE)
+            # Original unconditional restore (causes layout issues):
+            # user32.ShowWindow(int(hwnd), SW_RESTORE)
         except Exception:
             pass
         try:

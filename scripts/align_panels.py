@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
 from math import ceil
+import re
 
 
 MONITOR_DEFAULTTONEAREST = 2
@@ -321,35 +322,90 @@ def _monitor_for_point(monitors: List[MonitorInfo], x: int, y: int) -> int:
     return 0
 
 
+_MAIN_PRIORITY_KEYWORDS: tuple[str, ...] = (
+    "desktop-agent-automation",  # primary workspace repo
+    "tf",
+    "trading",
+)
+
+
 def _is_chat_like_title(title: str) -> bool:
+    """Return True when a title clearly points to a chat/Copilot window.
+
+    Tightened to avoid flagging code files like chat_utils.py while still
+    catching Copilot/chat panels and chat-mode windows.
+    """
+
     t = (title or "").strip().lower()
-    if t.startswith("chat "):
+    if not t:
+        return False
+
+    # Only treat "chat" as chat when it is a standalone token not followed by
+    # word/dot/underscore characters (prevents chat_utils.py false positives).
+    if re.search(r"\bchat\b(?![\w.])", t):
         return True
-    if "build with agent" in t:
-        return True
-    return False
+
+    chat_keywords = (
+        "copilot",
+        "co-pilot",
+        "build with agent",
+        "agent chat",
+        "assistant",
+        "workspace chat",
+    )
+    return any(kw in t for kw in chat_keywords)
 
 
-def _choose_main_window(windows: List[auto.Control]) -> Optional[auto.Control]:
-    """Heuristic: prefer non-chat VS Code window; otherwise pick largest by area."""
-    candidates = []
-    fallback = []
+def _main_window_score(
+    window: auto.Control,
+    monitors: List[MonitorInfo],
+    preferred_monitor_index: int,
+) -> Optional[tuple[int, int, int, int]]:
+    """Return sort key for main-window selection or None if no position."""
+
+    pos = get_window_position(window)
+    if not pos:
+        return None
+
+    area = max(1, pos.width) * max(1, pos.height)
+    title = (getattr(window, "Name", None) or "")
+    title_lower = title.lower()
+    keyword_hits = sum(1 for kw in _MAIN_PRIORITY_KEYWORDS if kw and kw in title_lower)
+    is_chat = _is_chat_like_title(title)
+
+    cx, cy = _rect_center(pos)
+    monitor_index = _monitor_for_point(monitors, cx, cy) if monitors else preferred_monitor_index
+    on_preferred = 0 if monitor_index == preferred_monitor_index else 1
+
+    # New ordering: prefer non-chat first, then workspace keywords, then size, then preferred monitor.
+    return (
+        0 if not is_chat else 1,
+        -keyword_hits,
+        -area,
+        on_preferred,
+    )
+
+
+def _choose_main_window(
+    windows: List[auto.Control],
+    monitors: List[MonitorInfo],
+    preferred_monitor_index: int,
+) -> Optional[auto.Control]:
+    """Prefer a non-chat coding window; monitor preference is a tie-breaker."""
+
+    best = None
+    best_key: Optional[tuple[int, int, int, int]] = None
+
     for w in windows:
-        title = (getattr(w, "Name", None) or "")
-        pos = get_window_position(w)
-        if not pos:
+        key = _main_window_score(w, monitors, preferred_monitor_index)
+        if key is None:
             continue
-        area = max(1, pos.width) * max(1, pos.height)
-        fallback.append((area, w))
-        if not _is_chat_like_title(title):
-            candidates.append((area, w))
-    if candidates:
-        candidates.sort(key=lambda x: x[0], reverse=True)
-        return candidates[0][1]
-    if fallback:
-        fallback.sort(key=lambda x: x[0], reverse=True)
-        return fallback[0][1]
-    return None
+
+        if best_key is None or key < best_key:
+            best = w
+            best_key = key
+
+    return best
 
 
 def _grid_slots_for_monitor(m: MonitorInfo, n: int) -> List[WindowPosition]:
@@ -628,7 +684,17 @@ def tile_windows_by_monitor_heuristic(
     if not windows_with_pos:
         return 0, len(windows)
 
-    main_window = _choose_main_window([w for w, _ in windows_with_pos])
+    main_window = _choose_main_window([w for w, _ in windows_with_pos], monitors, main_monitor.index)
+
+    if main_window:
+        score = _main_window_score(main_window, monitors, main_monitor.index)
+        title = getattr(main_window, "Name", "") or "(untitled)"
+        monitor_note = ""
+        pos = get_window_position(main_window)
+        if pos:
+            cx, cy = _rect_center(pos)
+            monitor_note = f" on monitor {_monitor_for_point(monitors, cx, cy)}"
+        print(f"Main pick: '{title[:80]}'{monitor_note} score={score}")
 
     aligned = 0
     skipped = 0

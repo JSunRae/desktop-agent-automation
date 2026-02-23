@@ -26,6 +26,7 @@ from automation.cross_repo_todo_ingestion import (
     get_cross_repo_todo_service,
 )
 from automation.feedback_analyzer import FeedbackAnalyzer, FeedbackInsights, get_feedback_analyzer
+from automation.prompt_resolver import PROMPT_FEED_FILENAME
 from automation.title_parsing import extract_repo_name_from_vscode_window_title
 
 OpenAIClient: Any = None
@@ -147,6 +148,28 @@ def _find_repo_docs_by_name(repo_name: str) -> List[Path]:
                     if key_ot not in checked:
                         roots.append(open_tasks_path)
                         checked.add(key_ot)
+    
+    # Conflict Detection: If we found docs in more than one unique base location (e.g. Windows AND WSL),
+    # treating them as merged is dangerous. We should warn and default to Safe Mode (None)
+    # unless user explicitly configured it.
+    
+    # Analyze unique roots (ignoring open_tasks subfolders)
+    unique_bases = set()
+    for root in roots:
+        # If this is an 'open_tasks' folder, map it to its parent 'docs' folder for counting purposes
+        if root.name == "open_tasks" and root.parent.name == "docs":
+            unique_bases.add(str(root.parent.resolve()))
+        else:
+            unique_bases.add(str(root.resolve()))
+            
+    if len(unique_bases) > 1:
+        # We found distinct 'docs' roots for the same repo name (e.g. one in WSL, one in Windows)
+        print(f"\n[WARNING] AMBIGUOUS REPO LOCATION: found '{repo_name}' in multiple locations:")
+        for b in unique_bases:
+            print(f"  - {b}")
+        print("To prevent mixing context from different environments, this repo will be SKIPPED.")
+        print("Please rename one of the folders or explicitly configure paths in MASTER_AGENT_REPO_CONFIGS.\n")
+        return []
     
     return roots
 
@@ -785,6 +808,7 @@ class MasterPromptOrchestrator:
         enable_prompt_templates: bool = True,
         enable_human_review: bool = False,
     ) -> None:
+        self._explicit_repo_configs = repo_configs is not None
         self.output_dir = Path(output_dir)
         self.allowed_extensions = {ext.lower() for ext in allowed_extensions}
         self.max_docs = max_docs
@@ -818,6 +842,7 @@ class MasterPromptOrchestrator:
                 logger=self.logger
             )
 
+        self._explicit_repo_configs = repo_configs is not None
         if repo_configs:
             self.repo_configs = list(repo_configs)
         else:
@@ -971,6 +996,36 @@ class MasterPromptOrchestrator:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+    def refresh_all_feeds(self, *, dry_run: bool = False, force_discovery: bool = True) -> List[Optional[PromptBatchResult]]:
+        """
+        Perform a full audit (discovery -> analysis -> generation) and update prompt feeds.
+        
+        This is the primary entry point for library-based automation. It re-discovers
+        repository configurations and generates fresh prompt batches for each.
+        
+        Args:
+            dry_run: If True, collect documents but do not call OpenAI or write files.
+            force_discovery: If True (default), re-scan for repositories even if configs 
+                           were provided at initialization.
+            
+        Returns:
+            List of results for each repository processed.
+        """
+        self._log("Refreshing all prompt feeds (full audit)...")
+        
+        # 1. Discovery: Re-scan for repositories to ensure we have the latest state
+        if force_discovery or not self._explicit_repo_configs:
+            self.repo_configs = self._discover_repo_configs()
+            self._log(f"Discovered {len(self.repo_configs)} repositories.")
+        else:
+            self._log(f"Using {len(self.repo_configs)} explicitly configured repositories.")
+        
+        # 2 & 3. Analysis & Generation: Handled by generate_prompt_batches
+        results = self.generate_prompt_batches(dry_run=dry_run)
+        
+        self._log("Prompt feed refresh complete.")
+        return results
+
     def generate_prompt_batches(self, *, dry_run: bool = False) -> List[Optional[PromptBatchResult]]:
         """Generate prompt batches for all configured repos."""
         results = []
@@ -978,6 +1033,22 @@ class MasterPromptOrchestrator:
             result = self.generate_prompt_batch_for_repo(repo_config, dry_run=dry_run)
             results.append(result)
         return results
+
+    def refresh_repo_configs(self, *, force: bool = False) -> List[RepoConfig]:
+        """Refresh repo configs when auto-discovery is in use."""
+        if self._explicit_repo_configs and not force:
+            return list(self.repo_configs)
+
+        if self.cross_repo_todo_service is not None:
+            try:
+                self.cross_repo_todo_service.refresh()
+            except Exception as exc:  # pragma: no cover - defensive logging only
+                self._log(f"Cross-repo Todo refresh failed: {exc}")
+
+        refreshed = self._discover_repo_configs()
+        if refreshed:
+            self.repo_configs = refreshed
+        return list(self.repo_configs)
 
     def generate_prompt_batch_for_repo(self, repo_config: RepoConfig, *, dry_run: bool = False) -> Optional[PromptBatchResult]:
         """Generate prompt batch for a specific repo with enhanced quality control."""
@@ -2021,10 +2092,15 @@ class MasterPromptOrchestrator:
         with manifest_path.open("a", encoding="utf-8") as manifest_file:
             manifest_file.write(json.dumps(manifest) + "\n")
 
-        # Update latest symlinks
-        latest_path = repo_output_dir / "latest.txt"
+        # Update latest feed files for the dispatcher
+        latest_path = repo_output_dir / PROMPT_FEED_FILENAME
         latest_path.write_text(output_path.read_text(encoding="utf-8"), encoding="utf-8")
         
+        # If this is the default repo, also update the root latest file for backward compatibility
+        if repo_config.name == "default" or not repo_config.name:
+            root_latest = self.output_dir / PROMPT_FEED_FILENAME
+            root_latest.write_text(output_path.read_text(encoding="utf-8"), encoding="utf-8")
+
         latest_metadata_path = repo_output_dir / "latest_metadata.json"
         latest_metadata_path.write_text(metadata_path.read_text(encoding="utf-8"), encoding="utf-8")
         

@@ -16,8 +16,6 @@ Usage:
 
 Configuration:
     Edit automation/config.py or set environment variables in .env
-
-For the original monolithic script (deprecated), see auto_allow_copilot.py
 """
 
 from __future__ import annotations
@@ -30,11 +28,15 @@ from datetime import datetime
 from automation.config import (
     DESKTOPS_TO_CHECK,
     MAX_ALLOWS_PER_HOUR,
+    TASK_DISCOVERY_INTERVAL_SECONDS,
+    TASK_DISCOVERY_LOW_TASK_THRESHOLD,
+    TASK_DISCOVERY_AUTOSTART,
 )
 from automation.core.hotkeys import print_hotkey_info
 from automation.core.session import get_session
 from automation.rate_limit.tracker import load_allow_events, save_allow_events
 from automation.orchestrator import run_main_loop
+from automation.panel_tracker import get_tracker
 
 
 def main() -> None:
@@ -44,6 +46,28 @@ def main() -> None:
         type=int,
         default=0,
         help="Minutes to wait before starting automation",
+    )
+    parser.add_argument(
+        "--autonomous",
+        action="store_true",
+        help="Enable autonomous mode with background task discovery",
+    )
+    parser.add_argument(
+        "--task-discovery-interval",
+        type=int,
+        default=None,
+        help="Override task discovery interval in seconds (autonomous mode)",
+    )
+    parser.add_argument(
+        "--task-discovery-low-threshold",
+        type=int,
+        default=None,
+        help="Override low-task threshold before audit (autonomous mode)",
+    )
+    parser.add_argument(
+        "--disable-task-discovery",
+        action="store_true",
+        help="Disable background task discovery even if autostart is enabled",
     )
     args = parser.parse_args()
 
@@ -70,6 +94,34 @@ def main() -> None:
     print("Loading persisted state...")
     load_allow_events()
     print()
+
+    start_task_discovery = (args.autonomous or TASK_DISCOVERY_AUTOSTART) and not args.disable_task_discovery
+
+    if start_task_discovery:
+        from automation.task_discovery_daemon import start_task_discovery_daemon
+        from automation.cross_repo_todo_ingestion import get_cross_repo_todo_service
+
+        print("Background task discovery enabled. Starting TaskDiscoveryDaemon...")
+        daemon_kwargs = {}
+        daemon_kwargs["interval_seconds"] = (
+            args.task_discovery_interval
+            if args.task_discovery_interval is not None
+            else TASK_DISCOVERY_INTERVAL_SECONDS
+        )
+        daemon_kwargs["low_task_threshold"] = (
+            args.task_discovery_low_threshold
+            if args.task_discovery_low_threshold is not None
+            else TASK_DISCOVERY_LOW_TASK_THRESHOLD
+        )
+        print(f"Task discovery settings: {daemon_kwargs}")
+        start_task_discovery_daemon(**daemon_kwargs)
+
+        # Show summary of discovered tasks
+        todo_service = get_cross_repo_todo_service()
+        snapshot = todo_service.get_snapshot(force_refresh=True)
+        total_tasks = sum(len(repo.items) for repo in snapshot.repos)
+        print(f"Repo audit complete. Discovered {total_tasks} Open Tasks across {len(snapshot.repos)} repositories.")
+        print()
     
     # Run the main loop
     try:
@@ -90,6 +142,14 @@ def main() -> None:
         
         # Save state
         save_allow_events()
+        get_tracker().save_state()
+
+        if start_task_discovery:
+            try:
+                from automation.task_discovery_daemon import stop_task_discovery_daemon
+                stop_task_discovery_daemon()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":

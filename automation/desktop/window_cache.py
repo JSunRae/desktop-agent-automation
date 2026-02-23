@@ -24,7 +24,7 @@ from automation.config import (
     VSCODE_TITLE_SUFFIX,
 )
 from automation.core.logging import log_verbose
-
+from automation.core.hotkeys import check_hotkeys_polled, is_paused, extra_wait_until
 from automation.title_parsing import is_vscode_window_title
 
 
@@ -97,30 +97,51 @@ def refresh_window_cache(desktops: List[Union[int, str]], force: bool = False) -
     from automation.desktop.switcher import switch_to_desktop
     from automation.ui.vscode_windows import find_all_vscode_windows
     
-    now = datetime.now()
+    scan_started = datetime.now()
     
     # Skip if recently refreshed (unless forced)
     if not force and _cache_initialized:
-        mins_since_refresh = (now - _last_cache_refresh).total_seconds() / 60
+        mins_since_refresh = (scan_started - _last_cache_refresh).total_seconds() / 60
         if mins_since_refresh < CACHE_REFRESH_INTERVAL_MINUTES:
             return len(_cached_window_handles)
     
-    print(f"\n[{now}] 📋 Scanning desktops to cache window handles...")
+    print(f"\n[{scan_started}] 📋 Scanning desktops to cache window handles...")
     
     # Prune stale entries first
-    _prune_stale_handles(now)
+    _prune_stale_handles(scan_started)
     
     new_windows = 0
     updated_windows = 0
+    interrupted = False
     
     for desktop_num in desktops:
+        # Check for user interrupts (hotkeys, mouse movement) during long scan
+        check_hotkeys_polled()
+        now = datetime.now()
+        if is_paused() or extra_wait_until() > now:
+            log_verbose("  [CACHE] Scan interrupted by pause/extra wait")
+            interrupted = True
+            break
+
         if desktop_num == 0:
             # Current desktop - no switch needed
             vscode_windows = find_all_vscode_windows(timeout=0.5)
         else:
             # Switch to desktop and scan
             switch_to_desktop(desktop_num)
-            time.sleep(1.0)
+            
+            # Check for interrupts after switch
+            for _ in range(10):
+                time.sleep(0.1)
+                check_hotkeys_polled()
+                if is_paused() or extra_wait_until() > datetime.now():
+                    interrupted = True
+                    break
+            
+            if interrupted:
+                log_verbose(f"  [CACHE] Scan interrupted after switching to desktop {desktop_num}")
+                break
+                
             vscode_windows = find_all_vscode_windows(timeout=0.5)
         
         for vs_win in vscode_windows:
@@ -142,11 +163,14 @@ def refresh_window_cache(desktops: List[Union[int, str]], force: bool = False) -
             except Exception:
                 continue
     
+    if interrupted:
+        return len(_cached_window_handles)
+
     _cache_initialized = True
-    _last_cache_refresh = now
+    _last_cache_refresh = scan_started
     
     total = len(_cached_window_handles)
-    print(f"[{now}] ✓ Cache: {total} window(s) ({new_windows} new, {updated_windows} updated)")
+    print(f"[{scan_started}] ✓ Cache: {total} window(s) ({new_windows} new, {updated_windows} updated)")
     
     return total
 

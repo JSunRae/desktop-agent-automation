@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import keyboard
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, TYPE_CHECKING
@@ -15,6 +16,7 @@ from automation.config import (
     MODEL_PICKER_LABELS,
 )
 from automation.metrics import get_metrics_tracker
+from automation.core.hotkeys import check_hotkeys_polled, is_paused
 from automation.panel_state import (
     PanelState,
     PanelStatus,
@@ -36,6 +38,17 @@ from automation import prompt_resolver
 
 if TYPE_CHECKING:
     import uiautomation as auto
+
+NEW_CHAT_KEYWORD = "new chat"
+CHAT_INPUT_KEYWORDS: tuple[str, ...] = (
+    "new chat editor",
+    "chat input",
+    "message copilot",
+    "type your instructions",
+    "start typing",
+    "prompt copilot",
+    "send a message",
+)
 
 
 def _resolve_repo_prompt_path(repo_name: Optional[str]) -> Path:
@@ -169,15 +182,82 @@ def _find_new_chat_button(vs_win: "auto.Control") -> Optional["auto.Control"]:
     except Exception:
         return None
 
-    for ctrl in iter_controls(vs_win, max_depth=45):
+    for ctrl in iter_controls(vs_win, max_depth=40):
         try:
             if isinstance(ctrl, auto.ButtonControl):
-                name = (ctrl.Name or "").lower()
-                if "new chat" in name:
+                name = (ctrl.Name or "").strip().lower()
+                if name and NEW_CHAT_KEYWORD in name:
                     return ctrl
         except Exception:
             continue
     return None
+
+
+def _find_chat_input_control(vs_win: "auto.Control") -> Optional["auto.Control"]:
+    try:
+        import uiautomation as auto
+    except Exception:
+        return None
+
+    best: Optional["auto.Control"] = None
+    best_score = -1.0
+    for ctrl in iter_controls(vs_win, max_depth=55):
+        try:
+            if not isinstance(ctrl, (auto.EditControl, auto.DocumentControl, auto.TextControl)):
+                continue
+            name = (ctrl.Name or "").strip().lower()
+            score = 0.0
+            if any(keyword in name for keyword in CHAT_INPUT_KEYWORDS):
+                score += 5.0
+            try:
+                rect = ctrl.BoundingRectangle
+                width = rect.right - rect.left
+                height = rect.bottom - rect.top
+                if width > 0 and height > 0:
+                    score += height / 200.0
+                    score += rect.top / 10000.0
+            except Exception:
+                pass
+            if score > best_score:
+                best_score = score
+                best = ctrl
+        except Exception:
+            continue
+    return best
+
+
+def _focus_control(control: Optional["auto.Control"]) -> bool:
+    if control is None:
+        return False
+
+    from automation.ui.window_utils import get_cursor_pos, set_cursor_pos
+
+    original_pos = get_cursor_pos()
+    try:
+        try:
+            control.SetFocus()
+            return True
+        except Exception:
+            try:
+                rect = control.BoundingRectangle
+                width = rect.right - rect.left
+                height = rect.bottom - rect.top
+                if width <= 0 or height <= 0:
+                    return False
+                center_x = rect.left + width // 2
+                center_y = rect.top + height // 2
+                set_cursor_pos(center_x, center_y)
+                time.sleep(0.05)
+                control.Click(simulateMove=False)
+                return True
+            except Exception:
+                return False
+    finally:
+        try:
+            set_cursor_pos(original_pos[0], original_pos[1])
+        except Exception:
+            pass
+    return False
 
 
 def _find_model_picker_button(vs_win: "auto.Control") -> Optional["auto.Control"]:
@@ -236,7 +316,18 @@ def _open_new_chat(vs_win: "auto.Control") -> tuple[bool, str]:
         try:
             btn.Click(simulateMove=False)
             time.sleep(0.4)
-            return True, "clicked"
+            keyboard.send("ctrl+n")
+            time.sleep(0.2)
+
+            # Wait for chat input to appear and be focusable
+            deadline = time.time() + 5.0
+            while time.time() < deadline:
+                ctrl = _find_chat_input_control(vs_win)
+                if ctrl and _focus_control(ctrl):
+                    return True, "clicked_and_focused"
+                time.sleep(0.5)
+
+            return False, "input_not_found_after_click"
         except Exception as exc:
             if attempt < max_retries - 1:
                 time.sleep(0.5)
@@ -353,6 +444,16 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
 
     dispatcher = pt.get_task_panel_dispatcher()
 
+    try:
+        if not tracker.repo_prompt_indices and tracker.next_prompt_index == 0:
+            feed_cache = getattr(dispatcher, "_feed_cache", None)
+            if feed_cache:
+                reset_cache = getattr(dispatcher, "reset_cache", None)
+                if callable(reset_cache):
+                    reset_cache()
+    except Exception:
+        pass
+
     def dispatcher_has_feed_entries(repo_name: Optional[str]) -> bool:
         """Return True if the dispatcher feed still has tasks for a repo."""
         if not repo_name:
@@ -396,6 +497,11 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
             continue
 
     for panel in finished_panels:
+        check_hotkeys_polled()
+        if is_paused():
+            print("[PanelTracker] Seeding interrupted by pause")
+            break
+
         if panel.seeded_prompt:
             continue
 
@@ -472,7 +578,7 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
             panel.assigned_task_name = assignment.prompt_preview.splitlines()[0] if assignment.prompt_preview else None
             panel.assignment_batch_id = assignment.batch_id
             panel.assignment_source = str(assignment.source_path)
-            panel.assigned_model_label = assignment.model_label or None
+            panel.assigned_model_label = getattr(assignment, "model_label", None) or None
             panel.assignment_attempts += 1
 
             attempt_number = getattr(panel, "seed_retry_count", 0) + 1

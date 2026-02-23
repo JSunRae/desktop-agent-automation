@@ -1,0 +1,23 @@
+* text=auto
+*.py text eol=lf
+*.md text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.bin -text
+*.exe -text
+*.dll -text
+*.so -text
+*.dylib -text
+*.pdf -text
+*.jpg -text
+*.png -text
+*.gif -text
+*.zip -text
+*.tar -text
+*.gz -text

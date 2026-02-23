@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import socket
 import json
 import os
 import shlex
@@ -23,6 +24,7 @@ class CommandSpec:
     title: str
     args: tuple[str, ...]
     description: str
+    category: str = "Other"
     use_python: bool = True
     cwd: Path | None = None
     options: tuple["InteractiveOption", ...] | None = None
@@ -31,6 +33,7 @@ class CommandSpec:
         payload: dict[str, object] = {
             "key": self.key,
             "title": self.title,
+            "category": self.category,
             "description": self.description,
             "args": list(self.args),
             "use_python": self.use_python,
@@ -54,9 +57,10 @@ class InteractiveOption:
 COMMANDS: tuple[CommandSpec, ...] = (
     CommandSpec(
         key="run-automation",
-        title="Run Automation (New Modular)",
+        category="Automation",
+        title="Standard Automation (Modular)",
         args=("run_automation.py",),
-        description="Launch the hotkey + panel automation orchestrator with modular routing.",
+        description="Scans windows and clicks 'Allow'/'Keep Edits' (all desktops).",
         options=(
             InteractiveOption(
                 key="1",
@@ -71,82 +75,53 @@ COMMANDS: tuple[CommandSpec, ...] = (
         ),
     ),
     CommandSpec(
-        key="legacy-auto-allow",
-        title="Run Auto Allow Copilot (Legacy)",
-        args=("LAGACY_auto_allow_copilot.py",),
-        description="Legacy Win32 clicker maintained for regression comparisons.",
-    ),
-    CommandSpec(
         key="desktop-auto-allow",
-        title="Run Desktop Auto-Allow Agent",
+        category="Automation",
+        title="Vision-based Automation (AI)",
         args=("-m", "automation.desktop_auto_allow_agent"),
-        description="Computer-Use API agent that clicks VS Code Copilot approval buttons.",
-    ),
-    CommandSpec(
-        key="vs-code-automation",
-        title="Run VS Code Copilot Automation",
-        args=("-m", "automation.vs_code_copilot_automation"),
-        description="Primary VS Code chat automation loop with hotkeys and queueing.",
+        description="Vision-based (OpenAI) button detection. More robust, higher cost.",
     ),
     CommandSpec(
         key="master-prompt-orchestrator",
-        title="Run Master Prompt Orchestrator",
+        category="Orchestration",
+        title="Prompt Orchestrator",
         args=("-m", "automation.master_prompt_orchestrator"),
-        description="Idle supervisor that uploads docs and generates fresh prompt batches.",
+        description="Manages prompt batches, uploads docs, tracks agent progress.",
     ),
     CommandSpec(
         key="prompt-tester",
-        title="Run New Chat Prompt Tester",
+        category="Orchestration",
+        title="Prompt Pack Tester",
         args=("-m", "automation.new_chat_prompt_tester"),
-        description="Tooling to validate new Copilot prompt packs before dispatching them.",
-    ),
-    CommandSpec(
-        key="test-chat-extraction",
-        title="Run Test Chat Extraction",
-        args=("-m", "pytest", "tests/test_chat_extraction.py"),
-        description="Pytest target covering clipboard + UI automation extraction helpers.",
-    ),
-    CommandSpec(
-        key="test-click-verification",
-        title="Run Test Click Verification",
-        args=("-m", "pytest", "tests/test_click_verification.py"),
-        description="Guardrails around click verification heuristics for Copilot windows.",
-    ),
-    CommandSpec(
-        key="test-master-orchestrator",
-        title="Run Test Master Prompt Orchestrator",
-        args=("-m", "pytest", "tests/test_master_prompt_orchestrator.py"),
-        description="Unit tests for the orchestrator that hands out prompt batches.",
-    ),
-    CommandSpec(
-        key="test-try-again",
-        title="Run Test Try Again Button",
-        args=("-m", "pytest", "tests/test_try_again_button.py"),
-        description="Regression tests for the Try Again button finder and clicker.",
-    ),
-    CommandSpec(
-        key="test-vscode-detection",
-        title="Run Test VS Code Detection",
-        args=("-m", "pytest", "tests/test_vscode_detection.py"),
-        description="Ensures VS Code window detection heuristics stay stable.",
+        description="Validates prompt batches and chat extraction logic.",
     ),
     CommandSpec(
         key="metrics-dashboard",
-        title="Live Metrics Dashboard",
+        category="Analytics",
+        title="Live Performance Dashboard",
         args=("scripts/generate_metrics_report.py", "--mode", "dashboard"),
-        description="Interactive telemetry dashboard with live trends, alerts, and anomaly detection.",
+        description="Live telemetry: allow rates, rate limits, agent activity.",
     ),
     CommandSpec(
         key="metrics-export",
-        title="Export Metrics Report",
+        category="Analytics",
+        title="Export Telemetry Report",
         args=("scripts/generate_metrics_report.py", "--mode", "export"),
-        description="Generate consolidated JSON/Markdown telemetry summaries for sharing.",
+        description="Generates consolidated report of automation activity.",
+    ),
+    CommandSpec(
+        key="cost-report",
+        category="Analytics",
+        title="Financial Usage Report",
+        args=("scripts/cost_report.py",),
+        description="Analyzes OpenAI API spend and token usage.",
     ),
     CommandSpec(
         key="align-panels",
-        title="Align VS Code Panels",
+        category="Utilities",
+        title="Align VS Code Windows",
         args=("scripts/align_panels.py",),
-        description="Align VS Code panels to their configured positions on current or specified desktop.",
+        description="Snaps VS Code windows/panels to optimal positions.",
         options=(
             InteractiveOption(
                 key="1",
@@ -177,10 +152,39 @@ COMMANDS: tuple[CommandSpec, ...] = (
         ),
     ),
     CommandSpec(
-        key="cost-report",
-        title="Generate Cost & Usage Report",
-        args=("scripts/cost_report.py",),
-        description="Run the financial analytics module for OpenAI spend insights.",
+        key="test-chat-extraction",
+        category="Testing",
+        title="Test: Chat Extraction",
+        args=("-m", "pytest", "tests/test_chat_extraction.py"),
+        description="Pytest target covering extraction helpers.",
+    ),
+    CommandSpec(
+        key="test-click-verification",
+        category="Testing",
+        title="Test: Click Logic",
+        args=("-m", "pytest", "tests/test_click_verification.py"),
+        description="Guardrails for click verification heuristics.",
+    ),
+    CommandSpec(
+        key="test-master-orchestrator",
+        category="Testing",
+        title="Test: Orchestrator",
+        args=("-m", "pytest", "tests/test_master_prompt_orchestrator.py"),
+        description="Unit tests for prompt batch orchestrator.",
+    ),
+    CommandSpec(
+        key="test-try-again",
+        category="Testing",
+        title="Test: 'Try Again' Button",
+        args=("-m", "pytest", "tests/test_try_again_button.py"),
+        description="Regression tests for Try Again button.",
+    ),
+    CommandSpec(
+        key="test-vscode-detection",
+        category="Testing",
+        title="Test: Window Detection",
+        args=("-m", "pytest", "tests/test_vscode_detection.py"),
+        description="Tests VS Code window detection heuristics.",
     ),
 )
 
@@ -230,9 +234,31 @@ def _print_command_list(as_json: bool) -> None:
         print(json.dumps(payload, indent=2))
         return
 
+    # Calculate alignment padding
+    max_len = 0
+    for spec in COMMANDS:
+        length = len(f"{spec.title} [{spec.key}]")
+        if length > max_len:
+            max_len = length
+    
+    label_width = max_len + 2  # slight visual padding
+
+    print(f"Found {len(COMMANDS)} workflows:")
+
+    current_category = None
     width = len(str(len(COMMANDS)))
     for index, spec in enumerate(COMMANDS, start=1):
-        print(f"{index:>{width}}. {spec.title} [{spec.key}]")
+        if spec.category != current_category:
+            if current_category is not None:
+                print()
+            print(f"--- {spec.category} ---")
+            current_category = spec.category
+        
+        label = f"{spec.title} [{spec.key}]"
+        try:
+            print(f"{index:>{width}}. {label:<{label_width}} - {spec.description}")
+        except Exception as e:
+            print(f"{index:>{width}}. {label} (Error printing description: {e})")
 
 
 def _describe_payload() -> dict[str, object]:
@@ -325,8 +351,13 @@ def _run_spec(spec: CommandSpec, extra_args: Iterable[str], dry_run: bool) -> in
         return 0
 
     print(f"[master] running: {printable}")
-    completed = subprocess.run(invocation, cwd=spec.cwd or None, check=False)
-    return int(completed.returncode)
+    try:
+        completed = subprocess.run(invocation, cwd=spec.cwd or None, check=False)
+        return int(completed.returncode)
+    except KeyboardInterrupt:
+        # The child process will receive the signal too.
+        # We just want to exit master cleanly without a traceback.
+        return 130
 
 
 def _prompt_for_extra_args() -> list[str] | None:
@@ -405,12 +436,81 @@ def _prompt_for_workflow_args(spec: CommandSpec) -> list[str] | None:
     return extra
 
 
-def _strip_passthrough(args: Sequence[str]) -> list[str]:
-    if not args:
-        return []
-    if args and args[0] == "--":
-        return list(args[1:])
-    return list(args)
+def _strip_passthrough(args: Sequence[str]) -> Sequence[str]:
+    """Remove known noise args like --dry-run if passed through."""
+    return [a for a in args if a not in ("--dry-run",)]
+
+
+def _ensure_orchestrator() -> None:
+    """Check if the Telegram Orchestrator is running, and start it if not."""
+    TBS_HOST = "127.0.0.1"
+    TBS_PORT = 8777
+    
+    # Check if port is open
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.2)
+            if s.connect_ex((TBS_HOST, TBS_PORT)) == 0:
+                # print(f"[master] Orchestrator running at {TBS_HOST}:{TBS_PORT}")
+                return
+    except Exception:
+        pass
+
+    print(f"[master] Telegram Orchestrator not detected at {TBS_PORT}. Attempting to start...")
+
+    repo_path = Path("tools/TelegramNotifications")
+    app_path = repo_path / "tbs_app.py"
+    
+    if not app_path.exists():
+        print(f"[master] Warning: Could not find Telegram Orchestrator at {app_path}. Notifications might fail.")
+        return
+
+    # Start it in background
+    log_dir = Path("logs")
+    log_dir.mkdir(exist_ok=True)
+    out_log = log_dir / "tbs_orchestrator.log"
+    err_log = log_dir / "tbs_orchestrator.err"
+    
+    # Load environment variables from the root .env
+    # We want to ensure TBS_API_TOKEN is available to the subprocess
+    from dotenv import load_dotenv, find_dotenv
+    # Explicitly load from CWD which is workspace root
+    load_dotenv(Path(".env"))
+
+    try:
+        f_out = open(out_log, "w", encoding="utf-8")
+        f_err = open(err_log, "w", encoding="utf-8")
+        
+        # Pass current environment which now includes .env values
+        env = os.environ.copy()
+
+        # Prefer a project virtualenv if available (fallback to current interpreter)
+        python_cmd: str
+        venv_override = env.get("MASTER_VENV")
+        if venv_override and Path(venv_override).exists():
+            python_cmd = venv_override
+        else:
+            candidate = Path(".venv") / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+            python_cmd = str(candidate) if candidate.exists() else sys.executable
+        
+        creation_flags = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+
+        subprocess.Popen(
+            [python_cmd, "-m", "uvicorn", "tbs_app:app", "--host", TBS_HOST, "--port", str(TBS_PORT)],
+            cwd=str(repo_path),
+            stdout=f_out,
+            stderr=f_err,
+            env=env,
+            creationflags=creation_flags
+        )
+        print(f"[master] Telegram Orchestrator started (pid hidden). Logs: {out_log}")
+        
+        # Give it a moment to bind
+        import time
+        time.sleep(2.0)
+        
+    except Exception as e:
+        print(f"[master] Failed to start Telegram Orchestrator: {e}")
 
 
 def _env_flag(name: str) -> bool:
@@ -449,6 +549,8 @@ def _interactive_menu(passthrough: Sequence[str], dry_run: bool) -> int:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    # Debug: verify which file is running
+    # print(f" DEBUG: automation.cli.master is running from: {__file__}")
     parser = build_parser()
     args = parser.parse_args(argv)
 
@@ -466,11 +568,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.run:
+        _ensure_orchestrator()
         spec = _resolve_command(args.run)
         if spec is None:
             parser.error(f"Unknown workflow: {args.run}")
         return _run_spec(spec, passthrough, args.dry_run)
 
+    _ensure_orchestrator()
     return _interactive_menu(passthrough, args.dry_run)
 
 

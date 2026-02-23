@@ -8,3 +8,4 @@ python-dotenv
 rich
 pyvda
 jsonschema
+telegram-notifications-agent @ git+ssh://git@github.com/JSunRae/TelegramNotifications.git

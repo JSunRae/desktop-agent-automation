@@ -283,6 +283,33 @@ class SeedingAttemptMetric:
         )
 
 
+@dataclass
+class TaskDiscoveryMetric:
+    """Metrics for background task discovery daemon events."""
+
+    timestamp: datetime
+    event: str  # e.g., "refresh", "low_feed", "audit_success", "audit_failure"
+    repos: List[str]
+    detail: Optional[str] = None
+
+    def to_dict(self) -> dict:
+        return {
+            "timestamp": self.timestamp.isoformat(),
+            "event": self.event,
+            "repos": self.repos,
+            "detail": self.detail,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "TaskDiscoveryMetric":
+        return cls(
+            timestamp=datetime.fromisoformat(data["timestamp"]),
+            event=data.get("event", "unknown"),
+            repos=list(data.get("repos", [])),
+            detail=data.get("detail"),
+        )
+
+
 class MetricsTracker:
     """Tracks and persists automation metrics."""
     
@@ -305,6 +332,7 @@ class MetricsTracker:
         self.cost_metrics: List[CostMetric] = []
         self.workflow_metrics: List[WorkflowEventMetric] = []
         self.seeding_attempt_metrics: List[SeedingAttemptMetric] = []
+        self.task_discovery_metrics: List[TaskDiscoveryMetric] = []
         self._load_metrics()
     
     def _load_metrics(self) -> None:
@@ -337,6 +365,10 @@ class MetricsTracker:
                 self.seeding_attempt_metrics = [
                     SeedingAttemptMetric.from_dict(m)
                     for m in data.get("seeding_attempt_metrics", [])
+                ]
+                self.task_discovery_metrics = [
+                    TaskDiscoveryMetric.from_dict(m)
+                    for m in data.get("task_discovery_metrics", [])
                 ]
             except Exception as e:
                 print(f"[MetricsTracker] Warning: Could not load metrics: {e}")
@@ -377,6 +409,7 @@ class MetricsTracker:
                 "cost_metrics": [m.to_dict() for m in self.cost_metrics],
                 "workflow_metrics": [m.to_dict() for m in self.workflow_metrics],
                 "seeding_attempt_metrics": [m.to_dict() for m in self.seeding_attempt_metrics],
+                "task_discovery_metrics": [m.to_dict() for m in self.task_discovery_metrics],
             }
             
             with self.metrics_path.open("w", encoding="utf-8") as f:
@@ -446,6 +479,26 @@ class MetricsTracker:
         
         print(f"[MetricsTracker] Recorded model selection: panel={panel_title[:40]}, "
               f"model={model_label}, success={success}")
+
+    def record_task_discovery_event(
+        self,
+        event: str,
+        repos: Optional[List[str]] = None,
+        detail: Optional[str] = None,
+    ) -> None:
+        """Record a task discovery daemon event."""
+        metric = TaskDiscoveryMetric(
+            timestamp=datetime.now(),
+            event=event,
+            repos=repos or [],
+            detail=detail,
+        )
+        self.task_discovery_metrics.append(metric)
+        self._save_metrics()
+        if detail:
+            print(f"[MetricsTracker] Task discovery event: {event} ({detail}) repos={metric.repos}")
+        else:
+            print(f"[MetricsTracker] Task discovery event: {event} repos={metric.repos}")
 
     def record_keep_new_chat_event(
         self,

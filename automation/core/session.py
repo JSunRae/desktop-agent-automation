@@ -11,8 +11,8 @@ Tracks metrics for the current automation session:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Dict, Any
+from datetime import datetime, timedelta
+from typing import Dict, Any, List
 
 
 @dataclass
@@ -30,6 +30,7 @@ class SessionStats:
     # Click counts
     total_allow_clicks: int = 0
     total_keep_edits_clicks: int = 0
+    click_timestamps: List[datetime] = field(default_factory=list)
     
     # Rate limit tracking
     rate_limit_count: int = 0
@@ -43,11 +44,17 @@ class SessionStats:
         """Record Allow button click(s)."""
         self.total_allow_clicks += count
         self.cycle_allow_clicks += count
+        now = datetime.now()
+        for _ in range(count):
+            self.click_timestamps.append(now)
     
     def record_keep_edits_click(self, count: int = 1) -> None:
         """Record Keep Edits button click(s)."""
         self.total_keep_edits_clicks += count
         self.cycle_keep_edits_clicks += count
+        now = datetime.now()
+        for _ in range(count):
+            self.click_timestamps.append(now)
     
     def record_rate_limit(self) -> None:
         """Record a rate limit detection."""
@@ -100,6 +107,11 @@ class SessionStats:
         print(f"  Uptime:            {self.format_duration(uptime)}")
         print(f"  Allow clicks:      {self.total_allow_clicks}")
         print(f"  Keep Edits clicks: {self.total_keep_edits_clicks}")
+        
+        one_hour_ago = now - timedelta(hours=1)
+        recent_clicks = sum(1 for t in self.click_timestamps if t > one_hour_ago)
+        print(f"  Clicks (last 1h):  {recent_clicks}")
+        
         print(f"  Rate limits hit:   {self.rate_limit_count}")
         if self.rate_limit_count > 0 and uptime > 0:
             avg_minutes = uptime / 60 / max(self.rate_limit_count, 1)

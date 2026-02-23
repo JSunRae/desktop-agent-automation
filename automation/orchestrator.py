@@ -49,11 +49,14 @@ from automation.config import (
     # Health checks
     ENABLE_PANEL_HEALTH_CHECK_SCHEDULING,
     PANEL_HEALTH_CHECK_INTERVAL_MINUTES,
+    # Toast shortcut
+    ENABLE_VSCODE_TOAST_SHORTCUT,
 )
 from automation.core.audio import speak
 from automation.core.logging import log_normal, log_verbose
 from automation.core.hotkeys import (
     check_hotkeys_polled,
+    check_mouse_interrupts,
     is_paused,
     is_manually_paused,
     set_paused,
@@ -93,13 +96,17 @@ from automation.ui import (
     click_all_action_buttons,
     is_try_again_cooldown_active,
     get_try_again_cooldown_remaining,
+    get_foreground_window,
+    try_consume_vscode_toast,
 )
-from automation.ui.window_utils import (
+from automation.ui.cursor import (
     get_cursor_pos,
     get_expected_cursor_pos,
     get_last_automation_cursor_set_at,
+    sync_expected_cursor_to_current,
 )
 from automation.panel_tracker import get_tracker, process_finished_panels_with_prompts
+from automation.rate_monitor import RateMonitor  # NEW
 from automation.rate_limit import (
     format_rate_status,
     load_allow_events,
@@ -271,6 +278,28 @@ def detect_recent_user_input(now: datetime) -> tuple:
 
 
 # ============================================================================
+# SLEEP WITH HOTKEY/MOUSE POLLING
+# ============================================================================
+
+def sleep_with_hotkey_checks(total_seconds: float, poll_seconds: float = 0.05) -> None:
+    """Sleep in short slices while still honoring hotkeys and mouse interrupts."""
+    deadline = time.time() + max(0.0, total_seconds)
+
+    while True:
+        check_hotkeys_polled()
+
+        now_dt = datetime.now()
+        if is_paused() or extra_wait_until() > now_dt:
+            break
+
+        remaining = deadline - time.time()
+        if remaining <= 0:
+            break
+
+        time.sleep(min(poll_seconds, remaining))
+
+
+# ============================================================================
 # ORCHESTRATION LOOP
 # ============================================================================
 
@@ -287,6 +316,9 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
     
     load_allow_events()
     tracker = get_tracker()
+    
+    # Initialize RateMonitor
+    rate_monitor = RateMonitor()
 
     no_click_alerted = False
     last_click_activity = datetime.now()
@@ -301,28 +333,76 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
     print(f"  Pause hotkey: {PAUSE_HOTKEY}")
     print()
 
-    last_mouse_position: Optional[tuple[int, int]] = None
-    mouse_pause_until: Optional[datetime] = None
-    mouse_pause_active = False
-
-    # Track physical mouse movement (anchor stays fixed until threshold exceeded).
-    physical_mouse_anchor: Optional[tuple[int, int]] = None
-
-    drift_pause_active = False
-    drift_pause_until: Optional[datetime] = None
-    drift_last_pos: Optional[tuple[int, int]] = None
-    drift_next_check_at: datetime = datetime.min
+    status_line_width = 140
+    status_line_last_text: Optional[str] = None
 
     def _status_line(text: str) -> None:
-        # Overwrite a single terminal line (PowerShell compatible).
-        sys.stdout.write("\r" + text.ljust(140))
+        nonlocal status_line_last_text
+
+        # Append rate status to the text
+        rate_status = format_rate_status()
+        full_text = f"{text} | {rate_status}"
+
+        # Skip writes if the content didn't actually change.
+        if full_text == status_line_last_text:
+            return
+
+        status_line_last_text = full_text
+        line = full_text[:status_line_width].ljust(status_line_width)
+        # Use carriage returns so countdown/status messages overwrite themselves instead of spamming new lines.
+        sys.stdout.write("\r" + line)
         sys.stdout.flush()
 
     def _clear_status_line() -> None:
-        _status_line("")
+        nonlocal status_line_last_text
+
+        if status_line_last_text is None:
+            return
+
+        status_line_last_text = None
+        sys.stdout.write("\r" + " " * status_line_width)
+        sys.stdout.flush()
+
+    def _wait_remaining() -> float:
+        """Seconds left in extra-wait window (0 if none)."""
+        now_dt = datetime.now()
+        return max(0.0, (extra_wait_until() - now_dt).total_seconds())
+
+    def _click_actions_on_foreground_vscode() -> dict:
+        """Best-effort attempt to click action buttons on the focused VS Code window."""
+        clicked: dict = {"allow": 0, "keep_edits": 0, "rate_limited": False}
+        try:
+            hwnd = get_foreground_window()
+            if not hwnd:
+                return clicked
+
+            ctrl = auto.ControlFromHandle(hwnd)
+            if not ctrl or not ctrl.Exists(0.2):
+                return clicked
+
+            try:
+                title = ctrl.Name or ""
+            except Exception:
+                title = ""
+
+            if "visual studio code" not in title.lower():
+                return clicked
+
+            result, _ = click_all_action_buttons(ctrl)
+            clicked.update(result)
+            return clicked
+        except Exception as exc:
+            log_verbose(f"Toast shortcut click failed: {exc}")
+            return clicked
     
     while True:
         now = datetime.now()
+
+        # Monitor rate conditions
+        try:
+            rate_monitor.check(is_paused())
+        except Exception as e:
+            log_verbose(f"Rate monitor error: {e}")
 
         # Safety: if the user is pressing keys, pause immediately so we don't fight for control.
         if AUTO_PAUSE_ON_KEYBOARD_INPUT:
@@ -334,166 +414,16 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
             except Exception as exc:
                 log_verbose(f"Keyboard activity detection failed: {exc}")
 
-        # Detect significant physical mouse movement to give the user time to intervene.
-        # Prefer comparing against the last cursor position set by automation (expected),
-        # which avoids false positives when automation itself moves/restores the cursor.
-        if AUTO_PAUSE_ON_MOUSE_MOVE:
-            try:
-                current_mouse_pos = get_cursor_pos()
-            except Exception as exc:
-                log_verbose(f"Failed to read cursor position: {exc}")
-                current_mouse_pos = None
-
-            if current_mouse_pos is not None:
-                # Ignore cursor deltas that likely come from automation itself.
-                # The button clicker moves/restores the cursor very frequently; without this
-                # guard, the "expected" cursor position can end up tracking user motion and
-                # physical movement won't reliably trigger a pause.
-                automation_set_at = get_last_automation_cursor_set_at()
-                automation_recent = (
-                    automation_set_at is not None
-                    and (now - automation_set_at).total_seconds() <= 0.35
-                )
-
-                expected = get_expected_cursor_pos()
-                baseline = expected if expected is not None else last_mouse_position
-
-                # Cursor drift guard: pause once, then re-check at 1Hz.
-                # If the user keeps moving the mouse, extend the pause window.
-                if AUTO_PAUSE_ON_CURSOR_DRIFT and expected is not None:
-                    dx = current_mouse_pos[0] - expected[0]
-                    dy = current_mouse_pos[1] - expected[1]
-                    distance = math.hypot(dx, dy)
-
-                    if distance >= CURSOR_DRIFT_THRESHOLD_PX:
-                        if not drift_pause_active:
-                            # If we're not already paused, initiate a manual pause once.
-                            if not is_paused():
-                                request_manual_pause(
-                                    f"Cursor drift detected ({distance:.0f}px >= {CURSOR_DRIFT_THRESHOLD_PX}px) during loop."
-                                )
-
-                            drift_pause_active = True
-                            drift_last_pos = current_mouse_pos
-                            drift_pause_until = now + timedelta(seconds=MOUSE_PAUSE_SECONDS)
-                            drift_next_check_at = now  # check immediately, then 1Hz
-
-                        # While paused due to drift, only update a single status line.
-                        if drift_pause_active and is_paused():
-                            check_hotkeys_polled()
-
-                            if now >= drift_next_check_at:
-                                try:
-                                    pos_now = get_cursor_pos()
-                                except Exception as exc:
-                                    log_verbose(f"Failed to read cursor position during drift pause: {exc}")
-                                    pos_now = None
-
-                                if pos_now is not None:
-                                    if drift_last_pos is None:
-                                        drift_last_pos = pos_now
-                                    else:
-                                        moved = math.hypot(
-                                            pos_now[0] - drift_last_pos[0],
-                                            pos_now[1] - drift_last_pos[1],
-                                        )
-                                        # Ignore tiny jitters; require noticeable motion before extending.
-                                        if moved >= CURSOR_DRIFT_STABILITY_PX:
-                                            drift_last_pos = pos_now
-                                            drift_pause_until = now + timedelta(seconds=MOUSE_PAUSE_SECONDS)
-
-                                drift_next_check_at = now + timedelta(seconds=1)
-
-                            remaining = max(
-                                0.0,
-                                (drift_pause_until - now).total_seconds() if drift_pause_until else 0.0,
-                            )
-                            last = drift_last_pos if drift_last_pos is not None else current_mouse_pos
-                            _status_line(
-                                f"Cursor drift pause: {remaining:5.0f}s left | last=({last[0]},{last[1]}) | {PAUSE_HOTKEY} to resume"
-                            )
-
-                            if drift_pause_until is not None and now >= drift_pause_until:
-                                # Auto-resume after a stable window (still allows manual resume earlier).
-                                if is_manually_paused():
-                                    set_paused(False)
-                                drift_pause_active = False
-                                drift_pause_until = None
-                                drift_last_pos = None
-                                _clear_status_line()
-                                print(f"\n[{now}] 🖱️  Cursor drift pause elapsed - resuming automation\n")
-
-                            time.sleep(0.1)
-                            continue
-
-                if baseline is not None:
-                    dx = current_mouse_pos[0] - baseline[0]
-                    dy = current_mouse_pos[1] - baseline[1]
-                    distance = math.hypot(dx, dy)
-
-                    if distance >= MOUSE_MOVEMENT_THRESHOLD:
-                        current_wait = extra_wait_until()
-                        pause_target = now + timedelta(seconds=MOUSE_PAUSE_SECONDS)
-                        effective_until = current_wait
-                        extended = False
-
-                        if current_wait <= now or pause_target > current_wait:
-                            set_extra_wait_until(pause_target)
-                            effective_until = pause_target
-                            extended = True
-
-                        if extended:
-                            reason = "extending" if mouse_pause_active else "pausing"
-                            print(
-                                f"\n[{now}] 🖱️  Mouse moved {distance:.0f}px - {reason} automation for {MOUSE_PAUSE_SECONDS}s"
-                            )
-                            if not mouse_pause_active and SPEAK_PAUSE_EVENTS:
-                                speak("Pausing automation")
-
-                        if extended or mouse_pause_active:
-                            mouse_pause_active = True
-                            if mouse_pause_until is None or effective_until > mouse_pause_until:
-                                mouse_pause_until = effective_until
-
-                last_mouse_position = current_mouse_pos
-
-                # Physical movement detector (ignores automation-driven movement).
-                if not automation_recent:
-                    if physical_mouse_anchor is None:
-                        physical_mouse_anchor = current_mouse_pos
-                    else:
-                        dxp = current_mouse_pos[0] - physical_mouse_anchor[0]
-                        dyp = current_mouse_pos[1] - physical_mouse_anchor[1]
-                        physical_distance = math.hypot(dxp, dyp)
-
-                        if physical_distance >= MOUSE_MOVEMENT_THRESHOLD:
-                            # Use the existing extra-wait mechanism (keeps hotkeys working).
-                            pause_target = now + timedelta(seconds=MOUSE_PAUSE_SECONDS)
-                            set_extra_wait_until(pause_target)
-                            mouse_pause_active = True
-                            mouse_pause_until = pause_target
-                            physical_mouse_anchor = current_mouse_pos
-
-                            print(
-                                f"\n[{now}] 🖱️  Physical mouse movement detected ({physical_distance:.0f}px) - pausing automation for {MOUSE_PAUSE_SECONDS}s"
-                            )
-                            if SPEAK_PAUSE_EVENTS:
-                                speak("Pausing automation")
-
-        # If the user manually resumed, clear any drift status line state.
-        if drift_pause_active and not is_paused():
-            drift_pause_active = False
-            drift_pause_until = None
-            drift_last_pos = None
+        # Detect significant physical mouse movement or drift to give the user time to intervene.
+        # This is now handled centrally in hotkeys.py to ensure it works during long operations.
+        drift_status = check_mouse_interrupts()
+        if drift_status:
+            _status_line(drift_status)
+            time.sleep(0.1)
+            continue
+        elif is_paused():
+            # If we're paused but not in a drift pause, clear any drift status line.
             _clear_status_line()
-
-        if mouse_pause_active and mouse_pause_until and now >= mouse_pause_until:
-            if extra_wait_until() <= now:
-                mouse_pause_active = False
-                mouse_pause_until = None
-                print(f"[{now}] 🖱️  Mouse pause elapsed - resuming automation\n")
-                if SPEAK_PAUSE_EVENTS:
-                    speak("Resumed")
         
         # Check for auto-pause on typing
         if AUTO_PAUSE_ON_TYPING:
@@ -516,7 +446,8 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
         
         # Check if manually paused
         if is_paused():
-            print(f"[{now}] Manually paused - press {PAUSE_HOTKEY} to resume...")
+            rate_status = format_rate_status()
+            print(f"[{now}] Manually paused - press {PAUSE_HOTKEY} to resume... ({rate_status})")
             for _ in range(20):
                 check_hotkeys_polled()
                 if not is_paused():
@@ -553,17 +484,53 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                 check_hotkeys_polled()
                 time.sleep(0.1)
             continue
+
+        # ================================================================
+        # VS CODE TOAST SHORTCUT (fast path)
+        # ================================================================
+        toast_allow_clicked = 0
+        toast_keep_clicked = 0
+        rate_limited_detected = False
+
+        if ENABLE_VSCODE_TOAST_SHORTCUT:
+            try:
+                handled, toast_text = try_consume_vscode_toast()
+                if handled:
+                    # Give Windows a brief moment to foreground VS Code after the toast click.
+                    time.sleep(0.25)
+                    clicked = _click_actions_on_foreground_vscode()
+                    toast_allow_clicked += clicked.get("allow", 0)
+                    toast_keep_clicked += clicked.get("keep_edits", 0)
+                    rate_limited_detected = bool(clicked.get("rate_limited"))
+
+                    if toast_allow_clicked or toast_keep_clicked:
+                        summary_parts = []
+                        if toast_allow_clicked:
+                            summary_parts.append(f"{toast_allow_clicked} Allow")
+                        if toast_keep_clicked:
+                            summary_parts.append(f"{toast_keep_clicked} Keep Edits")
+                        summary = ", ".join(summary_parts)
+                        toast_note = f" | {toast_text}" if toast_text else ""
+                        print(f"[{now}] Toast shortcut clicked {summary}{toast_note}")
+                        increment_allow_clicks(toast_allow_clicked)
+                        increment_keep_edits_clicks(toast_keep_clicked)
+            except Exception as exc:
+                log_verbose(f"Toast shortcut handling failed: {exc}")
+
+            if rate_limited_detected:
+                # Respect cooldown logic on next iteration
+                continue
         
         # ================================================================
         # WINDOW SCANNING
         # ================================================================
         scan_attempted = True
-        total_allow_clicked = 0
-        total_keep_edits_clicked = 0
+        total_allow_clicked = toast_allow_clicked
+        total_keep_edits_clicked = toast_keep_clicked
         total_vscode_windows = 0
         pause_requested_mid_cycle = False
+        wait_requested_mid_cycle = False
         checked_idle_panels = False
-        rate_limited_detected = False
         
         if USE_CACHED_HANDLES and desktops_list != [0]:
             # CACHED MODE
@@ -593,8 +560,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                     max_rescan = MAX_DESKTOP_RESCAN_PASSES or None
                     
                     while True:
+                        check_hotkeys_polled()
                         if is_paused():
                             pause_requested_mid_cycle = True
+                            break
+                        if _wait_remaining() > 0:
+                            wait_requested_mid_cycle = True
                             break
                         
                         rescan_pass += 1
@@ -629,15 +600,19 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                         )
 
                         for desktop, hwnds in ordered_desktops:
+                            check_hotkeys_polled()
                             if is_paused():
                                 pause_requested_mid_cycle = True
+                                break
+                            if _wait_remaining() > 0:
+                                wait_requested_mid_cycle = True
                                 break
                                 
                             # Switch desktop if needed to ensure UI tree is accessible
                             if needs_desktop_switch(desktop):
                                 switch_to_desktop(desktop)
-                                # Small wait for UI to settle
-                                time.sleep(0.2)
+                                # Small wait for UI to settle while still watching hotkeys/mouse
+                                sleep_with_hotkey_checks(0.2)
                             
                             refreshed_windows: List[auto.Control] = []
                             for hwnd in hwnds:
@@ -652,8 +627,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                                 refreshed_windows = tracker.sort_windows_by_priority(refreshed_windows)
 
                             for vs_win in refreshed_windows:
+                                check_hotkeys_polled()
                                 if is_paused():
                                     pause_requested_mid_cycle = True
+                                    break
+                                if _wait_remaining() > 0:
+                                    wait_requested_mid_cycle = True
                                     break
                                 
                                 try:
@@ -674,6 +653,8 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                             
                             if rate_limited_detected:
                                 break
+                            if wait_requested_mid_cycle:
+                                break
                         
                         total_allow_clicked += allow_this_pass
                         total_keep_edits_clicked += keep_this_pass
@@ -682,6 +663,8 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                         
                         # Stop if rate limited
                         if rate_limited_detected:
+                            break
+                        if wait_requested_mid_cycle:
                             break
                         
                         if allow_this_pass + keep_this_pass == 0:
@@ -692,7 +675,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                         if max_rescan and rescan_pass >= max_rescan:
                             break
                         
-                        time.sleep(DESKTOP_RESCAN_DELAY_SECONDS)
+                        sleep_with_hotkey_checks(DESKTOP_RESCAN_DELAY_SECONDS)
                         
                         # Re-partition in case panel states changed
                         vscode_windows = get_cached_vscode_windows()
@@ -705,7 +688,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                 # ============================================================
                 # PHASE 2: Check IDLE panels only if no live work found
                 # ============================================================
-                if not pause_requested_mid_cycle and not rate_limited_detected and idle_windows:
+                if not pause_requested_mid_cycle and not wait_requested_mid_cycle and not rate_limited_detected and idle_windows:
                     # Always sweep idle panels to catch Allow dialogs that weren't classified as live
                     checked_idle_panels = True
                     idle_allow = 0
@@ -726,13 +709,17 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                     
                     # Process each desktop
                     for desktop, hwnds in idle_windows_by_desktop.items():
+                        check_hotkeys_polled()
                         if is_paused():
                             pause_requested_mid_cycle = True
+                            break
+                        if _wait_remaining() > 0:
+                            wait_requested_mid_cycle = True
                             break
                             
                         if needs_desktop_switch(desktop):
                             switch_to_desktop(desktop)
-                            time.sleep(0.2)
+                            sleep_with_hotkey_checks(0.2)
                         
                         refreshed_idle_windows: List[auto.Control] = []
                         for hwnd in hwnds:
@@ -744,8 +731,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                                 continue
                         
                         for vs_win in refreshed_idle_windows:
+                            check_hotkeys_polled()
                             if is_paused():
                                 pause_requested_mid_cycle = True
+                                break
+                            if _wait_remaining() > 0:
+                                wait_requested_mid_cycle = True
                                 break
                             
                             try:
@@ -762,8 +753,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                             if clicked.get('rate_limited'):
                                 rate_limited_detected = True
                                 break
+                            if wait_requested_mid_cycle:
+                                break
                         
                         if rate_limited_detected:
+                            break
+                        if wait_requested_mid_cycle:
                             break
                     
                     if idle_allow + idle_keep > 0:
@@ -776,7 +771,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                 # ============================================================
                 # PHASE 3: Hourly check - ensure all panels scanned within 1 hour
                 # ============================================================
-                if not pause_requested_mid_cycle and not rate_limited_detected:
+                if not pause_requested_mid_cycle and not wait_requested_mid_cycle and not rate_limited_detected:
                     try:
                         tracker = get_tracker()
                         panels_needing_check = tracker.get_panels_needing_hourly_check()
@@ -788,8 +783,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                             # Find the corresponding windows for these panels
                             all_windows = get_cached_vscode_windows()
                             for panel in panels_needing_check:
+                                check_hotkeys_polled()
                                 if is_paused():
                                     pause_requested_mid_cycle = True
+                                    break
+                                if _wait_remaining() > 0:
+                                    wait_requested_mid_cycle = True
                                     break
                                 
                                 # Find window matching this panel
@@ -809,7 +808,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                                         desktop = get_desktop_for_handle(hwnd)
                                         if desktop is not None and needs_desktop_switch(desktop):
                                             switch_to_desktop(desktop)
-                                            time.sleep(0.2)
+                                            sleep_with_hotkey_checks(0.2)
                                         
                                         # Refresh the control and check for buttons
                                         ctrl = auto.ControlFromHandle(hwnd)
@@ -851,8 +850,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
             current_desktop: Optional[Union[int, str]] = None
             
             for desktop_num in desktops_to_process:
+                check_hotkeys_polled()
                 if is_paused():
                     pause_requested_mid_cycle = True
+                    break
+                if _wait_remaining() > 0:
+                    wait_requested_mid_cycle = True
                     break
                 
                 desktop_label = "current" if desktop_num == 0 else str(desktop_num)
@@ -873,7 +876,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                     log_normal(f"  → Switching to {desktop_label}{priority_note}...")
                     switch_to_desktop(desktop_num)
                     current_desktop = desktop_num
-                    time.sleep(0.5)
+                    sleep_with_hotkey_checks(0.5)
                 
                 # Find windows with retry
                 vscode_windows = []
@@ -884,7 +887,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                     if needs_desktop_switch(desktop_num) and attempt < 3:
                         wait = 1.0 + (attempt * 0.5)
                         log_verbose(f"  ⚠ Retry {attempt}/3: No windows on {desktop_label}, waiting {wait}s...")
-                        time.sleep(wait)
+                        sleep_with_hotkey_checks(wait)
                 
                 if not vscode_windows:
                     if needs_desktop_switch(desktop_num):
@@ -904,8 +907,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                 max_rescan = MAX_DESKTOP_RESCAN_PASSES or None
                 
                 while True:
+                    check_hotkeys_polled()
                     if is_paused():
                         pause_requested_mid_cycle = True
+                        break
+                    if _wait_remaining() > 0:
+                        wait_requested_mid_cycle = True
                         break
                     
                     rescan_pass += 1
@@ -913,8 +920,12 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                     keep_this_pass = 0
                     
                     for vs_win in vscode_windows:
+                        check_hotkeys_polled()
                         if is_paused():
                             pause_requested_mid_cycle = True
+                            break
+                        if _wait_remaining() > 0:
+                            wait_requested_mid_cycle = True
                             break
                         
                         try:
@@ -931,6 +942,8 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                         # Check if we hit rate limit
                         if clicked.get('rate_limited'):
                             rate_limited_detected = True
+                            break
+                        if wait_requested_mid_cycle:
                             break
                     
                     total_allow_clicked += allow_this_pass
@@ -950,18 +963,22 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
                     if max_rescan and rescan_pass >= max_rescan:
                         break
                     
-                    time.sleep(DESKTOP_RESCAN_DELAY_SECONDS)
+                    sleep_with_hotkey_checks(DESKTOP_RESCAN_DELAY_SECONDS)
                     vscode_windows = find_all_vscode_windows()
                     if not vscode_windows:
                         break
                     vscode_windows = sort_windows_by_priority(vscode_windows)
                 
-                if pause_requested_mid_cycle or rate_limited_detected:
+                if pause_requested_mid_cycle or wait_requested_mid_cycle or rate_limited_detected:
                     break
         
-        if pause_requested_mid_cycle:
-            print(f"\n[{datetime.now()}] Manual pause detected. Holding...")
-            time.sleep(1)
+        if pause_requested_mid_cycle or wait_requested_mid_cycle:
+            if wait_requested_mid_cycle and not pause_requested_mid_cycle:
+                remaining = _wait_remaining()
+                print(f"\n[{datetime.now()}] Extra wait active ({remaining:0.0f}s left)...")
+            else:
+                print(f"\n[{datetime.now()}] Manual pause detected. Holding...")
+            sleep_with_hotkey_checks(1)
             continue
         
         # If rate limited, the cooldown was already triggered - just continue to next iteration
@@ -977,7 +994,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
             if ENABLE_NO_CLICK_ALERT:
                 last_click_activity = now
                 no_click_alerted = False
-            time.sleep(MIN_SCAN_INTERVAL_SECONDS)
+            sleep_with_hotkey_checks(MIN_SCAN_INTERVAL_SECONDS)
             continue
         
         reset_no_windows_loop_counter()
@@ -1056,4 +1073,6 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
         
         # Just wait the minimum interval before next scan
         # Rate limiting is now detected via Try Again buttons, not per-hour limits
-        time.sleep(MIN_SCAN_INTERVAL_SECONDS)
+        if tracker is not None:
+            tracker.save_state()
+        sleep_with_hotkey_checks(MIN_SCAN_INTERVAL_SECONDS)

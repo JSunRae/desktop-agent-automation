@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from automation.master_prompt_orchestrator import MasterPromptOrchestrator, RepoConfig
+from automation.prompt_resolver import PROMPT_FEED_FILENAME
 
 
 class _FakeSnapshotRepo:
@@ -67,7 +68,7 @@ class MasterPromptOrchestratorTests(unittest.TestCase):
             assert result  # type narrowing for mypy/pyright
             self.assertEqual(result.prompt_count, 1)
             self.assertTrue(result.output_path.exists())
-            self.assertTrue((tmp_path / "out" / "test" / "latest.txt").exists())
+            self.assertTrue((tmp_path / "out" / "test" / PROMPT_FEED_FILENAME).exists())
 
     @patch('automation.master_prompt_orchestrator._COST_TRACKER')
     def test_generate_prompt_batches_for_multiple_repos(self, mock_cost_tracker):
@@ -105,7 +106,7 @@ class MasterPromptOrchestratorTests(unittest.TestCase):
                 assert result  # type narrowing
                 self.assertEqual(result.prompt_count, 1)
                 self.assertTrue(result.output_path.exists())
-                self.assertTrue((tmp_path / "out" / result.repo_name / "latest.txt").exists())
+                self.assertTrue((tmp_path / "out" / result.repo_name / PROMPT_FEED_FILENAME).exists())
 
     @patch('automation.master_prompt_orchestrator._COST_TRACKER')
     def test_env_config_precedence_over_cross_repo(self, mock_cost_tracker):
@@ -147,4 +148,59 @@ class MasterPromptOrchestratorTests(unittest.TestCase):
             self.assertIsNotNone(resolved)
             assert resolved
             self.assertEqual(resolved.repo_name, "env_repo")
-            self.assertTrue((tmp_path / "out" / "env_repo" / "latest.txt").exists())
+            self.assertTrue((tmp_path / "out" / "env_repo" / PROMPT_FEED_FILENAME).exists())
+
+    @patch('automation.master_prompt_orchestrator._COST_TRACKER')
+    def test_refresh_all_feeds_respects_explicit_configs(self, mock_cost_tracker):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            docs_dir = tmp_path / "docs"
+            docs_dir.mkdir()
+            (docs_dir / "todo.md").write_text("- [ ] demo task", encoding="utf-8")
+
+            repo_config = RepoConfig(name="explicit", docs_dirs=[docs_dir])
+            orchestrator = MasterPromptOrchestrator(
+                repo_configs=[repo_config],
+                output_dir=tmp_path / "out",
+                client=FakeClient("1. Prompt (Grok): Do work"),
+                model="test-model",
+                max_docs=5,
+                max_chars=200,
+            )
+
+            with patch.object(orchestrator, "_discover_repo_configs") as discover:
+                results = orchestrator.refresh_all_feeds(dry_run=True, force_discovery=False)
+                discover.assert_not_called()
+
+            self.assertEqual(len(results), 1)
+            self.assertIsNotNone(results[0])
+            assert results[0]
+            self.assertEqual(results[0].repo_name, "explicit")
+
+    @patch('automation.master_prompt_orchestrator._COST_TRACKER')
+    def test_refresh_all_feeds_force_discovery(self, mock_cost_tracker):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            docs_dir = tmp_path / "docs"
+            docs_dir.mkdir()
+            (docs_dir / "todo.md").write_text("- [ ] demo task", encoding="utf-8")
+
+            repo_config = RepoConfig(name="explicit", docs_dirs=[docs_dir])
+            orchestrator = MasterPromptOrchestrator(
+                repo_configs=[repo_config],
+                output_dir=tmp_path / "out",
+                client=FakeClient("1. Prompt (Grok): Do work"),
+                model="test-model",
+                max_docs=5,
+                max_chars=200,
+            )
+
+            forced_configs = [RepoConfig(name="forced", docs_dirs=[docs_dir])]
+            with patch.object(orchestrator, "_discover_repo_configs", return_value=forced_configs) as discover:
+                results = orchestrator.refresh_all_feeds(dry_run=True, force_discovery=True)
+                discover.assert_called_once()
+
+            self.assertEqual(len(results), 1)
+            self.assertIsNotNone(results[0])
+            assert results[0]
+            self.assertEqual(results[0].repo_name, "forced")

@@ -155,16 +155,22 @@ def find_all_allow_buttons_in_window(
     """
     found_buttons: List[auto.Control] = []
     seen_controls: set[str] = set()
+    
+    # scan metrics
+    scanned_count = 0
+    skipped_ghosts = 0  # Matched name/type but had no bounds AND no invoke pattern
+    skipped_duplicates = 0
+    
+    # sample logs
     sample_clickable: List[str] = []  # names/types of clickable controls seen
     sample_named_controls: List[str] = []  # any control whose name hints at Allow/Keep/Try
-    scanned = 0
     
     def search_recursive(control: auto.Control, depth: int = 0) -> None:
         if depth > max_depth:
             return
         try:
-            nonlocal scanned
-            scanned += 1
+            nonlocal scanned_count, skipped_ghosts, skipped_duplicates
+            scanned_count += 1
             name = _get_control_name(control)
             lowered = name.lower() if name else ""
 
@@ -218,10 +224,37 @@ def find_all_allow_buttons_in_window(
                 if control.Exists(0.1):
                     clickable = _promote_to_clickable(control)
                     if clickable:
-                        identity = _control_identity(clickable)
-                        if identity not in seen_controls:
-                            seen_controls.add(identity)
-                            found_buttons.append(clickable)
+                        # 2026-01-18: Strict Filtering
+                        # Only accept this candidate if it is physically reachable (valid bounds)
+                        # OR programmatically actionable (InvokePattern).
+                        # This filters out "ghost" controls that cause teleport spam.
+                        
+                        has_bounds = False
+                        try:
+                            rect = clickable.BoundingRectangle
+                            w, h = rect.right - rect.left, rect.bottom - rect.top
+                            has_bounds = (w > 0 and h > 0)
+                        except Exception:
+                            has_bounds = False
+                            
+                        has_invoke = False
+                        try:
+                            if hasattr(clickable, "GetInvokePattern") and clickable.GetInvokePattern():
+                                has_invoke = True
+                            elif hasattr(clickable, "GetTogglePattern") and clickable.GetTogglePattern():
+                                has_invoke = True
+                        except Exception:
+                             pass
+                             
+                        if has_bounds or has_invoke:
+                            identity = _control_identity(clickable)
+                            if identity not in seen_controls:
+                                seen_controls.add(identity)
+                                found_buttons.append(clickable)
+                            else:
+                                skipped_duplicates += 1
+                        else:
+                            skipped_ghosts += 1
             
             for child in control.GetChildren():
                 search_recursive(child, depth + 1)
@@ -229,6 +262,19 @@ def find_all_allow_buttons_in_window(
             pass
     
     search_recursive(vs_win)
+
+    # 2026-01-18: Structured Logging
+    # Emit a single summary line per window scan for easier log parsing
+    try:
+        win_title = vs_win.Name or "Unknown"
+    except Exception:
+        win_title = "Unknown"
+        
+    # Only print debug info if we found something OR if debug is on
+    if found_buttons or scanned_count > 0 or DEBUG_BUTTON_SCAN:
+        # Use a compact log format
+        skip_info = f", skipped (ghosts={skipped_ghosts}, dups={skipped_duplicates})" if (skipped_ghosts + skipped_duplicates > 0) else ""
+        print(f"[Scan] Window '{win_title}': Found {len(found_buttons)} buttons from {scanned_count} scanned controls{skip_info}.")
 
     if not found_buttons and DEBUG_BUTTON_SCAN:
         def _shorten(items: List[str], limit: int = 8, max_len: int = 160) -> List[str]:
@@ -242,9 +288,6 @@ def find_all_allow_buttons_in_window(
                 out.append(f"… (+{len(items) - limit} more)")
             return out
 
-        print("[DEBUG] No action buttons matched.")
-        if scanned:
-            print(f"[DEBUG] Scanned controls: {scanned}")
         if sample_clickable:
             print("[DEBUG] Sample clickable controls:", _shorten(sample_clickable))
         if sample_named_controls:

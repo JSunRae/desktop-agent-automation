@@ -68,15 +68,106 @@ _window_approval_stats: defaultdict[str, dict[str, int]] = defaultdict(_window_s
 
 def _get_window_handle(control: auto.Control) -> int:
     """Return the native window handle for a VS Code window control."""
+
+    def _extract_handle(ctrl: Optional[auto.Control]) -> int:
+        if not ctrl:
+            return 0
+        try:
+            handle = getattr(ctrl, "NativeWindowHandle", 0)
+            hwnd = int(handle or 0)
+            return get_root_window(hwnd) if hwnd else 0
+        except Exception:
+            return 0
+
+    hwnd = _extract_handle(control)
+    if hwnd:
+        return hwnd
+
+    # Walk up the parent chain to find a window handle.
+    parent: Optional[auto.Control] = None
     try:
-        handle = getattr(control, "NativeWindowHandle", 0)
-        hwnd = int(handle or 0)
-        return get_root_window(hwnd) if hwnd else 0
+        parent = control.GetParentControl()
     except Exception:
-        return 0
+        parent = None
+
+    depth = 0
+    while parent and depth < 12:
+        hwnd = _extract_handle(parent)
+        if hwnd:
+            return hwnd
+        try:
+            parent = parent.GetParentControl()
+        except Exception:
+            parent = None
+        depth += 1
+
+    # Fallback: match by window title against top-level windows.
+    title = ""
+    try:
+        title = control.Name or ""
+    except Exception:
+        title = ""
+
+    if title:
+        try:
+            for root in auto.GetRootControl().GetChildren():
+                if not isinstance(root, (auto.WindowControl, auto.PaneControl)):
+                    continue
+                try:
+                    if (root.Name or "") == title:
+                        hwnd = _extract_handle(root)
+                        if hwnd:
+                            return hwnd
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+    return 0
 
 
-FOCUS_RETRY_DELAY = 0.08
+def _foreground_title_matches(title: str) -> bool:
+    if not title:
+        return False
+    try:
+        fg = get_foreground_window()
+        if not fg:
+            return False
+        ctrl = auto.ControlFromHandle(int(fg))
+        return (ctrl.Name or "") == title
+    except Exception:
+        return False
+
+
+def _maybe_switch_to_window_desktop(hwnd: int) -> bool:
+    if not hwnd:
+        return False
+    try:
+        from automation.desktop.window_cache import get_desktop_for_handle
+        from automation.desktop.switcher import needs_desktop_switch, switch_to_desktop
+    except Exception:
+        return False
+
+    try:
+        desktop = get_desktop_for_handle(hwnd)
+    except Exception:
+        desktop = None
+
+    if desktop is None:
+        return False
+
+    try:
+        if needs_desktop_switch(desktop):
+            switch_to_desktop(desktop)
+            time.sleep(0.5)
+            return True
+    except Exception:
+        return False
+
+    return False
+
+
+FOCUS_RETRY_DELAY = 0.5
 
 
 def ensure_window_focus(
@@ -87,8 +178,16 @@ def ensure_window_focus(
 ) -> bool:
     """Best-effort attempt to ensure the provided window has focus."""
     hwnd = _get_window_handle(vs_win)
-    if not hwnd:
-        return False
+    title = ""
+    try:
+        title = vs_win.Name or ""
+    except Exception:
+        title = ""
+
+    if hwnd:
+        _maybe_switch_to_window_desktop(hwnd)
+    elif title and _foreground_title_matches(title):
+        return True
 
     for attempt in range(1, retries + 1):
         try:
@@ -98,7 +197,9 @@ def ensure_window_focus(
 
         current = int(current or 0)
 
-        if get_root_window(current) == hwnd:
+        if hwnd and get_root_window(current) == hwnd:
+            return True
+        if title and _foreground_title_matches(title):
             return True
 
         try:
@@ -108,22 +209,52 @@ def ensure_window_focus(
             pass
 
         # Prefer a stronger focus path; fall back to plain SetForegroundWindow.
-        try:
-            force_foreground_window(hwnd)
-        except Exception:
-            set_foreground_window(hwnd)
-        time.sleep(FOCUS_RETRY_DELAY)
+        if hwnd:
+            try:
+                force_foreground_window(hwnd)
+            except Exception:
+                set_foreground_window(hwnd)
+        time.sleep(FOCUS_RETRY_DELAY * attempt)
 
         try:
-            if get_root_window(int(get_foreground_window() or 0)) == hwnd:
+            if hwnd and get_root_window(int(get_foreground_window() or 0)) == hwnd:
                 return True
         except Exception:
             pass
 
+        if title and _foreground_title_matches(title):
+            return True
+
+        if attempt == retries and hwnd:
+            if _maybe_switch_to_window_desktop(hwnd):
+                time.sleep(0.1)
+                try:
+                    vs_win.SetActive()  # type: ignore[attr-defined]
+                except Exception:
+                    pass
+                try:
+                    force_foreground_window(hwnd)
+                except Exception:
+                    set_foreground_window(hwnd)
+                time.sleep(FOCUS_RETRY_DELAY)
+                try:
+                    if get_root_window(int(get_foreground_window() or 0)) == hwnd:
+                        return True
+                except Exception:
+                    pass
+
     if description:
+        fg_hwnd = get_foreground_window() or 0
+        fg_title = ""
+        try:
+            fg_ctrl = auto.ControlFromHandle(int(fg_hwnd))
+            fg_title = fg_ctrl.Name or ""
+        except Exception:
+            pass
+            
         print(
-            f"  [WARN] Unable to focus '{description[:60]}' after {retries} attempt(s);"
-            " skipping sensitive UI automation."
+            f"  [WARN] Unable to focus '{description[:60]}' after {retries} attempt(s)."
+            f" Foreground: '{fg_title[:60]}' ({fg_hwnd}). Skipping sensitive UI automation."
         )
     return False
 
@@ -443,6 +574,30 @@ def click_button_instantly(btn: auto.Control) -> None:
     Args:
         btn: Button control to click
     """
+    # 2026-01-18: Invoke-First Strategy
+    # Attempt to use the InvokePattern (programmatic click) BEFORE moving the mouse.
+    # This prevents "teleport spam" (cursor jumping back and forth) when checking
+    # multiple candidates or when controls have invalid bounds (0x0).
+    try:
+        button_name_safe = btn.Name or "<unnamed>"
+    except Exception:
+        button_name_safe = "<unnamed>"
+        
+    # Get window title for logging/stats context
+    try:
+        raw_title = btn.GetTopLevelControl().Name
+        window_title_safe = raw_title if raw_title else "Unknown"
+    except Exception:
+        window_title_safe = "Unknown"
+
+    # Try Invoke/Toggle patterns first
+    if invoke_control(btn):
+        _record_method_attempt("invoke-first", True, button_name_safe, window_title_safe)
+        return
+
+    # If programmatic invoke fails, fall back to physical mouse click.
+    # This requires valid bounds and cursor movement.
+
     # Save current mouse position AND active window
     original_pos = get_cursor_pos()
     original_window = get_foreground_window()
@@ -697,6 +852,12 @@ def click_all_action_buttons(vs_win: auto.Control) -> tuple:
         log_verbose(f"  [DEBUG] No action buttons found in window: {win_title}")
     
     for btn in buttons:
+        from automation.core.hotkeys import check_hotkeys_polled, is_paused
+        check_hotkeys_polled()
+        if is_paused():
+            print(f"  [PAUSE] Aborting clicks in '{window_title}' – automation paused.")
+            break
+
         if is_try_again_cooldown_active():
             remaining = get_try_again_cooldown_remaining()
             print(

@@ -54,6 +54,8 @@
   EOF
   ```
 
+  Output includes last 60 minutes and total Allow clicks.
+
 - View recent Allow metrics:
 
   ```powershell

@@ -129,12 +129,12 @@ def format_rate_status(now: Optional[datetime] = None) -> str:
         now: Current time (defaults to now)
         
     Returns:
-        String like "45/70 allows in last 60min"
+        String like "45/70 allows in last 60min | total: 123"
     """
     now = now or datetime.now()
     prune_allow_events(now)
     current_count = len(_allow_events)
-    return f"{current_count}/{MAX_ALLOWS_PER_HOUR} allows in last 60min"
+    return f"{current_count}/{MAX_ALLOWS_PER_HOUR} allows in last 60min | total: {_allow_click_total}"
 
 
 def get_allow_event_count() -> int:
@@ -156,6 +156,31 @@ def get_total_allow_clicks() -> int:
 def has_recorded_allow() -> bool:
     """Check if at least one Allow has been clicked this session."""
     return _has_recorded_allow
+
+
+def get_event_count_since(since_time: datetime) -> int:
+    """
+    Count number of Allow events since the given timestamp.
+    
+    Args:
+        since_time: The timestamp to count from.
+    """
+    count = 0
+    # _allow_events is sorted by time (oldest first)
+    for ts, _ in reversed(_allow_events):
+        if ts < since_time:
+            break
+        count += 1
+    return count
+
+
+def get_hourly_rate() -> int:
+    """
+    Get the number of Allow events in the last 60 minutes.
+    Assumes ALLOW_EVENT_RETENTION_MINUTES >= 60.
+    """
+    prune_allow_events()
+    return len(_allow_events)
 
 
 # ============================================================================

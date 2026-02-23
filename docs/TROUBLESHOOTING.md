@@ -69,34 +69,33 @@ copy master.cmd %LOCALAPPDATA%\Microsoft\WindowsApps\
 ### 2. Configuration Failures
 
 **Symptoms:**
-- `automation/config.json` missing or empty
-- Hotkey capture fails
-- Coordinates not saving
+- Buttons are not being clicked
+- VS Code windows are skipped
+- Automation reports no eligible panels
 
 **Root Causes:**
-- Incomplete first-time setup
-- VS Code UI changes
-- Monitor resolution changes
-- Window positioning issues
+- VS Code window titles don't match detection rules
+- Copilot panel is not visible or focused
+- UI layout changed after updates
 
 **Diagnostic Steps:**
-1. Check config file exists: `ls -la automation/config.json`
-2. Verify VS Code is running with Copilot visible
-3. Test coordinate capture: `python -m automation.vs_code_copilot_automation --config`
+1. Verify VS Code is running with Copilot visible
+2. Check detection rules in `automation/config.py`
+3. Run the standard automation and watch console output: `python run_automation.py`
 
 **Solutions:**
 ```bash
-# Run configuration setup
-python -m automation.vs_code_copilot_automation --config
+# Run the standard automation loop
+python run_automation.py
 
-# Manual config creation (if setup fails)
-# Edit automation/config.json with correct coordinates
+# Optional: verify vision-based detection without clicking
+python -m automation.desktop_auto_allow_agent --dry-run --once
 ```
 
 **Prevention Tips:**
-- Run configuration after VS Code updates
-- Recapture coordinates after monitor changes
-- Backup config.json regularly
+- Revisit window title patterns after VS Code updates
+- Keep Copilot panel open on each desktop you want scanned
+- Avoid changing window titles during long runs
 
 ### 3. Environment Variable Issues
 

@@ -1,10 +1,8 @@
 # desktop-agent-automation
 
 ## Overview
-- Automates sending task prompts into the VS Code Copilot chat window.
-- Clicks the blue Continue / Run / Apply button so Copilot keeps working.
-- Uses global hotkeys so you can trigger automation anywhere on the desktop.
-- Stores the important screen coordinates, task list, and progress state locally.
+- Automates clicking "Allow", "Keep Edits", and "Try Again" buttons in VS Code Copilot.
+- Supports multi-desktop scanning and automatic window switching.
 - **NEW**: Desktop Auto-Allow Agent using OpenAI Computer Use API to automatically detect and click Copilot approval buttons.
 - **NEW**: Automatic master-agent prompts – when no "Allow" happens for an hour, the workspace docs from WSL are uploaded to OpenAI and a fresh pack of 10 coordinated prompts is generated in `tasks/generated_prompts/`.
 - **NEW**: Cost tracking for OpenAI API usage across all agents.
@@ -13,6 +11,30 @@
 - **NEW**: Repository detection from VS Code window titles for automatic docs discovery.
 - **NEW**: Feedback loop system that parses agent responses to improve future prompt generation and avoid problematic prompts.
 - **NEW**: Panel transcript quality dashboard with automated scoring, flagging, and weekly trend reports.
+- **NEW**: Library-friendly `MasterPromptOrchestrator` API with `refresh_all_feeds()`.
+
+### Master Prompt Orchestrator (Library Usage)
+
+You can run the prompt refresh workflow directly in Python without CLI arguments:
+
+```python
+from automation.master_prompt_orchestrator import MasterPromptOrchestrator
+
+orchestrator = MasterPromptOrchestrator()
+orchestrator.refresh_all_feeds()
+```
+
+To avoid re-discovery when you already know the repos, pass `repo_configs` and set `force_discovery=False`:
+
+```python
+from automation.master_prompt_orchestrator import MasterPromptOrchestrator, RepoConfig
+from pathlib import Path
+
+orchestrator = MasterPromptOrchestrator(
+    repo_configs=[RepoConfig(name="default", docs_dirs=[Path("docs")])]
+)
+orchestrator.refresh_all_feeds(force_discovery=False)
+```
 
 ## Panel Quality Dashboard & Reports
 
@@ -94,27 +116,37 @@ You can also mirror CI with the curated files:
 pip install -r requirements-dev.txt -c constraints-dev.txt
 ```
 
-## First-Time Configuration
-1. Run `python -m automation.vs_code_copilot_automation --config` from the repo root.
-2. Follow the prompts:
-	- hover over the Copilot input field, press **F9**.
-	- hover over the Copilot blue Continue / Run / Apply button, press **F9**.
-	- repeat the F9 capture for each of the eight custom buttons (button_1 … button_8).
-3. The coordinates are saved to `automation/config.json` for hotkeys and the periodic click loop to reuse.
+## Standard Automation (Modular)
 
-## Hotkeys
-- **Ctrl+Alt+N** → send the next task from the task file into Copilot.
-- **Ctrl+Alt+C** → click the captured blue button (Continue / Run / Apply).
-- **Ctrl+Alt+S** → print the current task index, next task, and stored coordinates.
-- **Esc** → quit the automation script and unregister hotkeys.
+The primary UI-based automation loop. It scans VS Code windows across all virtual desktops and automatically clicks "Allow", "Keep Edits", and "Try Again" buttons.
 
-## Usage Notes
-- Run the script with `python -m automation.vs_code_copilot_automation`. Use `--tasks <FILE>` to override the default `tasks/example_tasks.txt` list.
-- Use `--click-loop` to trigger the 8-button sequence every 60 seconds instead of registering hotkeys.
-- Adjust the frequency with `--interval <seconds>` (default 60).
-- `automation/state.json` is created automatically to remember which task is next.
-- Works best on Windows with a consistent layout so the saved coordinates remain valid.
-- Use this tool carefully; it sends inputs to another application and relies on the Copilot UI remaining in place.
+### Running the Automation
+```powershell
+python run_automation.py
+```
+
+### Autonomous Task Discovery (optional)
+Run the automation with background prompt auditing and Todo ingestion:
+
+```powershell
+python run_automation.py --autonomous
+```
+
+Configure the daemon cadence in `.env` or `automation/config.py`:
+- `TASK_DISCOVERY_INTERVAL_SECONDS` (default: 900)
+- `TASK_DISCOVERY_LOW_TASK_THRESHOLD` (default: 2)
+
+### Configuration
+Edit `automation/config.py` or set environment variables in `.env` to customize:
+- `DESKTOPS_TO_CHECK`: List of virtual desktop names to scan.
+- `MAX_ALLOWS_PER_HOUR`: Rate limiting threshold.
+- `COOLDOWN_MINUTES`: Wait time after hitting a rate limit.
+
+### Features
+- **Multi-Desktop Support**: Automatically switches between virtual desktops to find active VS Code windows.
+- **Rate Limit Management**: Tracks "Allow" clicks and "Try Again" buttons to avoid hitting Copilot's rate limits.
+- **Smart Window Detection**: Identifies VS Code windows by title and focuses them before clicking.
+- **Safety Guard**: Detects manual mouse movement and pauses automation to avoid fighting the user.
 
 ---
 
@@ -288,7 +320,7 @@ Environment knobs (all optional):
 - `MASTER_AGENT_MAX_DOCS`, `MASTER_AGENT_MAX_CHARS` – cap volume sent to OpenAI.
 - `MASTER_AGENT_PROMPT_DIR` – change the output folder if you want to feed another automation loop.
 
-Use the prompts however you like: open 10 new Copilot chats manually, or point `automation.vs_code_copilot_automation` at `tasks/generated_prompts/latest.txt` to drip-feed them automatically. Each prompt already reminds the sub-agent to update the CLI, Todos, README, Architecture, and the source doc it came from so you keep state in sync.
+Use the prompts however you like: open 10 new Copilot chats manually, or use the automated prompt seeding tools. Each prompt already reminds the sub-agent to update the CLI, Todos, README, Architecture, and the source doc it came from so you keep state in sync.
 
 ---
 

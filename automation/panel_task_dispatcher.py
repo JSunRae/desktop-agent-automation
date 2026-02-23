@@ -93,6 +93,32 @@ class TaskPanelDispatcher:
         """Record which panels are currently idle for debugging/telemetry."""
         self._idle_panel_keys = list(panel_keys)
 
+    def get_low_task_repos(self, repo_names: Optional[List[str]] = None, threshold: int = 2) -> List[str]:
+        """Identify repositories that have fewer than 'threshold' tasks remaining.
+        
+        If repo_names is provided, it will ensure those repos are checked (loading them if necessary).
+        Otherwise, it only checks repos already in the cache or known to be missing.
+        """
+        low_repos = []
+        
+        if repo_names:
+            for name in repo_names:
+                cache = self._get_feed_cache(name)
+                if len(cache.entries) < threshold:
+                    low_repos.append(name)
+            return low_repos
+
+        # Fallback to checking what we already know
+        for repo_key, cache in self._feed_cache.items():
+            if len(cache.entries) < threshold:
+                low_repos.append(repo_key)
+
+        for repo_key in self._missing_repos:
+            if repo_key not in low_repos:
+                low_repos.append(repo_key)
+
+        return low_repos
+
     def reserve_task_for_panel(
         self,
         *,

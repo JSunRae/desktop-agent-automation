@@ -27,6 +27,7 @@ from automation.ui.button_clicker import (
     get_try_again_cooldown_remaining,
     get_try_again_count_in_window,
 )
+from automation.ui.toast_watcher import try_consume_vscode_toast
 from automation.ui.scroll import (
     scroll_chat_to_bottom,
     scroll_control_into_view,
@@ -56,6 +57,8 @@ __all__ = [
     "is_try_again_cooldown_active",
     "get_try_again_cooldown_remaining",
     "get_try_again_count_in_window",
+    # Toasts
+    "try_consume_vscode_toast",
     # Scroll
     "scroll_chat_to_bottom",
     "scroll_control_into_view",

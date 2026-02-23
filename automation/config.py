@@ -81,7 +81,7 @@ DESKTOP_RESCAN_DELAY_SECONDS = 0.5
 
 # Max Allow clicks per 60-minute rolling window
 # Safe: 50-60, Risky: 100+
-MAX_ALLOWS_PER_HOUR = 70
+MAX_ALLOWS_PER_HOUR = 80
 
 # Extra seconds to wait after oldest event expires (safety margin)
 RATE_LIMIT_BUFFER_SECONDS = 5
@@ -218,9 +218,13 @@ ENABLE_SEND_TO_INACTIVE_PANELS = os.environ.get("ENABLE_SEND_TO_INACTIVE_PANELS"
 # WARNING: When enabled, may type garbage characters into chat panels
 ENABLE_CLIPBOARD_TEXT_READING = os.environ.get("ENABLE_CLIPBOARD_TEXT_READING", "false").lower() == "true"
 
+# Feature toggle: Use VS Code toast notifications as a fast path to focus the right panel
+# and attempt approval clicks before running a full desktop scan.
+ENABLE_VSCODE_TOAST_SHORTCUT = os.environ.get("ENABLE_VSCODE_TOAST_SHORTCUT", "true").lower() == "true"
+
 # Feature toggle: Drive finished panels by sending follow-ups, keeping edits, and seeding new prompts
-# DISABLED BY DEFAULT for safety. Enable only after validating in a controlled run.
-ENABLE_FINISHED_PANEL_FOLLOWUPS = os.environ.get("ENABLE_FINISHED_PANEL_FOLLOWUPS", "false").lower() == "true"
+# ENABLED BY DEFAULT to support automated seeding logic.
+ENABLE_FINISHED_PANEL_FOLLOWUPS = os.environ.get("ENABLE_FINISHED_PANEL_FOLLOWUPS", "true").lower() == "true"
 
 # Feature toggle: Handle "OK" confirmation dialogs after clicking Keep Edits
 # DISABLED BY DEFAULT - Enable only if your VS Code version shows these dialogs
@@ -229,15 +233,15 @@ ENABLE_KEEP_EDITS_CONFIRMATION = os.environ.get("ENABLE_KEEP_EDITS_CONFIRMATION"
 # Feature toggle: Skip clicking "Keep" and "Keep Edits" buttons
 # ENABLED BY DEFAULT - "Keep" buttons are lower priority than "Allow" and "Try Again"
 # Set to "false" to re-enable Keep button clicking if needed
-IGNORE_KEEP_BUTTONS = os.environ.get("IGNORE_KEEP_BUTTONS", "true").lower() == "true"
+IGNORE_KEEP_BUTTONS = os.environ.get("IGNORE_KEEP_BUTTONS", "true").lower() == "false"
 
 # Feature toggle: Retry opening new chat if it fails
-# DISABLED BY DEFAULT - Enable to improve robustness against UI lag
-ENABLE_NEW_CHAT_RETRY = os.environ.get("ENABLE_NEW_CHAT_RETRY", "false").lower() == "true"
+# ENABLED BY DEFAULT - Enable to improve robustness against UI lag
+ENABLE_NEW_CHAT_RETRY = os.environ.get("ENABLE_NEW_CHAT_RETRY", "true").lower() == "true"
 
 # Feature toggle: Catch and log errors during finished panel processing instead of crashing
-# DISABLED BY DEFAULT - Enable for long-running stability
-ENABLE_ROBUST_PANEL_PROCESSING = os.environ.get("ENABLE_ROBUST_PANEL_PROCESSING", "false").lower() == "true"
+# ENABLED BY DEFAULT - Enable for long-running stability
+ENABLE_ROBUST_PANEL_PROCESSING = os.environ.get("ENABLE_ROBUST_PANEL_PROCESSING", "true").lower() == "true"
 
 # Feature toggle: Periodically run panel_state.json health checks while scanning
 ENABLE_PANEL_HEALTH_CHECK_SCHEDULING = os.environ.get("ENABLE_PANEL_HEALTH_CHECK_SCHEDULING", "false").lower() == "true"
@@ -517,6 +521,24 @@ CROSS_REPO_TODO_REPO_OVERRIDES: Dict[str, Path] = _parse_repo_root_overrides(
     os.environ.get("CROSS_REPO_TODO_REPO_OVERRIDES", "")
 )
 
+
+# ============================================================================
+# TASK DISCOVERY DAEMON CONFIGURATION
+# ============================================================================
+
+# How often to audit for low task feeds (seconds).
+TASK_DISCOVERY_INTERVAL_SECONDS = int(
+    os.environ.get("TASK_DISCOVERY_INTERVAL_SECONDS", "900")
+)
+
+# Minimum remaining tasks before triggering a new audit.
+TASK_DISCOVERY_LOW_TASK_THRESHOLD = int(
+    os.environ.get("TASK_DISCOVERY_LOW_TASK_THRESHOLD", "2")
+)
+
+# Autostart task discovery daemon even without --autonomous.
+TASK_DISCOVERY_AUTOSTART = os.environ.get("TASK_DISCOVERY_AUTOSTART", "true").lower() == "true"
+
 # Model picker labels as seen in the UI
 MODEL_PICKER_LABELS = {
     "grok": "Grok",
@@ -560,7 +582,7 @@ CURSOR_DRIFT_STABILITY_PX = float(os.environ.get("CURSOR_DRIFT_STABILITY_PX", "5
 CURSOR_GUARD_LOG = os.environ.get("CURSOR_GUARD_LOG", "true").lower() == "true"
 
 # Seconds to pause after significant mouse movement
-MOUSE_PAUSE_SECONDS = int(os.environ.get("MOUSE_PAUSE_SECONDS", "60"))
+MOUSE_PAUSE_SECONDS = int(os.environ.get("MOUSE_PAUSE_SECONDS", "20"))
 
 # Speak pause/resume events aloud
 SPEAK_PAUSE_EVENTS = True
@@ -632,7 +654,7 @@ LOG_VERBOSITY = os.environ.get("LOG_VERBOSITY", "normal").lower()
 # ============================================================================
 
 ENABLE_MASTER_AGENT = True
-NO_ALLOW_TRIGGER_MINUTES = int(os.environ.get("NO_ALLOW_TRIGGER_MINUTES", "60"))
+NO_ALLOW_TRIGGER_MINUTES = int(os.environ.get("NO_ALLOW_TRIGGER_MINUTES", "20"))
 PROMPT_GENERATION_COOLDOWN_MINUTES = int(os.environ.get("PROMPT_GENERATION_COOLDOWN_MINUTES", "90"))
 MASTER_AGENT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-4o-mini")
 MASTER_AGENT_MAX_DOCS = int(os.environ.get("MASTER_AGENT_MAX_DOCS", "18"))
@@ -642,6 +664,14 @@ MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
 # ============================================================================
 # PATH CONFIGURATION
 # ============================================================================
+
+# ============================================================================
+# MASTER AGENT CONFIGURATION
+# ============================================================================
+
+MASTER_AGENT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-4o-mini")
+MASTER_AGENT_MAX_DOCS = int(os.environ.get("MASTER_AGENT_MAX_DOCS", "18"))
+MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
 
 WSL_DOCS_ROOT = Path(
     os.environ.get(

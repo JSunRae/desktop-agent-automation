@@ -10,13 +10,16 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
-from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Sequence, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from automation.agent_selection_policy import AdaptiveAgentSelectionPolicy
 from automation.config import (
     AGENT_SELECTION_MODE,
+    COORDINATION_GUARD_BLOCK_OVERLAPS,
+    COORDINATION_GUARD_ENABLED,
     CROSS_REPO_TODO_ENABLED,
     MASTER_AGENT_REPO_CONFIGS,
+    NORTH_STAR_ENABLED,
 )
 from automation.cost_tracker import get_cost_tracker
 from automation.cross_repo_todo_ingestion import (
@@ -25,9 +28,21 @@ from automation.cross_repo_todo_ingestion import (
     TodoItem,
     get_cross_repo_todo_service,
 )
-from automation.feedback_analyzer import FeedbackAnalyzer, FeedbackInsights, get_feedback_analyzer
+from automation.feedback_analyzer import (
+    FeedbackAnalyzer,
+    FeedbackInsights,
+    get_feedback_analyzer,
+)
 from automation.prompt_resolver import PROMPT_FEED_FILENAME
 from automation.title_parsing import extract_repo_name_from_vscode_window_title
+
+# North Star coordination (optional — degrades gracefully when repos are unreachable)
+try:
+    from automation.coordination_guard import CoordinationGuard, get_coordination_guard
+    from automation.north_star import NorthStarContext, get_north_star
+    _NORTH_STAR_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    _NORTH_STAR_AVAILABLE = False
 
 OpenAIClient: Any = None
 try:
@@ -851,6 +866,16 @@ class MasterPromptOrchestrator:
         selection_mode = agent_selection_mode or AGENT_SELECTION_MODE
         self.agent_selection_policy = AdaptiveAgentSelectionPolicy(mode=selection_mode)
 
+        # North Star coordination guard
+        self._coordination_guard: Optional["CoordinationGuard"] = None
+        if NORTH_STAR_ENABLED and COORDINATION_GUARD_ENABLED and _NORTH_STAR_AVAILABLE:
+            try:
+                self._coordination_guard = CoordinationGuard(
+                    overlap_block_on_in_progress=COORDINATION_GUARD_BLOCK_OVERLAPS,
+                )
+            except Exception as exc:  # pragma: no cover
+                self._log(f"CoordinationGuard init failed (continuing without it): {exc}")
+
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def _discover_repo_configs(self) -> List[RepoConfig]:
@@ -1119,6 +1144,33 @@ class MasterPromptOrchestrator:
         
         # Annotate with agent selection
         final_prompts = self.agent_selection_policy.annotate_prompts(final_prompts)
+
+        # Apply coordination guard: log overlap/drift warnings per prompt, and
+        # optionally block prompts that would duplicate in-flight cross-repo work.
+        if self._coordination_guard is not None:
+            guarded_prompts: List[str] = []
+            for prompt in final_prompts:
+                try:
+                    decision = self._coordination_guard.evaluate(
+                        prompt, target_repo=repo_config.name
+                    )
+                    if decision.should_block:
+                        self._log(
+                            f"[COORDINATION GUARD] Blocked prompt for '{repo_config.name}': "
+                            f"{decision.block_reason}"
+                        )
+                        continue  # drop this prompt
+                    if decision.cautions:
+                        for c in decision.cautions:
+                            self._log(f"[COORDINATION GUARD] Caution ({repo_config.name}): {c}")
+                    # Prepend the North Star context block to the prompt
+                    if decision.context_prefix:
+                        prompt = decision.context_prefix + "\n\n---\n\n" + prompt
+                    guarded_prompts.append(prompt)
+                except Exception as exc:  # pragma: no cover
+                    self._log(f"[COORDINATION GUARD] Error evaluating prompt: {exc}")
+                    guarded_prompts.append(prompt)
+            final_prompts = guarded_prompts
         
         # Write prompt file with metadata
         output_path, metadata_file = self._write_prompt_file_with_metadata(
@@ -1344,6 +1396,22 @@ class MasterPromptOrchestrator:
     ) -> str:
         """Build system prompt enhanced with feedback insights and repo analysis."""
         base_prompt = SYSTEM_PROMPT
+
+        # Prepend North Star context so the LLM understands the top-level goal and
+        # in-flight work across all repos before it generates any task prompts.
+        north_star_section = ""
+        if NORTH_STAR_ENABLED and _NORTH_STAR_AVAILABLE:
+            try:
+                ns = get_north_star()
+                north_star_section = (
+                    "\n\n## COORDINATION CONTEXT — READ BEFORE ASSIGNING TASKS\n\n"
+                    + ns.prompt_header()
+                    + "\n"
+                )
+            except Exception as exc:  # pragma: no cover
+                self._log(f"North Star context unavailable: {exc}")
+
+        base_prompt = north_star_section + base_prompt
         
         # Add feedback insights
         feedback_section = ""

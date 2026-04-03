@@ -11,110 +11,99 @@ This module contains the primary run loop that:
 
 from __future__ import annotations
 
-import math
+import subprocess
 import sys
 import time
-from datetime import datetime, timedelta
-from typing import List, Optional, Union, Dict
+from datetime import datetime
 from enum import IntEnum
+from typing import Dict, List, Optional, Union
 
 import uiautomation as auto
 
 from automation.config import (
-    # Timing
-    MIN_SCAN_INTERVAL_SECONDS,
-    DESKTOP_RESCAN_DELAY_SECONDS,
-    MAX_DESKTOP_RESCAN_PASSES,
-    # Desktop
-    PRIORITY_DESKTOP,
+    AUTO_PAUSE_ON_KEYBOARD_INPUT,
+    AUTO_PAUSE_ON_TYPING,
     DESKTOP_RECHECK_AFTER_FAILURES,
-    # Rate limits
-    MAX_ALLOWS_PER_HOUR,
+    DESKTOP_RESCAN_DELAY_SECONDS,
     # Alerts
     ENABLE_NO_CLICK_ALERT,
-    NO_CLICK_ALERT_MINUTES,
-    # Features
-    USE_CACHED_HANDLES,
-    AUTO_PAUSE_ON_TYPING,
-    AUTO_PAUSE_ON_MOUSE_MOVE,
-    AUTO_PAUSE_ON_KEYBOARD_INPUT,
-    MOUSE_MOVEMENT_THRESHOLD,
-    MOUSE_PAUSE_SECONDS,
-    AUTO_PAUSE_ON_CURSOR_DRIFT,
-    CURSOR_DRIFT_THRESHOLD_PX,
-    CURSOR_DRIFT_STABILITY_PX,
-    SPEAK_PAUSE_EVENTS,
-    # Keys
-    PAUSE_HOTKEY,
     # Health checks
     ENABLE_PANEL_HEALTH_CHECK_SCHEDULING,
-    PANEL_HEALTH_CHECK_INTERVAL_MINUTES,
+    ENABLE_PANEL_INSPECT_SCHEDULING,
     # Toast shortcut
     ENABLE_VSCODE_TOAST_SHORTCUT,
+    # Rate limits
+    MAX_ALLOWS_PER_HOUR,
+    MAX_DESKTOP_RESCAN_PASSES,
+    # Timing
+    MIN_SCAN_INTERVAL_SECONDS,
+    NO_CLICK_ALERT_MINUTES,
+    PANEL_HEALTH_CHECK_INTERVAL_MINUTES,
+    PANEL_INSPECT_INTERVAL_MINUTES,
+    PANEL_INSPECT_SCHEDULE_SUITE,
+    PANEL_INSPECT_TARGET_REPO,
+    PANEL_INSPECT_TIMEOUT_SECONDS,
+    # Keys
+    PAUSE_HOTKEY,
+    # Desktop
+    PRIORITY_DESKTOP,
+    SPEAK_PAUSE_EVENTS,
+    # Features
+    USE_CACHED_HANDLES,
 )
 from automation.core.audio import speak
-from automation.core.logging import log_normal, log_verbose
 from automation.core.hotkeys import (
     check_hotkeys_polled,
     check_mouse_interrupts,
-    is_paused,
-    is_manually_paused,
-    set_paused,
-    is_auto_paused,
-    set_auto_paused,
     extra_wait_until,
-    set_extra_wait_until,
+    is_auto_paused,
+    is_keyboard_activity_detected,
+    is_paused,
+    request_manual_pause,
+    set_auto_paused,
 )
-from automation.core.hotkeys import request_manual_pause
-from automation.core.hotkeys import is_keyboard_activity_detected
+from automation.core.logging import log_normal, log_verbose
 from automation.core.session import (
     increment_allow_clicks,
     increment_keep_edits_clicks,
 )
+from automation.cost_tracker import get_cost_tracker
 from automation.desktop import (
-    switch_to_desktop,
-    needs_desktop_switch,
     get_desktops_to_check,
+    needs_desktop_switch,
+    switch_to_desktop,
+)
+from automation.desktop.reliability import (
+    get_cycles_since_check,
+    get_failure_count,
+    increment_desktop_cycles,
+    record_desktop_result,
+    should_skip_desktop,
 )
 from automation.desktop.window_cache import (
     get_cached_vscode_windows,
-    should_refresh_cache,
-    refresh_window_cache,
     get_desktop_for_handle,
-)
-from automation.desktop.reliability import (
-    should_skip_desktop,
-    record_desktop_result,
-    increment_desktop_cycles,
-    get_failure_count,
-    get_cycles_since_check,
-)
-from automation.ui import (
-    find_all_vscode_windows,
-    sort_windows_by_priority,
-    partition_windows_by_priority,
-    click_all_action_buttons,
-    is_try_again_cooldown_active,
-    get_try_again_cooldown_remaining,
-    get_foreground_window,
-    try_consume_vscode_toast,
-)
-from automation.ui.cursor import (
-    get_cursor_pos,
-    get_expected_cursor_pos,
-    get_last_automation_cursor_set_at,
-    sync_expected_cursor_to_current,
+    refresh_window_cache,
+    should_refresh_cache,
 )
 from automation.panel_tracker import get_tracker, process_finished_panels_with_prompts
-from automation.rate_monitor import RateMonitor  # NEW
 from automation.rate_limit import (
     format_rate_status,
-    load_allow_events,
-    is_in_cooldown,
     get_cooldown_remaining,
+    is_in_cooldown,
+    load_allow_events,
 )
-from automation.cost_tracker import get_cost_tracker
-
+from automation.rate_monitor import RateMonitor  # NEW
+from automation.ui import (
+    click_all_action_buttons,
+    find_all_vscode_windows,
+    get_foreground_window,
+    get_try_again_cooldown_remaining,
+    is_try_again_cooldown_active,
+    partition_windows_by_priority,
+    sort_windows_by_priority,
+    try_consume_vscode_toast,
+)
 
 # ============================================================================
 # QUICK PANEL STATE DETECTION
@@ -326,6 +315,7 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
     last_cost_report = datetime.now()
     cost_report_interval_minutes = 15
     last_panel_health_check = datetime.now()
+    last_panel_inspect_check = datetime.now()
     
     print(f"\n[{datetime.now()}] Starting automation loop")
     print(f"  Desktops to check: {desktops_list}")
@@ -394,6 +384,42 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
         except Exception as exc:
             log_verbose(f"Toast shortcut click failed: {exc}")
             return clicked
+
+    def _run_scheduled_panel_inspect() -> None:
+        suite = (PANEL_INSPECT_SCHEDULE_SUITE or "scan").strip().lower()
+        if suite not in {"scan", "overlap", "response", "refresh", "all"}:
+            suite = "scan"
+
+        command = [sys.executable, "scripts/panel_inspect.py", "--suite", suite]
+        target_repo = (PANEL_INSPECT_TARGET_REPO or "").strip()
+        if target_repo:
+            command.extend(["--target-repo", target_repo])
+
+        target_label = target_repo or "<all repos>"
+        print(f"[{datetime.now()}] Running scheduled panel inspect (suite={suite}, target={target_label})")
+        try:
+            completed = subprocess.run(
+                command,
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=max(5, PANEL_INSPECT_TIMEOUT_SECONDS),
+            )
+            if completed.returncode != 0:
+                stderr_preview = (completed.stderr or "").strip().splitlines()[-1:] or ["no stderr"]
+                print(
+                    f"[{datetime.now()}] Scheduled panel inspect failed "
+                    f"(exit={completed.returncode}): {stderr_preview[0]}"
+                )
+            else:
+                print(f"[{datetime.now()}] Scheduled panel inspect completed")
+        except subprocess.TimeoutExpired:
+            print(
+                f"[{datetime.now()}] Scheduled panel inspect timed out after "
+                f"{max(5, PANEL_INSPECT_TIMEOUT_SECONDS)}s"
+            )
+        except Exception as exc:
+            print(f"[{datetime.now()}] Scheduled panel inspect error: {exc}")
     
     while True:
         now = datetime.now()
@@ -1068,6 +1094,15 @@ def run_main_loop(desktops_list: Optional[List[Union[int, str]]] = None) -> None
 
                     _health.run_health_check(auto_repair=True, quiet=True)
                     last_panel_health_check = now
+            except Exception:
+                pass
+
+        # Periodic panel inspection scan (flag-gated, dry-run by default)
+        if ENABLE_PANEL_INSPECT_SCHEDULING:
+            try:
+                if (now - last_panel_inspect_check).total_seconds() >= PANEL_INSPECT_INTERVAL_MINUTES * 60:
+                    _run_scheduled_panel_inspect()
+                    last_panel_inspect_check = now
             except Exception:
                 pass
         

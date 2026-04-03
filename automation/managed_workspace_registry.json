@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "workspace_id": "trading-system",
+  "description": "Managed multi-repo trading workspace for orchestrated repo-local agent execution",
+  "global_constraints": {
+    "max_active_workers_total": 2,
+    "max_active_workers_per_repo": 1,
+    "loop_retry_limit": 3,
+    "respect_repo_boundaries": true,
+    "prefer_structured_sources": true
+  },
+  "repos": [
+    {
+      "repo_id": "contracts",
+      "root_path": "${TRADING_SYSTEM_ROOT_WIN}\\contracts",
+      "purpose": "Source of truth for schemas, rules, fixtures, and compatibility contracts",
+      "instruction_files": [
+        "AGENTS.md",
+        "README.md",
+        ".github/copilot-instructions.md"
+      ],
+      "task_sources": [
+        "Todo.md",
+        "todo.md",
+        "docs/Todo.md",
+        "docs/TODO.md",
+        "tasks/**/*.md"
+      ],
+      "handover_locations": ["handover/**/*.md", "docs/handover/**/*.md"],
+      "report_locations": [
+        "agent_reports/**/*.md",
+        "handover/**/*.md",
+        "state/agent_reports/**/*.json"
+      ],
+      "validation_commands": ["python -m pytest -q"],
+      "safety_rules": {
+        "protected_process_patterns": [
+          "campaign",
+          "training",
+          "backfill",
+          "live"
+        ],
+        "protected_signal_files": [
+          "state/process_registry.json",
+          "state/running_jobs.json",
+          "logs/**/*.lock"
+        ],
+        "allow_paths": ["contracts/**"],
+        "requires_explicit_approval_for": [
+          "production deployment",
+          "destructive migrations"
+        ]
+      },
+      "dependencies": {
+        "blocked_by": [],
+        "follow_up_targets": ["TF", "trading"],
+        "source_of_truth_for": ["schemas", "promotion_rules", "fixtures"]
+      }
+    },
+    {
+      "repo_id": "TF",
+      "root_path": "${TRADING_SYSTEM_ROOT_WIN}\\TF",
+      "purpose": "Model training, feature engineering, experiments, and model export",
+      "instruction_files": [
+        "AGENTS.md",
+        "README.md",
+        ".github/copilot-instructions.md"
+      ],
+      "task_sources": [
+        "Todo.md",
+        "todo.md",
+        "docs/Todo.md",
+        "tasks/**/*.md",
+        "open_tasks/**/*.md"
+      ],
+      "handover_locations": ["handover/**/*.md", "docs/handover/**/*.md"],
+      "report_locations": [
+        "agent_reports/**/*.md",
+        "handover/**/*.md",
+        "state/agent_reports/**/*.json"
+      ],
+      "validation_commands": ["python -m pytest -q"],
+      "safety_rules": {
+        "protected_process_patterns": [
+          "campaign",
+          "training",
+          "sweep",
+          "long-running"
+        ],
+        "protected_signal_files": [
+          "state/process_registry.json",
+          "state/running_jobs.json",
+          "logs/**/*.lock"
+        ],
+        "allow_paths": ["TF/**"],
+        "requires_explicit_approval_for": [
+          "interrupting active training",
+          "deleting experiment artifacts"
+        ]
+      },
+      "dependencies": {
+        "blocked_by": ["contracts"],
+        "follow_up_targets": ["trading"],
+        "source_of_truth_for": ["model_exports", "feature_logic"]
+      }
+    },
+    {
+      "repo_id": "trading",
+      "root_path": "${TRADING_SYSTEM_ROOT_WIN}\\Trading",
+      "purpose": "Execution control plane, data acquisition, gateway lifecycle, and paper-trading orchestration",
+      "instruction_files": [
+        "AGENTS.md",
+        "README.md",
+        ".github/copilot-instructions.md"
+      ],
+      "task_sources": [
+        "Todo.md",
+        "todo.md",
+        "docs/Todo.md",
+        "tasks/**/*.md",
+        "open_tasks/**/*.md"
+      ],
+      "handover_locations": ["handover/**/*.md", "docs/handover/**/*.md"],
+      "report_locations": [
+        "agent_reports/**/*.md",
+        "handover/**/*.md",
+        "state/agent_reports/**/*.json"
+      ],
+      "validation_commands": ["python -m pytest -q"],
+      "safety_rules": {
+        "protected_process_patterns": [
+          "campaign",
+          "paper trading",
+          "gateway",
+          "live"
+        ],
+        "protected_signal_files": [
+          "state/process_registry.json",
+          "state/running_jobs.json",
+          "logs/**/*.lock"
+        ],
+        "allow_paths": ["Trading/**"],
+        "requires_explicit_approval_for": [
+          "live trading configuration changes",
+          "stopping gateway processes"
+        ]
+      },
+      "dependencies": {
+        "blocked_by": ["contracts", "TF"],
+        "follow_up_targets": [],
+        "source_of_truth_for": ["runtime_execution", "gateway_orchestration"]
+      }
+    }
+  ]
+}

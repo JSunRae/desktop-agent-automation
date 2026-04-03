@@ -1,6 +1,7 @@
 # desktop-agent-automation
 
 ## Overview
+
 - Automates clicking "Allow", "Keep Edits", and "Try Again" buttons in VS Code Copilot.
 - Supports multi-desktop scanning and automatic window switching.
 - **NEW**: Desktop Auto-Allow Agent using OpenAI Computer Use API to automatically detect and click Copilot approval buttons.
@@ -60,6 +61,7 @@ python scripts/panel_quality_dashboard.py --json --weekly-report
 Weekly reports are written to `automation/quality_reports/quality_report_YYYY_MM_DD.json` and include status counts, average quality scores, quality alerts, and actionable recommendations. The dashboard pulls from the same data to surface panels that require human review so you can intervene before quality regresses.
 
 ## Quick Start (Launcher)
+
 - **Launcher:** `master`
 - **Fallback:** `./scripts/ml_master.sh`
 
@@ -84,20 +86,56 @@ master --dry-run --run align-panels
 
 # Get JSON metadata for external tools
 master --describe
+
+# Capture currently open VS Code repos per desktop
+master --run capture-vscode-session
+
+# Restore all repos from latest snapshot
+master --run restore-vscode-session
+
+# Startup picker mode: choose repos from historical captures
+master --run restore-vscode-session -- --startup
+
+# Install startup runner (runs restore picker automatically on login)
+master --run install-vscode-restore-startup
 ```
 
 Available workflows include:
+
 - **run-automation**: Main hotkey + panel automation orchestrator
 - **desktop-auto-allow**: Computer-Use API agent for clicking approval buttons
 - **vs-code-automation**: Primary VS Code chat automation with hotkeys
 - **master-prompt-orchestrator**: Idle supervisor for generating prompt batches
 - **align-panels**: Panel alignment utility
+- **capture-vscode-session**: Save open VS Code repos by desktop
+- **restore-vscode-session**: Reopen captured repos on their desktops
+- **install-vscode-restore-startup**: Add login startup restore prompt
 - **prompt-tester**: Validation tool for new prompt packs
 - And various test suites for different components
+
+### Resume Workspace After Reboot
+
+Use this quick flow to restart exactly where you left off:
+
+1. Before shutdown, run:
+   ```powershell
+   master --run capture-vscode-session
+   ```
+2. After reboot, run:
+   ```powershell
+   master --run restore-vscode-session
+   ```
+   This reopens repos from the latest snapshot on their captured desktops.
+3. Optional one-time setup for automatic startup restore prompt:
+   ```powershell
+   master --run install-vscode-restore-startup
+   ```
+   On login, it runs startup mode and asks which historically opened repos to reopen.
 
 ---
 
 ## Installation
+
 ```powershell
 pip install -r requirements.txt
 ```
@@ -121,11 +159,13 @@ pip install -r requirements-dev.txt -c constraints-dev.txt
 The primary UI-based automation loop. It scans VS Code windows across all virtual desktops and automatically clicks "Allow", "Keep Edits", and "Try Again" buttons.
 
 ### Running the Automation
+
 ```powershell
 python run_automation.py
 ```
 
 ### Autonomous Task Discovery (optional)
+
 Run the automation with background prompt auditing and Todo ingestion:
 
 ```powershell
@@ -133,16 +173,40 @@ python run_automation.py --autonomous
 ```
 
 Configure the daemon cadence in `.env` or `automation/config.py`:
+
 - `TASK_DISCOVERY_INTERVAL_SECONDS` (default: 900)
 - `TASK_DISCOVERY_LOW_TASK_THRESHOLD` (default: 2)
 
+### Orchestration V1 Foundation
+
+Run one controlled orchestration cycle that is file-first and auditable:
+
+```powershell
+python scripts/orchestration_v1.py --json
+```
+
+What it does in V1:
+
+- Loads managed repo registry from `automation/managed_workspace_registry.json`.
+- Collects repo-local instructions/tasks/handovers/reports from configured sources.
+- Normalizes findings into a common work-item schema.
+- Applies safety/concurrency constraints (max workers, retry loop guard, protected signal checks).
+- Dispatches one scoped task by writing a prompt + dispatch envelope to `state/orchestration/dispatch_queue/<repo>/`.
+- Polls for a structured worker completion report in `state/orchestration/worker_reports/`.
+- Writes append-only ledger entries to `state/orchestration/global_ledger.jsonl`.
+
+This is a scaffolding pass: it establishes deterministic interfaces and logs first, then can be wired to direct VS Code panel send/read in subsequent iterations.
+
 ### Configuration
+
 Edit `automation/config.py` or set environment variables in `.env` to customize:
+
 - `DESKTOPS_TO_CHECK`: List of virtual desktop names to scan.
 - `MAX_ALLOWS_PER_HOUR`: Rate limiting threshold.
 - `COOLDOWN_MINUTES`: Wait time after hitting a rate limit.
 
 ### Features
+
 - **Multi-Desktop Support**: Automatically switches between virtual desktops to find active VS Code windows.
 - **Rate Limit Management**: Tracks "Allow" clicks and "Try Again" buttons to avoid hitting Copilot's rate limits.
 - **Smart Window Detection**: Identifies VS Code windows by title and focuses them before clicking.
@@ -153,11 +217,13 @@ Edit `automation/config.py` or set environment variables in `.env` to customize:
 ## Panel Alignment Utility
 
 ### Overview
+
 Windows often moves VS Code windows around due to DPI scaling issues (VS Code is not DPI-aware per monitor like native WinUI apps). This causes your carefully arranged panels to clump together in the middle of your screens. The panel alignment script helps fix this automatically.
 
 ### Quick Start
 
 **First time - Configure your layout:**
+
 ```powershell
 # Arrange your windows exactly how you want them, then:
 python scripts/align_panels.py --configure
@@ -167,6 +233,7 @@ python scripts/align_panels.py --configure --desktop TF
 ```
 
 **Realign panels when Windows moves them:**
+
 ```powershell
 # Realign on current desktop
 python scripts/align_panels.py
@@ -179,6 +246,7 @@ python scripts/align_panels.py --dry-run
 ```
 
 ### Features
+
 - **Pattern Matching**: Identifies windows by title patterns (e.g., "Priority: P1", "tf_1", "Trading")
 - **Multi-Monitor Support**: Works with multiple monitors, storing positions relative to each monitor
 - **Desktop-Specific Layouts**: Different configurations for different virtual desktops
@@ -188,6 +256,7 @@ python scripts/align_panels.py --dry-run
 ### Common Use Cases
 
 **Two-column layout** (Priority 1 and 2 side-by-side):
+
 ```powershell
 python scripts/align_panels.py --configure --desktop TF
 # Then whenever Windows moves them:
@@ -195,11 +264,13 @@ python scripts/align_panels.py --desktop TF
 ```
 
 **Multi-monitor setup** (different panels on different screens):
+
 ```powershell
 python scripts/align_panels.py --configure --desktop Trading
 ```
 
 **Multiple layouts** (morning vs evening setups):
+
 ```powershell
 python scripts/align_panels.py --configure --config-name morning
 python scripts/align_panels.py --configure --config-name evening
@@ -214,13 +285,16 @@ See [docs/PANEL_ALIGNMENT.md](docs/PANEL_ALIGNMENT.md) for detailed documentatio
 ## Desktop Auto-Allow Agent (OpenAI Computer Use)
 
 ### Overview
+
 The Desktop Auto-Allow Agent uses OpenAI's Computer Use API with vision capabilities to:
+
 - Automatically detect GitHub Copilot Agent approval buttons ("Allow", "Continue", "Apply", etc.)
 - Click them without manual intervention
 - Handle rate limiting with automatic 20-minute cooldowns
 - Run continuously in the background while your sub-agents work
 
 ### Prerequisites
+
 1. **OpenAI API Key** with access to vision-capable models (GPT-4o or computer-use-preview when available)
 2. Install dependencies:
    ```powershell
@@ -228,12 +302,15 @@ The Desktop Auto-Allow Agent uses OpenAI's Computer Use API with vision capabili
    ```
 
 ### Configuration
+
 Set your OpenAI API key as an environment variable:
+
 ```powershell
 $env:OPENAI_API_KEY = "sk-your-api-key-here"
 ```
 
 To persist the key across sessions, add it to your PowerShell profile:
+
 ```powershell
 [System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'sk-your-api-key-here', 'User')
 ```
@@ -241,30 +318,39 @@ To persist the key across sessions, add it to your PowerShell profile:
 ### Running the Agent
 
 #### Continuous Mode (Recommended)
+
 Run the agent in a loop with default settings (checks every 60 seconds):
+
 ```powershell
 python -m automation.desktop_auto_allow_agent
 ```
 
 #### Custom Interval
+
 Check every 30 seconds instead of 60:
+
 ```powershell
 python -m automation.desktop_auto_allow_agent --interval 30
 ```
 
 #### Dry Run Mode (Testing)
+
 See what the agent would do without actually clicking:
+
 ```powershell
 python -m automation.desktop_auto_allow_agent --dry-run
 ```
 
 #### One-Time Check
+
 Run once and exit (useful for testing):
+
 ```powershell
 python -m automation.desktop_auto_allow_agent --once
 ```
 
 ### How It Works
+
 1. Every 60 seconds (or custom interval), the agent:
    - Captures a screenshot of your desktop
    - Sends it to OpenAI with a specialized system prompt
@@ -276,7 +362,9 @@ python -m automation.desktop_auto_allow_agent --once
 3. All activity is logged to `automation/auto_allow.log`
 
 ### Safety Features
+
 The agent is designed with multiple safety measures:
+
 - Only clicks buttons that match GitHub Copilot Agent approval patterns
 - Never clicks window controls, taskbar, or system UI
 - Never types text or uses keyboard shortcuts
@@ -284,6 +372,7 @@ The agent is designed with multiple safety measures:
 - Dry-run mode for testing before enabling real clicks
 
 ### Typical Workflow
+
 1. Start your Copilot sub-agent tasks (manually or with the hotkey automation)
 2. In a separate terminal, start the Desktop Auto-Allow Agent:
    ```powershell
@@ -294,6 +383,7 @@ The agent is designed with multiple safety measures:
 5. Press Ctrl+C to stop the agent when done
 
 ### Troubleshooting
+
 - **"OpenAI API key required"**: Set the `OPENAI_API_KEY` environment variable
 - **Import errors**: Run `pip install -r requirements.txt`
 - **Agent not clicking**: Check the log file for status messages. Try `--dry-run --once` to see what it detects
@@ -327,6 +417,7 @@ Use the prompts however you like: open 10 new Copilot chats manually, or use the
 ## Cost Tracking & Metrics
 
 ### Cost Tracking
+
 The system provides comprehensive OpenAI API cost tracking to prevent unexpected bills:
 
 - **All API calls tracked**: Vision, text completions, and computer use APIs
@@ -337,6 +428,7 @@ The system provides comprehensive OpenAI API cost tracking to prevent unexpected
 - **Integration**: Cost data integrated with automation metrics
 
 ### Viewing Cost Reports
+
 ```powershell
 # Comprehensive cost report (last 7 days)
 python scripts/cost_report.py
@@ -355,11 +447,13 @@ python scripts/view_metrics.py
 ```
 
 ### Cost Configuration
+
 Configure budgets and rates via environment variables:
+
 ```powershell
 # Budget limits (USD)
 $env:COST_TRACKER_DAILY_LIMIT = "10.0"
-$env:COST_TRACKER_WEEKLY_LIMIT = "50.0" 
+$env:COST_TRACKER_WEEKLY_LIMIT = "50.0"
 $env:COST_TRACKER_MONTHLY_LIMIT = "200.0"
 
 # Model rates override
@@ -373,8 +467,8 @@ $env:COST_TRACKER_VISION_COST_PER_IMAGE = "0.02"
 
 If `COST_TRACKER_MODEL_RATES` is **not** set, the tracker falls back to approximate OpenAI pricing so it can still provide directional estimates. These placeholders are intentionally conservative and should be overridden with the rates from your current OpenAI billing plan.
 
-| Model        | Input $/1k tokens | Output $/1k tokens |
-|--------------|-------------------|--------------------|
+| Model         | Input $/1k tokens | Output $/1k tokens |
+| ------------- | ----------------- | ------------------ |
 | `gpt-4o-mini` | 0.00045           | 0.00090            |
 | `gpt-4o`      | 0.00100           | 0.00200            |
 | `gpt-4-turbo` | 0.00100           | 0.00200            |
@@ -388,9 +482,10 @@ $env:COST_TRACKER_MODEL_RATES = '{
 }'
 ```
 
-> **Approximate only:** Leave the variable unset *only* if you accept these placeholder rates. For accurate budget alerts and reports, set `COST_TRACKER_MODEL_RATES` explicitly.
+> **Approximate only:** Leave the variable unset _only_ if you accept these placeholder rates. For accurate budget alerts and reports, set `COST_TRACKER_MODEL_RATES` explicitly.
 
 ### Metrics Tracking
+
 Comprehensive metrics collection for monitoring system performance:
 
 - **Prompt seeding metrics**: Tracks which prompts were sent to which panels, success/failure rates
@@ -400,6 +495,7 @@ Comprehensive metrics collection for monitoring system performance:
 - **Persistence**: All metrics saved to `automation/metrics.json`
 
 ### Unified Telemetry Dashboard & Reports
+
 `scripts/generate_metrics_report.py` unifies every telemetry source (`automation/metrics.json`, `automation/assignment_metrics.jsonl`, `automation/allow_metrics.jsonl`, `automation/panel_state.json`, `logs/cost_metrics.jsonl`, and related trackers) into live dashboards and exportable analytics.
 
 ```powershell
@@ -411,6 +507,7 @@ master --run metrics-export
 ```
 
 Key capabilities:
+
 - Panel seeding trend analysis with slopes, ASCII sparklines, and success/failure counts.
 - Model mix + effectiveness plus round-robin fairness scoring so prompt slots stay balanced.
 - Repository heatmaps that highlight hot hours per repo, desktop switching reliability, and allow-button health.
@@ -449,6 +546,7 @@ This log is the foundation for a future adaptive-rate algorithm: by plotting all
 ## Panel State Detection & Input Reading
 
 ### Overview
+
 The automation can detect and read from VS Code Copilot panels using Windows UI Automation:
 
 - **Panel State Detection**: Determine if a panel is RUNNING (agent working) or IDLE (ready for input)
@@ -458,6 +556,7 @@ The automation can detect and read from VS Code Copilot panels using Windows UI 
 ### Panel State Detection
 
 Panels are identified by which button is visible:
+
 - **Cancel button** (`Cancel (Alt+Backspace)`) → Panel is **RUNNING** (agent actively working)
 - **Send button** → Panel is **IDLE** (ready for input or finished)
 
@@ -503,29 +602,29 @@ def read_chat_input(vs_win):
     try:
         # Clear clipboard
         pyperclip.copy("")
-        
+
         # Focus window
         vs_win.SetFocus()
         time.sleep(0.3)
-        
+
         # Dismiss any dialogs
         auto.SendKeys("{Escape}")
         time.sleep(0.3)
-        
+
         # Focus chat input
         auto.SendKeys("{Ctrl}l")
         time.sleep(0.2)
-        
+
         # Select all and copy
         auto.SendKeys("{Ctrl}a")
         time.sleep(0.1)
         auto.SendKeys("{Ctrl}c")
         time.sleep(0.2)
-        
+
         # Get clipboard content
         content = pyperclip.paste()
         return content.strip() if content else ""
-        
+
     except Exception as e:
         return f"Error: {e}"
 
@@ -560,6 +659,7 @@ success = send_text_to_chat(vs_win, "please continue")
 ---
 
 ### Cost Considerations
+
 - Each check sends a screenshot to OpenAI's vision API
 - At 60-second intervals, that's ~60 API calls per hour
 - Monitor your OpenAI usage dashboard and adjust `--interval` as needed
@@ -610,6 +710,7 @@ desktop-agent-automation/
 ```
 
 ### Key Files
+
 - `run_automation.py`: Main entry point for automation
 - `master.py`: Unified launcher script
 - `automation/config.json`: UI coordinates and settings
@@ -622,31 +723,37 @@ desktop-agent-automation/
 ## Finished Panel Follow-Through
 
 ### Overview
+
 The system now tracks the state of each Copilot chat panel to maximize efficiency. When a panel finishes its task (detected by 30 minutes of idle time with no output changes), the system can automatically:
+
 1.  **Detect Completion**: Identifies when an agent has finished its work.
 2.  **Verify Status**: Sends a "completion check" prompt to confirm the agent is done.
 3.  **Assign New Work**: If the agent is truly finished, it assigns a new prompt from the `tasks/generated_prompts/` queue.
 4.  **Round-Robin Scheduling**: Distributes new prompts evenly across available finished panels.
 
 ### Configuration
+
 To enable this feature, set the following environment variables:
+
 ```powershell
 $env:ENABLE_FINISHED_PANEL_FOLLOWUPS = "true"
 $env:ENABLE_SEND_TO_INACTIVE_PANELS = "true"
 ```
 
 For safe testing, you can enable dry-run mode, which logs actions without sending them:
+
 ```powershell
 $env:FINISHED_PANEL_DRY_RUN = "true"
 ```
 
 ### How it Works
+
 1.  **Tracking**: `automation/panel_tracker.py` maintains a state machine for each panel (Running, Idle, Finished, etc.).
 2.  **Detection**: If a panel is idle for 30 minutes, it's marked as `POSSIBLY_FINISHED`.
-3.  **Verification**: The system sends a prompt: *"If you have completed your task please respond with exactly 'task completed'..."*
+3.  **Verification**: The system sends a prompt: _"If you have completed your task please respond with exactly 'task completed'..."_
 4.  **Action**:
-    *   If the agent responds "task completed", the system fetches the next prompt from the batch file and sends it.
-    *   If the agent responds with "next steps", the system encourages it to continue.
+    - If the agent responds "task completed", the system fetches the next prompt from the batch file and sends it.
+    - If the agent responds with "next steps", the system encourages it to continue.
 
 ---
 
@@ -655,6 +762,7 @@ $env:FINISHED_PANEL_DRY_RUN = "true"
 The system includes a command-line tool for managing agent task assignments and tracking progress:
 
 ### Claim Tasks
+
 ```powershell
 # Claim a task for an agent
 python scripts/tasks_cli.py claim --id task-123 --by agent:github-copilot
@@ -664,6 +772,7 @@ python scripts/tasks_cli.py claim --id task-123 --by human:john --message "Start
 ```
 
 ### Update Task Status
+
 ```powershell
 # Mark task as completed
 python scripts/tasks_cli.py update-status --id task-123 --status completed --by agent:github-copilot
@@ -673,12 +782,14 @@ python scripts/tasks_cli.py update-status --id task-123 --status in-progress --b
 ```
 
 ### Add Notes to Tasks
+
 ```powershell
 # Add a note with optional artifact
 python scripts/tasks_cli.py add-note --id task-123 --by agent:github-copilot --message "Found root cause" --artifact screenshots/error.png
 ```
 
 ### View Tasks
+
 ```powershell
 # List all tasks
 python scripts/tasks_cli.py list
@@ -694,7 +805,9 @@ Tasks are stored in `agent_assignments.json` and validated against the schema in
 ## Additional Utilities & Scripts
 
 ### Log Analysis
+
 Analyze automation logs for issues and false positives:
+
 ```powershell
 # Analyze last hour of logs
 python scripts/analyze_logs.py
@@ -704,19 +817,25 @@ python scripts/analyze_logs.py --hours 24
 ```
 
 ### Metrics Viewer
+
 View comprehensive metrics about prompt seeding and model selections:
+
 ```powershell
 python scripts/view_metrics.py
 ```
 
 ### Live Test Validation
+
 Validate prerequisites before enabling finished panel follow-through:
+
 ```powershell
 python scripts/validate_live_test.py
 ```
 
 ### Task Validation
+
 Validate agent task assignments and check for consistency:
+
 ```powershell
 # Summary of all tasks
 python scripts/validate_agent_tasks.py --summary
@@ -726,13 +845,17 @@ python scripts/validate_agent_tasks.py --verbose
 ```
 
 ### Send to Finished Panels
+
 Manually send confirmation prompts to panels that appear finished:
+
 ```powershell
 python scripts/send_to_finished.py
 ```
 
 ### Desktop Scanning
+
 Scan and interact with VS Code windows across virtual desktops:
+
 ```powershell
 # Scan current desktop
 python scripts/scan_desktops.py
@@ -745,7 +868,9 @@ python scripts/click_all_desktops.py
 ```
 
 ### Cost Reporting
+
 Comprehensive cost analysis and reporting:
+
 ```powershell
 # Full cost report (last 7 days)
 python scripts/cost_report.py
@@ -758,13 +883,17 @@ python scripts/cost_report.py --alerts-only
 ```
 
 ### Round-Robin Prompt Assignment
+
 Prompts are now assigned in round-robin fashion across available panels:
+
 - Each panel tracks which prompt index it received
 - State persists across sessions in `automation/panel_state.json`
 - Ensures even distribution of work across multiple panels
 
 ### Repository Detection
+
 Automatic detection of repository root from VS Code window titles:
+
 - Parses window titles like `"file.py - repo-name - Visual Studio Code"`
 - Supports WSL paths: `"file.py - tf_1 [WSL: Ubuntu-24.04] - Visual Studio Code"`
 - Automatically finds docs folders for master prompt generation
@@ -777,6 +906,7 @@ Automatic detection of repository root from VS Code window titles:
 The project includes comprehensive test suites for all major components:
 
 ### Run All Tests
+
 ```powershell
 # Run all tests
 python -m pytest tests/
@@ -786,6 +916,7 @@ python -m pytest tests/ --cov=automation --cov-report=html
 ```
 
 ### Run Specific Test Suites
+
 ```powershell
 # Test chat extraction functionality
 python -m pytest tests/test_chat_extraction.py
@@ -801,7 +932,9 @@ python -m pytest tests/test_vscode_detection.py
 ```
 
 ### Test Coverage
+
 Tests cover:
+
 - UI automation and window detection
 - Chat input/output handling
 - Button clicking and verification
@@ -813,8 +946,8 @@ Tests cover:
 ---
 
 ## Cost Considerations
+
 - Each check sends a screenshot to OpenAI's vision API
 - At 60-second intervals, that's ~60 API calls per hour
 - Monitor your OpenAI usage dashboard and adjust `--interval` as needed
 - Consider using `--once` mode triggered by hotkeys for manual control
-

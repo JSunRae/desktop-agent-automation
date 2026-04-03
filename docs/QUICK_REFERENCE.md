@@ -81,6 +81,56 @@
   Remove-Item automation\panel_state.json -ErrorAction SilentlyContinue
   ```
 
+## Storage Diagnosis and Cleanup
+
+- Diagnose workspace storage bloat (quick scan):
+
+  ```powershell
+  master --run diagnose-storage
+  ```
+
+- Deep scan with subfolder breakdown:
+
+  ```powershell
+  master --run diagnose-storage -- --deep --top 20
+  ```
+
+- JSON output for automation:
+
+  ```powershell
+  master --run diagnose-storage -- --top 0 --deep --json
+  ```
+
+- Preview cleanup (dry-run, default):
+
+  ```powershell
+  master --run cleanup-storage
+  ```
+
+- Cleanup for a specific repo (dry-run):
+
+  ```powershell
+  master --run cleanup-storage -- --repo my-project
+  ```
+
+- Execute cleanup with confirmation:
+
+  ```powershell
+  master --run cleanup-storage -- --execute
+  ```
+
+- Execute cleanup for one repo, non-interactive (CI):
+
+  ```powershell
+  master --run cleanup-storage -- --repo my-project --execute --yes
+  ```
+
+- Cleanup items older than 30 days, JSON output:
+
+  ```powershell
+  master --run cleanup-storage -- --older-than 30 --json
+  ```
+
 ## Cost and Metrics
 
 - Check budget alerts:

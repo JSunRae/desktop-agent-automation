@@ -16,16 +16,15 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
-import sys
 import ctypes
+import json
+import re
+import sys
 from ctypes import wintypes
 from dataclasses import dataclass
+from math import ceil
 from pathlib import Path
 from typing import Any, List, Optional, Tuple
-from math import ceil
-import re
-
 
 MONITOR_DEFAULTTONEAREST = 2
 
@@ -44,7 +43,7 @@ import uiautomation as auto
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from automation.config import VSCODE_TITLE_SUFFIX
-from automation.desktop import switch_to_desktop, needs_desktop_switch
+from automation.desktop import needs_desktop_switch, switch_to_desktop
 from automation.ui import find_all_vscode_windows
 
 
@@ -255,8 +254,8 @@ def set_window_position(window: auto.Control, position: WindowPosition, dry_run:
         True if successful
     """
     try:
-        import win32gui
         import win32con
+        import win32gui
         
         hwnd = window.NativeWindowHandle
         if not hwnd:
@@ -356,12 +355,72 @@ def _is_chat_like_title(title: str) -> bool:
     return any(kw in t for kw in chat_keywords)
 
 
+# File extensions commonly seen in VS Code tab titles.
+_FILE_EXT_RE = re.compile(
+    r"\.[A-Za-z0-9]{1,12}$"  # e.g. ".py", ".ts", ".json", ".config.ts" final ext
+)
+
+
+def _title_priority_class(title: str) -> int:
+    """Classify a window title for main-window selection priority.
+
+    Returns:
+        0 – Almost certainly the main editor window (filename-based tab, Welcome page, etc.)
+        1 – Ambiguous / short title (could be either main or panel)
+        2 – Likely a Copilot task / agent conversation panel (long descriptive phrase)
+        3 – Definitely a chat / Copilot panel (explicit chat keywords)
+    """
+    if _is_chat_like_title(title):
+        return 3
+
+    # The VS Code title format is:  <active_tab> - <workspace> - Visual Studio Code
+    # Extract the first segment (the active tab name).
+    first_segment = (title or "").split(" - ")[0].strip()
+    if not first_segment:
+        return 1
+
+    # ---- Class 0: main editor signals ----
+    # Has a file extension (e.g. "config.py", "next.config.ts", "README.md")
+    if _FILE_EXT_RE.search(first_segment):
+        return 0
+
+    # Known VS Code start / welcome tabs
+    if first_segment.lower() in (
+        "welcome", "untitled", "get started", "release notes",
+        "settings", "keyboard shortcuts", "extensions",
+    ):
+        return 0
+
+    # Looks like an Untitled-N tab
+    if re.match(r"(?i)^untitled[- ]?\d*$", first_segment):
+        return 0
+
+    # ---- Class 2: Copilot task / agent conversation ----
+    # These are multi-word descriptive titles such as:
+    #   "Agent Handover for Trading System Models"
+    #   "Finalizing Trading System Handoff and Validation Process"
+    # Heuristic: 4+ words in the first segment without a file extension.
+    word_count = len(first_segment.split())
+    if word_count >= 4:
+        return 2
+
+    # ---- Class 1: ambiguous (workspace name, short phrase, etc.) ----
+    return 1
+
+
 def _main_window_score(
     window: auto.Control,
     monitors: List[MonitorInfo],
     preferred_monitor_index: int,
 ) -> Optional[tuple[int, int, int, int]]:
-    """Return sort key for main-window selection or None if no position."""
+    """Return sort key for main-window selection or None if no position.
+
+    Tuple ordering (lower is better):
+      1. title_class  – file-tab (0) > ambiguous (1) > task-panel (2) > chat (3)
+      2. on_preferred – already on the main landscape monitor wins
+      3. -keyword_hits – more workspace keyword matches is better
+      4. -area         – larger current window area is better
+    """
 
     pos = get_window_position(window)
     if not pos:
@@ -371,18 +430,18 @@ def _main_window_score(
     title = (getattr(window, "Name", None) or "")
     title_lower = title.lower()
     keyword_hits = sum(1 for kw in _MAIN_PRIORITY_KEYWORDS if kw and kw in title_lower)
-    is_chat = _is_chat_like_title(title)
+
+    title_class = _title_priority_class(title)
 
     cx, cy = _rect_center(pos)
     monitor_index = _monitor_for_point(monitors, cx, cy) if monitors else preferred_monitor_index
     on_preferred = 0 if monitor_index == preferred_monitor_index else 1
 
-    # New ordering: prefer non-chat first, then workspace keywords, then size, then preferred monitor.
     return (
-        0 if not is_chat else 1,
-        -keyword_hits,
-        -area,
-        on_preferred,
+        title_class,     # editor tabs first, task-panel/chat titles last
+        on_preferred,    # prefer windows already on the main landscape monitor
+        -keyword_hits,   # more workspace keyword matches is better
+        -area,           # larger current window area is better
     )
 
 
@@ -391,7 +450,7 @@ def _choose_main_window(
     monitors: List[MonitorInfo],
     preferred_monitor_index: int,
 ) -> Optional[auto.Control]:
-    """Prefer a non-chat coding window; monitor preference is a tie-breaker."""
+    """Prefer an editor window (file tab) on the main landscape monitor."""
 
     best = None
     best_key: Optional[tuple[int, int, int, int]] = None

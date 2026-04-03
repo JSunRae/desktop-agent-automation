@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import argparse
-import socket
 import json
 import os
 import shlex
+import socket
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -89,6 +89,16 @@ COMMANDS: tuple[CommandSpec, ...] = (
         description="Manages prompt batches, uploads docs, tracks agent progress.",
     ),
     CommandSpec(
+        key="orchestration-v1-cycle",
+        category="Orchestration",
+        title="Orchestration V1 Cycle",
+        args=("scripts/orchestration_v1.py",),
+        description=(
+            "Runs one controlled orchestration cycle: collect context, normalize work, "
+            "dispatch one scoped task, and read structured worker report."
+        ),
+    ),
+    CommandSpec(
         key="prompt-tester",
         category="Orchestration",
         title="Prompt Pack Tester",
@@ -152,6 +162,330 @@ COMMANDS: tuple[CommandSpec, ...] = (
         ),
     ),
     CommandSpec(
+        key="capture-vscode-session",
+        category="Utilities",
+        title="Capture VS Code Session by Desktop",
+        args=("-m", "automation.vscode_session_manager", "capture"),
+        description="Saves open VS Code repos grouped by virtual desktop for later restore.",
+    ),
+    CommandSpec(
+        key="restore-vscode-session",
+        category="Utilities",
+        title="Restore VS Code Session by Desktop",
+        args=("-m", "automation.vscode_session_manager", "restore"),
+        description="Reopens repos from saved desktop snapshots (supports startup picker).",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Restore latest snapshot (all repos)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Startup mode: choose from history",
+                extra_args=("--startup",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Dry-run startup mode",
+                extra_args=("--startup", "--dry-run"),
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="install-vscode-restore-startup",
+        category="Utilities",
+        title="Install Startup Restore Runner",
+        args=("-m", "automation.vscode_session_manager", "install-startup"),
+        description="Creates a Startup folder script that prompts and restores VS Code repos at login.",
+    ),
+    CommandSpec(
+        key="diagnose-storage",
+        category="Utilities",
+        title="Diagnose Storage Bloat",
+        args=("-m", "automation.diagnose_storage",),
+        description="Scans VS Code storage/cache and reports top workspace offenders by size and severity.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Quick scan (top 10)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Deep scan (subfolder breakdown)",
+                extra_args=("--deep",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Full scan (all workspaces, JSON)",
+                extra_args=("--top", "0", "--deep", "--json"),
+            ),
+            InteractiveOption(
+                key="4",
+                title="Include process + crash diagnostics",
+                extra_args=("--deep", "--processes", "--crashes"),
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="cleanup-storage",
+        category="Utilities",
+        title="Cleanup Storage (dry-run default)",
+        args=("-m", "automation.cleanup_storage",),
+        description="Removes old VS Code cache/session artifacts. DRY-RUN by default; use --execute to delete.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Dry-run preview (default)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Execute cleanup (with confirmation)",
+                extra_args=("--execute",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Dry-run for specific repo",
+                value_flag="--repo",
+                value_prompt="Repo name (substring): ",
+            ),
+            InteractiveOption(
+                key="4",
+                title="Execute for specific repo",
+                extra_args=("--execute",),
+            ),
+            InteractiveOption(
+                key="5",
+                title="JSON output (dry-run)",
+                extra_args=("--json",),
+            ),
+        ),
+    ),
+    # ------------------------------------------------------------------
+    # Coordination
+    # ------------------------------------------------------------------
+    CommandSpec(
+        key="coord-status",
+        category="Coordination",
+        title="Coordination Status",
+        args=("scripts/coord_cli.py", "status"),
+        description="Full cross-repo coordination report: tasks, overlaps, drift, boundary violations.",
+    ),
+    CommandSpec(
+        key="coord-north-star",
+        category="Coordination",
+        title="North Star Goal",
+        args=("scripts/coord_cli.py", "north-star"),
+        description="Display the current North Star goal, repo roles, and P0 tasks.",
+    ),
+    CommandSpec(
+        key="coord-tasks",
+        category="Coordination",
+        title="Coordination Tasks",
+        args=("scripts/coord_cli.py", "tasks"),
+        description="List active tasks across all repos, with optional repo filter.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="All repos",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Trading only",
+                extra_args=("--repo", "Trading"),
+            ),
+            InteractiveOption(
+                key="3",
+                title="TF only",
+                extra_args=("--repo", "TF"),
+            ),
+            InteractiveOption(
+                key="4",
+                title="contracts only",
+                extra_args=("--repo", "contracts"),
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="coord-check",
+        category="Coordination",
+        title="Coordination Guard Check",
+        args=("scripts/coord_cli.py", "check"),
+        description="Run coordination guard on arbitrary text. Checks routing, boundaries, overlaps.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Paste text to check (Interactive)",
+                value_flag="--text",
+                value_prompt="Text or prompt to evaluate: ",
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="coord-refresh",
+        category="Coordination",
+        title="Refresh Coordination Cache",
+        args=("scripts/coord_cli.py", "refresh"),
+        description="Force-refresh the North Star and cross-repo task ledger caches.",
+    ),
+    # ------------------------------------------------------------------
+    # Panel
+    # ------------------------------------------------------------------
+    CommandSpec(
+        key="panel-inspect",
+        category="Panel",
+        title="Panel Inspection (dry-run)",
+        args=("scripts/panel_inspect.py",),
+        description="Scan all VS Code panels, infer repo + task intent, detect overlaps.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="All suites — target desktop-agent-automation (safe default)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Scan only (list panels + intent)",
+                extra_args=("--suite", "scan"),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Overlap detection only",
+                extra_args=("--suite", "overlap"),
+            ),
+            InteractiveOption(
+                key="4",
+                title="Response controls detection only",
+                extra_args=("--suite", "response"),
+            ),
+            InteractiveOption(
+                key="5",
+                title="Refresh controls detection only",
+                extra_args=("--suite", "refresh"),
+            ),
+            InteractiveOption(
+                key="6",
+                title="All suites — target a specific repo",
+                value_flag="--target-repo",
+                value_prompt="Repo name (e.g. TF, Trading, contracts): ",
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="panel-scan-all",
+        category="Panel",
+        title="Scan All Repos (dry-run)",
+        args=("scripts/panel_inspect.py", "--suite", "scan", "--target-repo", ""),
+        description="Scan all VS Code windows regardless of repo (no repo filter).",
+    ),
+    CommandSpec(
+        key="panel-response-test",
+        category="Panel",
+        title="Test Agent Response Controls",
+        args=("scripts/panel_inspect.py", "--suite", "response"),
+        description="Detect Stop-and-Send / Add-to-Queue / Steer-with-Message buttons (dry-run default).",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Dry-run (safe default, no clicks)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Live click (CAUTION: executes UI clicks)",
+                extra_args=("--live-click",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Dry-run for specific repo",
+                value_flag="--target-repo",
+                value_prompt="Repo name (default is desktop-agent-automation): ",
+            ),
+            InteractiveOption(
+                key="4",
+                title="Live click for specific repo (CAUTION)",
+                extra_args=("--live-click",),
+                value_flag="--target-repo",
+                value_prompt="Repo name (e.g. TF, Trading, contracts): ",
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="panel-refresh-test",
+        category="Panel",
+        title="Test Panel Refresh Controls",
+        args=("scripts/panel_inspect.py", "--suite", "refresh"),
+        description="Detect Keep-Edits / Clear-Input / New-Chat controls (dry-run default).",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Dry-run (safe default, no clicks)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Live click (CAUTION: executes UI clicks)",
+                extra_args=("--live-click",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Dry-run for specific repo",
+                value_flag="--target-repo",
+                value_prompt="Repo name (default is desktop-agent-automation): ",
+            ),
+            InteractiveOption(
+                key="4",
+                title="Live click for specific repo (CAUTION)",
+                extra_args=("--live-click",),
+                value_flag="--target-repo",
+                value_prompt="Repo name (e.g. TF, Trading, contracts): ",
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="generate-handover",
+        category="Panel",
+        title="Generate Handover Prompt",
+        args=("scripts/generate_handover.py",),
+        description="Generate a structured handover document for a new agent session.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Trading handover",
+                extra_args=("--repo", "Trading"),
+            ),
+            InteractiveOption(
+                key="2",
+                title="TF handover",
+                extra_args=("--repo", "TF"),
+            ),
+            InteractiveOption(
+                key="3",
+                title="contracts handover",
+                extra_args=("--repo", "contracts"),
+            ),
+            InteractiveOption(
+                key="4",
+                title="desktop-agent-automation handover",
+                extra_args=("--repo", "desktop-agent-automation"),
+            ),
+            InteractiveOption(
+                key="5",
+                title="All repos handover",
+                extra_args=("--all-repos",),
+            ),
+            InteractiveOption(
+                key="6",
+                title="All repos — save to file",
+                extra_args=("--all-repos", "--out", "handover.md"),
+            ),
+            InteractiveOption(
+                key="7",
+                title="All repos with AI summary (needs OPENAI_API_KEY)",
+                extra_args=("--all-repos", "--summarise"),
+            ),
+        ),
+    ),
+    # ------------------------------------------------------------------
+    # Testing (existing)
+    # ------------------------------------------------------------------
+    CommandSpec(
         key="test-chat-extraction",
         category="Testing",
         title="Test: Chat Extraction",
@@ -185,6 +519,13 @@ COMMANDS: tuple[CommandSpec, ...] = (
         title="Test: Window Detection",
         args=("-m", "pytest", "tests/test_vscode_detection.py"),
         description="Tests VS Code window detection heuristics.",
+    ),
+    CommandSpec(
+        key="test-panel-coordination",
+        category="Testing",
+        title="Test: Panel Coordination",
+        args=("-m", "pytest", "tests/test_panel_coordination.py", "-v"),
+        description="Safe dry-run tests: panel scan, overlap detection, response/refresh control detection.",
     ),
 )
 
@@ -473,7 +814,7 @@ def _ensure_orchestrator() -> None:
     
     # Load environment variables from the root .env
     # We want to ensure TBS_API_TOKEN is available to the subprocess
-    from dotenv import load_dotenv, find_dotenv
+    from dotenv import load_dotenv
     # Explicitly load from CWD which is workspace root
     load_dotenv(Path(".env"))
 

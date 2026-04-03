@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import time
 from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Union
 
 if TYPE_CHECKING:
     import uiautomation as auto
@@ -21,12 +21,10 @@ if TYPE_CHECKING:
 from automation.config import (
     CACHE_REFRESH_INTERVAL_MINUTES,
     CACHE_STALE_THRESHOLD_MINUTES,
-    VSCODE_TITLE_SUFFIX,
 )
+from automation.core.hotkeys import check_hotkeys_polled, extra_wait_until, is_paused
 from automation.core.logging import log_verbose
-from automation.core.hotkeys import check_hotkeys_polled, is_paused, extra_wait_until
 from automation.title_parsing import is_vscode_window_title
-
 
 # ============================================================================
 # GLOBAL CACHE STATE

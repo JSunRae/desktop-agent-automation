@@ -1,0 +1,351 @@
+{
+  "version": 1,
+  "updated_at": "2026-04-03T15:06:54Z",
+  "snapshots": [
+    {
+      "captured_at": "2026-03-18T19:09:00Z",
+      "machine": "DESKTOP-KU6EOKJ",
+      "desktops": [
+        {
+          "desktop_name": "BI",
+          "desktop_index": 1,
+          "repos": [
+            {
+              "repo_name": "Bibliography",
+              "path": null,
+              "window_count": 18,
+              "titles": [
+                "Welcome - Bibliography [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Information Input Review and Processing Plan - Bibliography [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Chat - Bibliography [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "HYPERTROPHY",
+          "desktop_index": 2,
+          "repos": []
+        },
+        {
+          "desktop_name": "HA",
+          "desktop_index": 3,
+          "repos": [
+            {
+              "repo_name": "Smart_Training",
+              "path": null,
+              "window_count": 1,
+              "titles": [
+                "next.config.ts - Smart_Training - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Sync",
+          "desktop_index": 4,
+          "repos": [
+            {
+              "repo_name": "desktop-agent-automation",
+              "path": null,
+              "window_count": 3,
+              "titles": [
+                "Automating VSCode Workspace Restoration Script - desktop-agent-automation - Visual Studio Code",
+                "Chat - desktop-agent-automation - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Trading",
+          "desktop_index": 5,
+          "repos": [
+            {
+              "repo_name": "trading-system (Workspace)",
+              "path": null,
+              "window_count": 21,
+              "titles": [
+                "Cross-repo task management and alignment strategies - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Governance Decision on Stale Task Proposals - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Validation of Active Queue Consistency and Drift - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "TF",
+          "desktop_index": 6,
+          "repos": [
+            {
+              "repo_name": "TF (Workspace)",
+              "path": null,
+              "window_count": 19,
+              "titles": [
+                "Analyzing Commonalities in Model Failures - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Scatter Plot Data Not Displaying in Dashboard - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Model Audit and Documentation Enhancement Request - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "TWS",
+          "desktop_index": 7,
+          "repos": [
+            {
+              "repo_name": "Trading (Workspace)",
+              "path": null,
+              "window_count": 17,
+              "titles": [
+                "Welcome - Trading (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Task list for code audits and cleanup - Trading (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Dual Windows WSL IB Compatibility Task - Trading (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Visa",
+          "desktop_index": 8,
+          "repos": [
+            {
+              "repo_name": "SpamurAI",
+              "path": null,
+              "window_count": 1,
+              "titles": [
+                "Welcome - SpamurAI - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Consulting",
+          "desktop_index": 9,
+          "repos": []
+        },
+        {
+          "desktop_name": "Notifications",
+          "desktop_index": 10,
+          "repos": []
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-03-18T19:27:10Z",
+      "machine": "DESKTOP-KU6EOKJ",
+      "desktops": [
+        {
+          "desktop_name": "BI",
+          "desktop_index": 1,
+          "repos": [
+            {
+              "repo_name": "Bibliography",
+              "path": null,
+              "window_count": 18,
+              "titles": [
+                "Welcome - Bibliography [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Information Input Review and Processing Plan - Bibliography [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Chat - Bibliography [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "HYPERTROPHY",
+          "desktop_index": 2,
+          "repos": []
+        },
+        {
+          "desktop_name": "SmartTraining",
+          "desktop_index": 3,
+          "repos": [
+            {
+              "repo_name": "Smart_Training",
+              "path": null,
+              "window_count": 1,
+              "titles": [
+                "next.config.ts - Smart_Training - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Sync",
+          "desktop_index": 4,
+          "repos": [
+            {
+              "repo_name": "desktop-agent-automation",
+              "path": null,
+              "window_count": 3,
+              "titles": [
+                "Automating VSCode Workspace Restoration Script - desktop-agent-automation - Visual Studio Code",
+                "Chat - desktop-agent-automation - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Trading",
+          "desktop_index": 5,
+          "repos": [
+            {
+              "repo_name": "trading-system (Workspace)",
+              "path": null,
+              "window_count": 21,
+              "titles": [
+                "Cross-repo task management and alignment strategies - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Governance Decision on Stale Task Proposals - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Validation of Active Queue Consistency and Drift - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "TF",
+          "desktop_index": 6,
+          "repos": [
+            {
+              "repo_name": "TF (Workspace)",
+              "path": null,
+              "window_count": 19,
+              "titles": [
+                "Model Audit and Documentation Enhancement Request - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Scatter Plot Data Not Displaying in Dashboard - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Analyzing Commonalities in Model Failures - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "TWS",
+          "desktop_index": 7,
+          "repos": [
+            {
+              "repo_name": "Trading (Workspace)",
+              "path": null,
+              "window_count": 17,
+              "titles": [
+                "Welcome - Trading (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Task list for code audits and cleanup - Trading (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Dual Windows WSL IB Compatibility Task - Trading (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "SpamurAI",
+          "desktop_index": 8,
+          "repos": [
+            {
+              "repo_name": "SpamurAI",
+              "path": null,
+              "window_count": 1,
+              "titles": [
+                "Welcome - SpamurAI - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Consulting",
+          "desktop_index": 9,
+          "repos": []
+        },
+        {
+          "desktop_name": "Notifications",
+          "desktop_index": 10,
+          "repos": []
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-04-03T15:06:54Z",
+      "machine": "DESKTOP-KU6EOKJ",
+      "desktops": [
+        {
+          "desktop_name": "BI",
+          "desktop_index": 1,
+          "repos": []
+        },
+        {
+          "desktop_name": "HYPERTROPHY",
+          "desktop_index": 2,
+          "repos": []
+        },
+        {
+          "desktop_name": "SmartTraining",
+          "desktop_index": 3,
+          "repos": []
+        },
+        {
+          "desktop_name": "Sync",
+          "desktop_index": 4,
+          "repos": [
+            {
+              "repo_name": "desktop-agent-automation",
+              "path": "C:\\Users\\Pilot\\Documents\\Vs Code Projects\\desktop-agent-automation",
+              "window_count": 11,
+              "titles": [
+                "Progress Update on Desktop Agent Automation Project - desktop-agent-automation - Visual Studio Code",
+                "Workspace file visibility issue and agent coordination - desktop-agent-automation - Visual Studio Code",
+                "Orchestrating Multi-Repo Trading Workspace Automation - desktop-agent-automation - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "Trading",
+          "desktop_index": 5,
+          "repos": [
+            {
+              "repo_name": "trading-system (Workspace)",
+              "path": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system",
+              "window_count": 30,
+              "titles": [
+                "Trading-side Canary Safety Evidence Sprint Execution - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Wave2 handoff pack development plan - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Workspace Health and Alignment Review for Trading System - trading-system (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "TF",
+          "desktop_index": 6,
+          "repos": [
+            {
+              "repo_name": "TF (Workspace)",
+              "path": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF",
+              "window_count": 23,
+              "titles": [
+                "Campaign and sweep training printout request - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Seconds Model Live-Testing Implementation Plan - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+                "Throughput Triage and Performance Remediation Task - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code"
+              ]
+            }
+          ]
+        },
+        {
+          "desktop_name": "TWS",
+          "desktop_index": 7,
+          "repos": []
+        },
+        {
+          "desktop_name": "SpamurAI",
+          "desktop_index": 8,
+          "repos": []
+        },
+        {
+          "desktop_name": "Consulting",
+          "desktop_index": 9,
+          "repos": []
+        },
+        {
+          "desktop_name": "Notifications",
+          "desktop_index": 10,
+          "repos": []
+        }
+      ]
+    }
+  ]
+}

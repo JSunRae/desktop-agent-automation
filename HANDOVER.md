@@ -1,211 +1,324 @@
-# Handover: Finished Panel Follow-Through Implementation
+# Agent Handover Document
+Generated: 2026-03-21T13:34:14   Repo: contracts
 
-**Documentation Synced: December 11, 2025** - Todo.md updated with completed panel classification task and new roadmap items with dependencies. Operators should refer to docs/Todo.md for latest plan.
 
-## What Was Built
+## North Star Goal
+## NORTH STAR — STAY ON GOAL
 
-Extended the desktop automation system to autonomously drive idle/finished Copilot agent panels through a complete workflow:
-1. Detect when a panel is idle/finished (no Cancel button, no Allow button, output unchanged for 30+ minutes)
-2. Click "Keep Edits" if present
-3. Open "New Chat" 
-4. Select the appropriate model (Grok, Codex Mini, Codex, Codex Max) based on prompt metadata
-5. Paste the next prompt from `tasks/generated_prompts/latest.txt`
-6. Mark the panel as seeded so it only happens once per finish cycle
+**Primary goal:** Lead phased execution to reach repeatable seconds-model paper-trading readiness first, then close highest-risk data/infra/contract gaps for hourly/gap reliability, stock-finder progression, and RL offline foundation.
 
-## Key Files Modified
+**Work currently in-flight (DO NOT duplicate):**
+  - [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
 
-### `automation/master_prompt_orchestrator.py`
-- **System prompt updated** to match your specification: up to 20 tasks, docs/Todo/assignments sweep, agent selection (Grok/Codex Mini/Codex/Codex Max), filing completed docs to `docs/completed`, no code fences in output
-- **Workspace detection added** via `_detect_repo_doc_roots()`: prefers local `docs`/`docs/open_tasks` from current working directory, falls back to WSL UNC paths in env vars
+**Repo ownership:**
+  - **contracts**: JSON Schemas (manifest, bars, L2, gap-opener); JSON-Logic promotion rules; canonical fixtures and checksums
+  - **TF**: ML model training and evaluation; feature and label engineering; experiment tracking (W&B)
+  - **Trading**: data acquisition and orchestration; IB gateway lifecycle (headless, paper, live); market data pipelines (IBKR, DataBento)
 
-### `automation/panel_tracker.py`
-- **New flag**: `ENABLE_FINISHED_PANEL_FOLLOWUPS` (default: false) gates the entire finished-panel automation
-- **New flag**: `FINISHED_PANEL_DRY_RUN` (default: false) logs actions instead of executing UI clicks/text for safe testing
-- **Prompt loading**: `_load_prompt_blocks()` reads and splits `tasks/generated_prompts/latest.txt` into individual prompts
-- **Model inference**: `_detect_model_label()` parses prompt header to pick Grok/Codex Mini/Codex/Codex Max
-- **UI helpers**: `_find_new_chat_button()`, `_find_model_picker_button()`, `_select_model()`, `_open_new_chat()` drive the VS Code UI
-- **Keep Edits click**: `_try_click_keep_edits()` reuses the existing button clicker
-- **Main handler**: `process_finished_panels_with_prompts()` orchestrates the entire flow for each finished panel
-- **State tracking**: Added `seeded_prompt` field to `PanelState` to ensure each finished panel only gets one new prompt
+Confirm that your work targets the correct repo and does not overlap with any in-flight task listed above before proceeding.
 
-## Panel Transcript Snapshots (Dec 11, 2025)
+## Your Repo: contracts
+Owns: JSON Schemas (manifest, bars, L2, gap-opener), JSON-Logic promotion rules, canonical
+  fixtures and checksums, schema versioning and governance
 
-- `automation/panel_tracker.py` now tracks compact `transcript_snapshots` (seed prompts plus the last completion hash/preview) on each `PanelState`. This keeps `panel_state.json` informative without storing full transcripts.
-- Migration steps: no manual edits are required. Existing `panel_state.json` records load with empty `transcript_snapshots`, but you should let the tracker save the file once (run the orchestrator or delete `automation/panel_state.json` to rebuild) so future sessions persist the new field.
-- Privacy guardrails remain enforced. If a completion looks sensitive, only the hash and a `<filtered>` marker are stored in the transcript snapshot.
+  Boundaries (do not cross):
+    * Schemas only — no model training, no execution logic
+    * Every schema change must be backward-compatible or versioned
+    * Changes here affect BOTH TF and Trading — coordinate carefully
 
-### `automation/orchestrator.py`
-- **Import added**: `from automation.panel_tracker import process_finished_panels_with_prompts`
-- **Call added**: After each scan cycle (before sleep), invokes `process_finished_panels_with_prompts(vscode_windows)` to drive finished panels
+## P0 Tasks (highest priority)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P0] [Trading] tf1-l2-depth-delivery-window-20251213: TF1 Level 2 depth delivery window
+  - [P0] [Trading] tf1-gap-opener-migration-20251209: TF_1 gap opener migration
+  - [P0] [Trading] tf1-l2-depth-investigation-followup: TF_1 L2 depth investigation followup
+  - [P0] [Trading] tw-alignment-delivery-20260224: TF_1 alignment 2026-02-19: delivery status and action plan
+  - [P0] [Trading] gateway-api-listener-restore-20260227: Restore IB Gateway API listener ports
+  - [P0] [Trading] raw-bars-manifest-loop-closure-20260227: Close Ask #1 raw bars confirmation loop
+  - [P0] [Trading] production-readiness-staged-path-20260318: Staged production readiness execution
 
-### `automation/config.py`
-- **`ENABLE_FINISHED_PANEL_FOLLOWUPS`**: Master toggle (default: false)
-- **`FINISHED_PANEL_DRY_RUN`**: Dry-run mode (default: false) - logs only, no UI actions
-- **`FINISHED_PANEL_PROMPT_PATH`**: Path to prompt batch file (default: `tasks/generated_prompts/latest.txt`)
-- **`MODEL_PICKER_LABELS`**: Mapping of model keys to UI labels (e.g., `"codex-max"` → `"GPT-5.1-Codex-Max (Preview)"`)
+## In-Progress Tasks (across all repos)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P1] [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [P2] [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
 
-### `tests/test_finished_panel_followups.py`
-- Unit tests covering dry-run and live paths for the target panel "Testing window functionality - desktop-agent-automation"
-- Mocks UI interactions, validates state transitions and seeding logic
+## Coordination Warnings
+  Overlaps:
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] release-owner-seconds-rc-20260318: both touch: seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: paper_trading, seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] inspect-schema-ml-paths-20260209: both touch: contracts_schema
+  - [HIGH] [Trading] release-owner-seconds-rc-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: seconds_model
+  - [HIGH] [Trading] tf1-l2-depth-regression-20260118 OVERLAPS [Trading] tf1-l2-depth-delivery-window-20251213: both touch: l2_orderbook
+  Drifts:
+  - [MEDIUM] [Trading] recapture-l2-shallow-databento-20260122: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] markdownlint-review-20260221: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] tf1-openbid-openask-investigation-20260222: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] backlog-reconciliation-focus-window-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] option-b-default-option-a-rehearsal-plan-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
 
-## Configuration & Usage
+## Instructions for Incoming Agent
+You are taking over the contracts repo panel from a previous agent session.
+Read the above context carefully, then:
+  1. Confirm you understand the North Star goal and your repo boundaries.
+  2. Review the in-progress tasks — pick up where the previous agent left off.
+  3. Check for any coordination warnings and avoid duplicating work.
+  4. Begin with a brief status report: what you know, what you plan to do next.
+  5. Stay strictly within contracts/ — redirect out-of-scope work to the correct repo.
 
-### Environment Variables (PowerShell)
-```powershell
-# Enable finished-panel follow-through (required)
-$env:ENABLE_FINISHED_PANEL_FOLLOWUPS = "true"
 
-# Enable text sending to panels (required, safety gate)
-$env:ENABLE_SEND_TO_INACTIVE_PANELS = "true"
+========================================================================
 
-# Dry-run mode (optional, recommended for first test)
-$env:FINISHED_PANEL_DRY_RUN = "true"  # logs only, no clicks/paste
+# Agent Handover Document
+Generated: 2026-03-21T13:34:14   Repo: TF
 
-# Path to prompt batch (optional, defaults to tasks/generated_prompts/latest.txt)
-$env:FINISHED_PANEL_PROMPT_PATH = "path\to\prompts.txt"
-```
 
-### Safe Testing Workflow
+## North Star Goal
+## NORTH STAR — STAY ON GOAL
 
-1. **Prepare test panel**:
-   - Open VS Code with Copilot chat
-   - Ensure panel title is `Testing window functionality - desktop-agent-automation`
-   - Let the agent finish or manually stop it (no Cancel/Allow visible)
-   - Make sure it's been idle for 30+ minutes or manually mark it as finished in `automation/panel_state.json`
+**Primary goal:** Lead phased execution to reach repeatable seconds-model paper-trading readiness first, then close highest-risk data/infra/contract gaps for hourly/gap reliability, stock-finder progression, and RL offline foundation.
 
-2. **Ensure prompt file exists**:
-   ```powershell
-   # Create test prompt if needed
-   Set-Content -Path "tasks/generated_prompts/latest.txt" -Value "Prompt 1 (Codex Max): Test prompt for verification"
-   ```
+**Work currently in-flight (DO NOT duplicate):**
+  - [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
 
-3. **Run dry-run first**:
-   ```powershell
-   $env:ENABLE_FINISHED_PANEL_FOLLOWUPS = "true"
-   $env:FINISHED_PANEL_DRY_RUN = "true"
-   $env:ENABLE_SEND_TO_INACTIVE_PANELS = "true"
-   python -m automation.orchestrator
-   ```
-   - Watch console for `[PanelTracker][DRY-RUN] Would keep edits, open new chat, and send prompt to: Testing window functionality...`
-   - No UI actions occur, only logging
+**Repo ownership:**
+  - **contracts**: JSON Schemas (manifest, bars, L2, gap-opener); JSON-Logic promotion rules; canonical fixtures and checksums
+  - **TF**: ML model training and evaluation; feature and label engineering; experiment tracking (W&B)
+  - **Trading**: data acquisition and orchestration; IB gateway lifecycle (headless, paper, live); market data pipelines (IBKR, DataBento)
 
-4. **Run live (after dry-run validates)**:
-   ```powershell
-   $env:ENABLE_FINISHED_PANEL_FOLLOWUPS = "true"
-   $env:FINISHED_PANEL_DRY_RUN = "false"  # or omit this line
-   $env:ENABLE_SEND_TO_INACTIVE_PANELS = "true"
-   python -m automation.orchestrator
-   ```
-   - Watch the test panel: should see Keep Edits clicked, New Chat opened, model selected, prompt pasted
-   - Press Ctrl+C to stop after verification
+Confirm that your work targets the correct repo and does not overlap with any in-flight task listed above before proceeding.
 
-### Unit Tests
-```powershell
-python -m pytest tests/test_finished_panel_followups.py -v
-```
+## Your Repo: TF
+Owns: ML model training and evaluation, feature and label engineering, experiment tracking
+  (W&B), model export and manifest generation, data preparation from Trading outputs
 
-## How It Works
+  Boundaries (do not cross):
+    * Stay within TF/ — do NOT write trading execution code
+    * Export models to contracts/ schema format only
+    * Use W&B for all experiment logging
+    * Do NOT commit changes to Trading/ or contracts/ directly
 
-### Flow
-1. **Orchestrator main loop** runs every `MIN_SCAN_INTERVAL_SECONDS` (typically 5s)
-2. **After button scanning**, calls `process_finished_panels_with_prompts(vscode_windows)`
-3. **Panel tracker**:
-   - Loads finished panels (status = FINISHED, idle 30+ min, output unchanged 30+ min)
-   - Filters out panels already seeded (`seeded_prompt = True`)
-   - Loads prompt blocks from `tasks/generated_prompts/latest.txt`
-   - For each finished panel:
-     - In **dry-run mode**: logs what would happen, marks as seeded
-     - In **live mode**:
-       - Clicks Keep Edits (if present)
-       - Opens New Chat
-       - Selects model based on prompt header (e.g., "Codex Max" → `GPT-5.1-Codex-Max (Preview)`)
-       - Pastes prompt via `send_text_to_chat()` (clipboard method)
-       - Marks panel as RUNNING, updates `last_allow_click`, sets `seeded_prompt = True`
+## P0 Tasks (highest priority)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P0] [Trading] tf1-l2-depth-delivery-window-20251213: TF1 Level 2 depth delivery window
+  - [P0] [Trading] tf1-gap-opener-migration-20251209: TF_1 gap opener migration
+  - [P0] [Trading] tf1-l2-depth-investigation-followup: TF_1 L2 depth investigation followup
+  - [P0] [Trading] tw-alignment-delivery-20260224: TF_1 alignment 2026-02-19: delivery status and action plan
+  - [P0] [Trading] gateway-api-listener-restore-20260227: Restore IB Gateway API listener ports
+  - [P0] [Trading] raw-bars-manifest-loop-closure-20260227: Close Ask #1 raw bars confirmation loop
+  - [P0] [Trading] production-readiness-staged-path-20260318: Staged production readiness execution
 
-### Safety Gates
-- **Double flag requirement**: Both `ENABLE_FINISHED_PANEL_FOLLOWUPS` and `ENABLE_SEND_TO_INACTIVE_PANELS` must be true
-- **User text detection**: `send_text_to_chat()` skips panels that already have text in the input box
-- **Once-per-finish**: `seeded_prompt` flag prevents re-seeding the same finished panel
-- **Dry-run mode**: Test without any UI interactions
+## In-Progress Tasks (across all repos)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P1] [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [P2] [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
 
-### Model Selection
-Prompt header is parsed for model hints:
-- `"Grok"` → Grok
-- `"Codex Mini"` or `"codex-mini"` → GPT-5.1 Codex Mini
-- `"Codex Max"` or `"codex-max"` → GPT-5.1-Codex-Max (Preview)
-- `"Codex"` (alone) → GPT-5.1 Codex
+## Coordination Warnings
+  Overlaps:
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] release-owner-seconds-rc-20260318: both touch: seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: paper_trading, seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] inspect-schema-ml-paths-20260209: both touch: contracts_schema
+  - [HIGH] [Trading] release-owner-seconds-rc-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: seconds_model
+  - [HIGH] [Trading] tf1-l2-depth-regression-20260118 OVERLAPS [Trading] tf1-l2-depth-delivery-window-20251213: both touch: l2_orderbook
+  Drifts:
+  - [MEDIUM] [Trading] recapture-l2-shallow-databento-20260122: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] markdownlint-review-20260221: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] tf1-openbid-openask-investigation-20260222: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] backlog-reconciliation-focus-window-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] option-b-default-option-a-rehearsal-plan-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
 
-If no model detected, no model picker click occurs (uses panel's current default).
+## Instructions for Incoming Agent
+You are taking over the TF repo panel from a previous agent session.
+Read the above context carefully, then:
+  1. Confirm you understand the North Star goal and your repo boundaries.
+  2. Review the in-progress tasks — pick up where the previous agent left off.
+  3. Check for any coordination warnings and avoid duplicating work.
+  4. Begin with a brief status report: what you know, what you plan to do next.
+  5. Stay strictly within TF/ — redirect out-of-scope work to the correct repo.
 
-## Known Issues & Limitations
 
-1. **No prompt rotation**: Always uses the first prompt from `latest.txt`. If you want round-robin, implement a prompt queue/index in `PanelState`.
+========================================================================
 
-2. **Model picker UI brittleness**: Relies on exact button name `"Pick Model (Ctrl+Alt+.)"` and menu item names like `"GPT-5.1-Codex-Max (Preview)"`. If VS Code UI changes, update `MODEL_PICKER_LABELS` in config.
+# Agent Handover Document
+Generated: 2026-03-21T13:34:14   Repo: Trading
 
-3. **Window detection**: Only processes VS Code windows found by `find_all_vscode_windows()`. If the test panel is on a different desktop/minimized, it won't be detected.
 
-4. **Panel state persistence**: `automation/panel_state.json` tracks all panels. To reset for testing, delete this file.
+## North Star Goal
+## NORTH STAR — STAY ON GOAL
 
-5. **Lint warnings**: Pre-existing type errors in `panel_tracker.py` for `GetTextPattern`/`GetValuePattern`/`SetActive` (uiautomation stubs incomplete) don't affect runtime.
+**Primary goal:** Lead phased execution to reach repeatable seconds-model paper-trading readiness first, then close highest-risk data/infra/contract gaps for hourly/gap reliability, stock-finder progression, and RL offline foundation.
 
-6. **No repo-root detection for Windows vs WSL yet**: Workspace detection prefers local `docs` folder but doesn't switch between `C:\Users\...\docs` and `\\wsl.localhost\...\docs` based on active window. Current heuristic: uses CWD or env overrides.
+**Work currently in-flight (DO NOT duplicate):**
+  - [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
 
-## Next Steps & Enhancements
+**Repo ownership:**
+  - **contracts**: JSON Schemas (manifest, bars, L2, gap-opener); JSON-Logic promotion rules; canonical fixtures and checksums
+  - **TF**: ML model training and evaluation; feature and label engineering; experiment tracking (W&B)
+  - **Trading**: data acquisition and orchestration; IB gateway lifecycle (headless, paper, live); market data pipelines (IBKR, DataBento)
 
-### Immediate
-- [ ] Validate dry-run on real test panel ("Testing window functionality - desktop-agent-automation")
-- [ ] Test live mode on same panel with a benign prompt
-- [ ] Monitor logs for 5-10 minutes to ensure no false positives
+Confirm that your work targets the correct repo and does not overlap with any in-flight task listed above before proceeding.
 
-### Short-term
-- [ ] Implement prompt queue/round-robin instead of always first prompt
-- [ ] Add repo-root detection from foreground VS Code window title (parse for repo name)
-- [ ] Create `docs/Todo.md` stub in both repos (currently missing)
-- [ ] Add metrics: track seeded prompts, model selections, success rates
+## Your Repo: Trading
+Owns: data acquisition and orchestration, IB gateway lifecycle (headless, paper, live),
+  market data pipelines (IBKR, DataBento), signal consumption and order routing, manifest
+  consumption under TRADING_SYSTEM_DATA
 
-### Medium-term
-- [ ] API call to classify idle panel output as "next steps" vs "truly finished" before seeding
-- [ ] Handle "OK" button after Keep Edits if agent wants confirmation
-- [ ] Retry logic if New Chat fails to open or model picker not found
-- [ ] Better error recovery: if seeding fails, mark panel as needing retry instead of seeded
+  Boundaries (do not cross):
+    * Stay within Trading/ — do NOT train ML models here
+    * Consume model outputs via contracts/ schema interfaces only
+    * All data pipeline changes must preserve contracts/ compatibility
+    * Do NOT import TF training code directly
 
-### Advanced
-- [ ] Multi-repo support: maintain separate prompt batches per repo
-- [ ] Agent assignment tracking: which prompt was sent to which panel
-- [ ] Feedback loop: parse agent response to auto-mark as completed or adjust next prompt
-- [ ] Cost tracking: estimate OpenAI spend from seeded prompts + agent runs
+## P0 Tasks (highest priority)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P0] [Trading] tf1-l2-depth-delivery-window-20251213: TF1 Level 2 depth delivery window
+  - [P0] [Trading] tf1-gap-opener-migration-20251209: TF_1 gap opener migration
+  - [P0] [Trading] tf1-l2-depth-investigation-followup: TF_1 L2 depth investigation followup
+  - [P0] [Trading] tw-alignment-delivery-20260224: TF_1 alignment 2026-02-19: delivery status and action plan
+  - [P0] [Trading] gateway-api-listener-restore-20260227: Restore IB Gateway API listener ports
+  - [P0] [Trading] raw-bars-manifest-loop-closure-20260227: Close Ask #1 raw bars confirmation loop
+  - [P0] [Trading] production-readiness-staged-path-20260318: Staged production readiness execution
 
-## Testing Checklist
+## In-Progress Tasks (across all repos)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P1] [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [P2] [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
 
-- [x] Unit tests pass (`pytest tests/test_finished_panel_followups.py`)
-- [ ] Dry-run logs show correct panel detection
-- [ ] Live mode clicks Keep Edits on test panel
-- [ ] Live mode opens New Chat successfully
-- [ ] Live mode selects correct model (verify in UI after paste)
-- [ ] Live mode pastes prompt without errors
-- [ ] Panel marked as seeded in `panel_state.json`
-- [ ] No duplicate seeding on subsequent scans
-- [ ] User-text detection prevents sends to panels with existing input
+## Coordination Warnings
+  Overlaps:
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] release-owner-seconds-rc-20260318: both touch: seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: paper_trading, seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] inspect-schema-ml-paths-20260209: both touch: contracts_schema
+  - [HIGH] [Trading] release-owner-seconds-rc-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: seconds_model
+  - [HIGH] [Trading] tf1-l2-depth-regression-20260118 OVERLAPS [Trading] tf1-l2-depth-delivery-window-20251213: both touch: l2_orderbook
+  Drifts:
+  - [MEDIUM] [Trading] recapture-l2-shallow-databento-20260122: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] markdownlint-review-20260221: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] tf1-openbid-openask-investigation-20260222: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] backlog-reconciliation-focus-window-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] option-b-default-option-a-rehearsal-plan-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
 
-## Rollback Plan
+## Instructions for Incoming Agent
+You are taking over the Trading repo panel from a previous agent session.
+Read the above context carefully, then:
+  1. Confirm you understand the North Star goal and your repo boundaries.
+  2. Review the in-progress tasks — pick up where the previous agent left off.
+  3. Check for any coordination warnings and avoid duplicating work.
+  4. Begin with a brief status report: what you know, what you plan to do next.
+  5. Stay strictly within Trading/ — redirect out-of-scope work to the correct repo.
 
-If issues arise:
-1. Set `ENABLE_FINISHED_PANEL_FOLLOWUPS=false` to disable entirely
-2. Delete `automation/panel_state.json` to reset tracking
-3. Revert changes to `orchestrator.py`, `panel_tracker.py`, `config.py` via git
 
-## Documentation Updates Needed
+========================================================================
 
-- [ ] Update `README.md` with finished-panel follow-through section
-- [ ] Add environment variable reference table
-- [ ] Document model picker UI dependencies
-- [ ] Add troubleshooting guide for common failures (model picker not found, New Chat doesn't open)
+# Agent Handover Document
+Generated: 2026-03-21T13:34:14   Repo: desktop-agent-automation
 
-## Contact & Context
 
-- **Built**: December 7, 2025
-- **Target panel for testing**: "Testing window functionality - desktop-agent-automation" (Sync Desktop)
-- **Flags default to OFF** for safety
-- **Requires**: `tasks/generated_prompts/latest.txt` to exist with valid prompts
-- **Master prompt system**: Already generates up to 20 task prompts via OpenAI, now consumed by this follow-through
+## North Star Goal
+## NORTH STAR — STAY ON GOAL
+
+**Primary goal:** Lead phased execution to reach repeatable seconds-model paper-trading readiness first, then close highest-risk data/infra/contract gaps for hourly/gap reliability, stock-finder progression, and RL offline foundation.
+
+**Work currently in-flight (DO NOT duplicate):**
+  - [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
+
+**Repo ownership:**
+  - **contracts**: JSON Schemas (manifest, bars, L2, gap-opener); JSON-Logic promotion rules; canonical fixtures and checksums
+  - **TF**: ML model training and evaluation; feature and label engineering; experiment tracking (W&B)
+  - **Trading**: data acquisition and orchestration; IB gateway lifecycle (headless, paper, live); market data pipelines (IBKR, DataBento)
+
+Confirm that your work targets the correct repo and does not overlap with any in-flight task listed above before proceeding.
+
+## Your Repo: desktop-agent-automation
+Automation control plane — orchestrates Copilot agents, panel management, task discovery.
+
+  Boundaries (do not cross):
+    * This is the meta-repo — changes here affect all other agents
+    * Tests must not mutate TF, Trading, or contracts directly
+    * Dry-run flag must default to True in all new tests
+
+## P0 Tasks (highest priority)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P0] [Trading] tf1-l2-depth-delivery-window-20251213: TF1 Level 2 depth delivery window
+  - [P0] [Trading] tf1-gap-opener-migration-20251209: TF_1 gap opener migration
+  - [P0] [Trading] tf1-l2-depth-investigation-followup: TF_1 L2 depth investigation followup
+  - [P0] [Trading] tw-alignment-delivery-20260224: TF_1 alignment 2026-02-19: delivery status and action plan
+  - [P0] [Trading] gateway-api-listener-restore-20260227: Restore IB Gateway API listener ports
+  - [P0] [Trading] raw-bars-manifest-loop-closure-20260227: Close Ask #1 raw bars confirmation loop
+  - [P0] [Trading] production-readiness-staged-path-20260318: Staged production readiness execution
+
+## In-Progress Tasks (across all repos)
+  - [P0] [Trading] seconds-paper-prod-readiness-20260318: Drive production-ready seconds paper trading
+  - [P0] [Trading] release-owner-seconds-rc-20260318: Drive seconds-model release-owner path
+  - [P0] [Trading] tf1-l2-depth-regression-20260118: Fix: L2 depth regression (missing levels)
+  - [P0] [Trading] oom-crash-investigation-20260319: Investigate repeated OOM crashes
+  - [P1] [Trading] recapture-l2-shallow-databento-20260122: Recapture shallow L2 files via DataBento
+  - [P2] [Trading] hourly-bars-databento-fallback-20260123: Hourly bars DataBento fallback
+
+## Coordination Warnings
+  Overlaps:
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] release-owner-seconds-rc-20260318: both touch: seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: paper_trading, seconds_model
+  - [HIGH] [Trading] seconds-paper-prod-readiness-20260318 OVERLAPS [Trading] inspect-schema-ml-paths-20260209: both touch: contracts_schema
+  - [HIGH] [Trading] release-owner-seconds-rc-20260318 OVERLAPS [Trading] production-readiness-staged-path-20260318: both touch: seconds_model
+  - [HIGH] [Trading] tf1-l2-depth-regression-20260118 OVERLAPS [Trading] tf1-l2-depth-delivery-window-20251213: both touch: l2_orderbook
+  Drifts:
+  - [MEDIUM] [Trading] recapture-l2-shallow-databento-20260122: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] markdownlint-review-20260221: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] tf1-openbid-openask-investigation-20260222: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] backlog-reconciliation-focus-window-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+  - [MEDIUM] [Trading] option-b-default-option-a-rehearsal-plan-20260214: no keywords matching current North Star goal (score=0.00). Verify this task actually advances: "Lead phased execution to reach repeatable seconds-model paper-trading readiness "
+
+## Recent Panel Activity (transcript snippet)
+  > Agent Panel Coordination and Management Strategy - desktop-agent-automation - Visual Studio Code Agent Panel Coordinatio
+
+## Instructions for Incoming Agent
+You are taking over the desktop-agent-automation repo panel from a previous agent session.
+Read the above context carefully, then:
+  1. Confirm you understand the North Star goal and your repo boundaries.
+  2. Review the in-progress tasks — pick up where the previous agent left off.
+  3. Check for any coordination warnings and avoid duplicating work.
+  4. Begin with a brief status report: what you know, what you plan to do next.
+  5. Stay strictly within desktop-agent-automation/ — redirect out-of-scope work to the correct repo.
+
+
+========================================================================

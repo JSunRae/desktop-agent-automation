@@ -248,6 +248,15 @@ ENABLE_PANEL_HEALTH_CHECK_SCHEDULING = os.environ.get("ENABLE_PANEL_HEALTH_CHECK
 PANEL_HEALTH_CHECK_INTERVAL_MINUTES = int(os.environ.get("PANEL_HEALTH_CHECK_INTERVAL_MINUTES", "60"))
 PANEL_HEALTH_STALE_DAYS = int(os.environ.get("PANEL_HEALTH_STALE_DAYS", "7"))
 
+# Feature toggle: Periodically run panel inspection suites while automation is active.
+# Default is safe/off. When enabled, panel_inspect runs dry-run unless --live-click
+# is passed explicitly in direct command usage.
+ENABLE_PANEL_INSPECT_SCHEDULING = os.environ.get("ENABLE_PANEL_INSPECT_SCHEDULING", "false").lower() == "true"
+PANEL_INSPECT_INTERVAL_MINUTES = int(os.environ.get("PANEL_INSPECT_INTERVAL_MINUTES", "30"))
+PANEL_INSPECT_TIMEOUT_SECONDS = int(os.environ.get("PANEL_INSPECT_TIMEOUT_SECONDS", "120"))
+PANEL_INSPECT_SCHEDULE_SUITE = os.environ.get("PANEL_INSPECT_SCHEDULE_SUITE", "scan").strip().lower()
+PANEL_INSPECT_TARGET_REPO = os.environ.get("PANEL_INSPECT_TARGET_REPO", "desktop-agent-automation").strip()
+
 # Dry-run mode for finished panel follow-ups (log only, no UI sends)
 FINISHED_PANEL_DRY_RUN = os.environ.get("FINISHED_PANEL_DRY_RUN", "false").lower() == "true"
 
@@ -521,6 +530,24 @@ CROSS_REPO_TODO_REPO_OVERRIDES: Dict[str, Path] = _parse_repo_root_overrides(
     os.environ.get("CROSS_REPO_TODO_REPO_OVERRIDES", "")
 )
 
+# Auto-populate the three trading-system repos when no explicit overrides are set.
+# This ensures the cross-repo TODO scanner always discovers Trading, TF, and contracts
+# without requiring manual env var configuration.
+if not CROSS_REPO_TODO_REPO_OVERRIDES and not os.environ.get("CROSS_REPO_TODO_REPO_OVERRIDES"):
+    _ts_root_for_todo = Path(
+        os.environ.get(
+            "TRADING_SYSTEM_ROOT_WIN",
+            r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system",
+        )
+    )
+    CROSS_REPO_TODO_REPO_OVERRIDES = {
+        "Trading": _ts_root_for_todo / "Trading",
+        "TF": _ts_root_for_todo / "TF",
+        "contracts": _ts_root_for_todo / "contracts",
+        "trading-system": _ts_root_for_todo,
+        "desktop-agent-automation": Path(__file__).parent.parent,
+    }
+
 
 # ============================================================================
 # TASK DISCOVERY DAEMON CONFIGURATION
@@ -665,18 +692,47 @@ MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
 # PATH CONFIGURATION
 # ============================================================================
 
+# Root of the trading-system monorepo on WSL (shared by TF, contracts, Trading)
+# Override via env var for non-standard installations.
+_DEFAULT_TRADING_SYSTEM_ROOT = r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system"
+TRADING_SYSTEM_ROOT: Path = Path(
+    os.environ.get("TRADING_SYSTEM_ROOT_WIN", _DEFAULT_TRADING_SYSTEM_ROOT)
+)
+
+# Per-repo roots within TRADING_SYSTEM_ROOT
+TRADING_REPO_ROOT: Path = Path(os.environ.get("TRADING_REPO_ROOT", str(TRADING_SYSTEM_ROOT / "Trading")))
+TF_REPO_ROOT: Path = Path(os.environ.get("TF_REPO_ROOT", str(TRADING_SYSTEM_ROOT / "TF")))
+CONTRACTS_REPO_ROOT: Path = Path(os.environ.get("CONTRACTS_REPO_ROOT", str(TRADING_SYSTEM_ROOT / "contracts")))
+
 # ============================================================================
-# MASTER AGENT CONFIGURATION
+# NORTH STAR / COORDINATION CONFIGURATION
 # ============================================================================
 
-MASTER_AGENT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-4o-mini")
-MASTER_AGENT_MAX_DOCS = int(os.environ.get("MASTER_AGENT_MAX_DOCS", "18"))
-MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
+# Enable the North Star context injection into generated prompts.
+# When enabled, every prompt is prefixed with the primary goal and active in-flight tasks.
+NORTH_STAR_ENABLED: bool = os.environ.get("NORTH_STAR_ENABLED", "true").lower() == "true"
+
+# Enable the CoordinationGuard pre-dispatch check.
+# Detects overlaps, drift, and boundary violations before a prompt is sent.
+COORDINATION_GUARD_ENABLED: bool = os.environ.get("COORDINATION_GUARD_ENABLED", "true").lower() == "true"
+
+# Block dispatch when CoordinationGuard detects an in-progress overlap.
+# Default False = warn only; set True to hard-block.
+COORDINATION_GUARD_BLOCK_OVERLAPS: bool = (
+    os.environ.get("COORDINATION_GUARD_BLOCK_OVERLAPS", "false").lower() == "true"
+)
+
+# How many seconds to cache the North Star / LedgerReport before refreshing.
+NORTH_STAR_CACHE_TTL_SECONDS: int = int(os.environ.get("NORTH_STAR_CACHE_TTL_SECONDS", "300"))
+
+# ============================================================================
+# MASTER AGENT PATH CONFIGURATION
+# ============================================================================
 
 WSL_DOCS_ROOT = Path(
     os.environ.get(
         "MASTER_AGENT_DOCS_ROOT",
-        r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\tf_1\docs",
+        str(TRADING_SYSTEM_ROOT / "Trading" / "docs"),
     )
 )
 

@@ -1,6 +1,7 @@
 """Integration tests for the Copilot usage monitor."""
 
 import json
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List
@@ -88,3 +89,26 @@ def test_monitor_logs_alert_when_ahead_of_schedule(tmp_path: Path):
 
     record = _read_last_record(metrics_path)
     assert record["details"]["alert"] == snapshot.alert
+
+
+def test_monitor_start_and_stop_poll_in_background(tmp_path: Path):
+    fixed_time = datetime(2025, 12, 16, 12, 0, 0)
+    root = DummyControl("Root")
+
+    metrics_path = tmp_path / "copilot_cost_background.jsonl"
+    tracker = CostTracker(metrics_path=metrics_path)
+    monitor = CopilotUsageMonitor(
+        root_provider=lambda: root,  # type: ignore[return-value]
+        cost_tracker=tracker,
+        time_provider=lambda: fixed_time,
+        interval_seconds=0.05,
+    )
+
+    monitor.start()
+    time.sleep(0.16)
+    monitor.stop()
+
+    with metrics_path.open("r", encoding="utf-8") as fp:
+        lines = [line.strip() for line in fp if line.strip()]
+
+    assert len(lines) >= 2

@@ -49,7 +49,8 @@ The prompt only needs to specify:
 ## Implementation Notes
 
 ### Model Usage
-- Model: `computer-use-preview` (via Responses API)
+- Primary model: `AUTO_ALLOW_COMPUTER_USE_MODEL` (default `computer-use-preview`, via Responses API)
+- Fallback model: `AUTO_ALLOW_VISION_FALLBACK_MODEL` (default `gpt-4o`, via Chat Completions API)
 - **NOT** using Chat Completions API
 - Requires the `computer_use_preview` tool configuration
 
@@ -57,7 +58,7 @@ The prompt only needs to specify:
 Each API call uses the **Responses API** format:
 ```python
 response = client.responses.create(
-    model="computer-use-preview",
+    model=AUTO_ALLOW_COMPUTER_USE_MODEL,
     tools=[{
         "type": "computer_use_preview",
         "display_width": <screen_width>,

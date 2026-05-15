@@ -1,3 +1,0 @@
-{"timestamp": "2025-12-11T19:31:28.427772", "prompt_id": "abc123", "panel_id": "panel1", "panel_title": "Test Panel 1 - my-repo - Visual Studio Code", "repo": "my-repo", "outcome": "success"}
-{"timestamp": "2025-12-11T19:31:28.428272", "prompt_id": "def456", "panel_id": "panel2", "panel_title": "Test Panel 2 - other-repo - Visual Studio Code", "repo": "other-repo", "outcome": "failure"}
-{"timestamp": "2025-12-11T19:31:28.428772", "prompt_id": "abc123", "panel_id": "panel3", "panel_title": "Test Panel 3 - my-repo - Visual Studio Code", "repo": "my-repo", "outcome": null}

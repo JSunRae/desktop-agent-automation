@@ -71,6 +71,12 @@ def load_registry(path: Path | None = None) -> ManagedWorkspaceRegistry:
         loop_retry_limit=int(raw_constraints.get("loop_retry_limit", 3)),
         respect_repo_boundaries=bool(raw_constraints.get("respect_repo_boundaries", True)),
         prefer_structured_sources=bool(raw_constraints.get("prefer_structured_sources", True)),
+        pilot_allowlist_enabled=bool(raw_constraints.get("pilot_allowlist_enabled", False)),
+        pilot_allowed_task_classes=_ensure_list_str(raw_constraints.get("pilot_allowed_task_classes")),
+        pilot_allowed_categories=_ensure_list_str(raw_constraints.get("pilot_allowed_categories")),
+        pilot_allowed_severities=_ensure_list_str(raw_constraints.get("pilot_allowed_severities")),
+        pilot_allowed_sources=_ensure_list_str(raw_constraints.get("pilot_allowed_sources")),
+        pilot_blocked_title_terms=_ensure_list_str(raw_constraints.get("pilot_blocked_title_terms")),
     )
 
     repos_raw = payload.get("repos") if isinstance(payload.get("repos"), list) else []

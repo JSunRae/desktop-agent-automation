@@ -6,19 +6,167 @@ Provides functions to find VS Code windows and manage their priority.
 
 from __future__ import annotations
 
-from typing import List, TYPE_CHECKING
+import ctypes
+from ctypes import wintypes
+from typing import TYPE_CHECKING, Any, Dict, List
 
 import uiautomation as auto
 
 from automation.config import (
-    VSCODE_TITLE_SUFFIX,
     WINDOW_PRIORITY_PATTERNS,
 )
-
 from automation.title_parsing import is_vscode_window_title
 
 if TYPE_CHECKING:
     pass
+
+
+_DWMWA_CLOAKED = 14
+
+
+def _safe_window_text(user32: Any, hwnd: int) -> str:
+    length = int(user32.GetWindowTextLengthW(hwnd))
+    if length <= 0:
+        return ""
+    buffer = ctypes.create_unicode_buffer(length + 1)
+    user32.GetWindowTextW(hwnd, buffer, length + 1)
+    return str(buffer.value or "")
+
+
+def _safe_class_name(user32: Any, hwnd: int) -> str:
+    buffer = ctypes.create_unicode_buffer(256)
+    copied = int(user32.GetClassNameW(hwnd, buffer, 256))
+    if copied <= 0:
+        return ""
+    return str(buffer.value or "")
+
+
+def _safe_cloaked_state(dwmapi: Any, hwnd: int) -> tuple[bool, int | None]:
+    if dwmapi is None:
+        return False, None
+    cloaked = ctypes.c_int(0)
+    result = int(
+        dwmapi.DwmGetWindowAttribute(
+            wintypes.HWND(hwnd),
+            ctypes.c_uint(_DWMWA_CLOAKED),
+            ctypes.byref(cloaked),
+            ctypes.sizeof(cloaked),
+        )
+    )
+    if result != 0:
+        return False, None
+    value = int(cloaked.value)
+    return value != 0, value
+
+
+def enumerate_vscode_windows_win32(max_windows: int = 300) -> Dict[str, Any]:
+    """
+    Enumerate top-level windows via Win32 and expose VS Code diagnostics.
+
+    This is diagnostics-only and does not change dispatch eligibility decisions.
+    """
+    diagnostics: Dict[str, Any] = {
+        "schema": "vscode_window_enum_win32_v1",
+        "backend": "EnumWindows",
+        "max_windows": max(50, int(max_windows or 0)),
+        "windows": [],
+        "summary": {
+            "top_level_considered": 0,
+            "vscode_title_matches": 0,
+            "vscode_visible": 0,
+            "vscode_invisible": 0,
+            "vscode_cloaked": 0,
+            "vscode_minimized": 0,
+            "cloaking_supported": False,
+            "enumeration_truncated": False,
+        },
+    }
+
+    try:
+        user32 = ctypes.windll.user32
+    except Exception as exc:
+        diagnostics["error"] = f"user32_unavailable:{exc}"
+        return diagnostics
+
+    dwmapi = None
+    try:
+        dwmapi = ctypes.windll.dwmapi
+        diagnostics["summary"]["cloaking_supported"] = hasattr(dwmapi, "DwmGetWindowAttribute")
+    except Exception:
+        dwmapi = None
+
+    user32.IsWindowVisible.argtypes = [wintypes.HWND]
+    user32.IsWindowVisible.restype = wintypes.BOOL
+    user32.IsIconic.argtypes = [wintypes.HWND]
+    user32.IsIconic.restype = wintypes.BOOL
+    user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
+    user32.GetWindowTextLengthW.restype = ctypes.c_int
+    user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user32.GetWindowTextW.restype = ctypes.c_int
+    user32.GetClassNameW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+    user32.GetClassNameW.restype = ctypes.c_int
+
+    cap = diagnostics["max_windows"]
+
+    @ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    def _enum_proc(hwnd: int, _lparam: int) -> bool:
+        windows = diagnostics["windows"]
+        if len(windows) >= cap:
+            diagnostics["summary"]["enumeration_truncated"] = True
+            return False
+
+        title = _safe_window_text(user32, hwnd)
+        class_name = _safe_class_name(user32, hwnd)
+        is_visible = bool(user32.IsWindowVisible(hwnd))
+        is_minimized = bool(user32.IsIconic(hwnd))
+        is_cloaked, cloaked_raw = _safe_cloaked_state(dwmapi, hwnd)
+        is_vscode = bool(title and is_vscode_window_title(title))
+
+        if not is_vscode:
+            reason = "excluded_non_vscode_title"
+        elif is_cloaked:
+            reason = "included_vscode_cloaked_possible_off_desktop"
+        elif not is_visible:
+            reason = "included_vscode_invisible"
+        elif is_minimized:
+            reason = "included_vscode_minimized"
+        else:
+            reason = "included_vscode_visible"
+
+        row = {
+            "window_id": f"hwnd:{int(hwnd)}",
+            "hwnd": int(hwnd),
+            "title": title,
+            "class_name": class_name,
+            "is_vscode_title_match": is_vscode,
+            "is_visible": is_visible,
+            "is_minimized": is_minimized,
+            "is_cloaked": is_cloaked,
+            "cloaked_raw": cloaked_raw,
+            "inclusion_reason": reason,
+        }
+        windows.append(row)
+
+        diagnostics["summary"]["top_level_considered"] += 1
+        if is_vscode:
+            diagnostics["summary"]["vscode_title_matches"] += 1
+            if is_visible:
+                diagnostics["summary"]["vscode_visible"] += 1
+            else:
+                diagnostics["summary"]["vscode_invisible"] += 1
+            if is_minimized:
+                diagnostics["summary"]["vscode_minimized"] += 1
+            if is_cloaked:
+                diagnostics["summary"]["vscode_cloaked"] += 1
+        return True
+
+    try:
+        user32.EnumWindows(_enum_proc, 0)
+    except Exception as exc:
+        diagnostics["error"] = f"enumwindows_failed:{exc}"
+        return diagnostics
+
+    return diagnostics
 
 
 def find_all_vscode_windows(timeout: float = 0.5) -> List[auto.Control]:
@@ -138,7 +286,7 @@ def is_live_panel_window(window: auto.Control) -> bool:
         True if this window should be prioritized for scanning
     """
     try:
-        from automation.panel_tracker import get_tracker, PanelStatus
+        from automation.panel_tracker import PanelStatus, get_tracker
         
         title = (window.Name or "")
         tracker = get_tracker()

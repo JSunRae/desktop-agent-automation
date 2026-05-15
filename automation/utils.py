@@ -2,10 +2,12 @@
 Shared utility functions for Desktop Agent Automation.
 """
 
-import os
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+
 
 def ensure_log_file(log_path: Path) -> None:
     """Create log file if it doesn't exist."""
@@ -30,8 +32,8 @@ def log_message(message: str, log_path: Optional[Path] = None, print_to_console:
         log_path: Optional path to the log file. If None, only prints to console.
         print_to_console: Whether to print the message to stdout.
     """
-    import traceback
     import sys
+    import traceback
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     log_line = f"[{timestamp}] {message}"
@@ -51,3 +53,18 @@ def log_message(message: str, log_path: Optional[Path] = None, print_to_console:
             # Catch any other unexpected errors
             print(f"Unexpected error writing to log file {log_path}: {e}", file=sys.stderr)
             traceback.print_exc(file=sys.stderr)
+
+
+def probe_wsl_path(path: Path, timeout_seconds: float = 3.0) -> bool:
+    """Return whether a path exists, bounded by a timeout for flaky UNC/WSL probes."""
+    executor = ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(path.exists)
+    try:
+        return bool(future.result(timeout=timeout_seconds))
+    except FutureTimeoutError:
+        future.cancel()
+        return False
+    except OSError:
+        return False
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)

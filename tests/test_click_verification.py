@@ -1,11 +1,16 @@
 import unittest
+from datetime import datetime
 from unittest import mock
 
-from automation.ui import button_clicker as automation
 from automation.rate_limit import detector
+from automation.ui import button_clicker as automation
 
 
 class ClickVerificationTests(unittest.TestCase):
+    def tearDown(self):
+        automation._try_again_cooldown_until = datetime.min
+        automation._reset_try_again_rate_limit_state()
+
     def _make_control(self):
         return mock.Mock()
 
@@ -76,6 +81,80 @@ class ClickVerificationTests(unittest.TestCase):
 
         self.assertEqual(counts["try_again"], 0)
         self.assertEqual(counts["panels"], 0)
+
+    def test_determine_try_again_cooldown_end_uses_hours_from_message(self):
+        now = datetime(2026, 4, 27, 10, 15, 0)
+
+        deadline, reason = automation._determine_try_again_cooldown_end(
+            "You have exceeded your usage limit. Try again in 5 hours.",
+            now,
+        )
+
+        self.assertEqual(deadline, datetime(2026, 4, 27, 15, 15, 0))
+        self.assertEqual(reason, "5 hour rate limit")
+
+    def test_determine_try_again_cooldown_end_supports_word_numbers(self):
+        now = datetime(2026, 4, 27, 10, 15, 0)
+
+        deadline, reason = automation._determine_try_again_cooldown_end(
+            "Please wait one hour before trying again.",
+            now,
+        )
+
+        self.assertEqual(deadline, datetime(2026, 4, 27, 11, 15, 0))
+        self.assertEqual(reason, "1 hour rate limit")
+
+    def test_determine_try_again_cooldown_end_weekly_limit_waits_until_local_1am(self):
+        now = datetime(2026, 4, 27, 14, 30, 0)
+
+        deadline, reason = automation._determine_try_again_cooldown_end(
+            "Weekly usage limit reached. Please try again next week.",
+            now,
+        )
+
+        self.assertEqual(deadline, datetime(2026, 4, 28, 1, 0, 0))
+        self.assertEqual(reason, "weekly rate limit; next probe at local 1am")
+
+    def test_determine_try_again_cooldown_end_weekly_followup_uses_four_hour_cadence(self):
+        first_now = datetime(2026, 4, 27, 14, 30, 0)
+        second_now = datetime(2026, 4, 28, 1, 5, 0)
+
+        automation._determine_try_again_cooldown_end(
+            "Weekly usage limit reached. Please try again next week.",
+            first_now,
+        )
+        deadline, reason = automation._determine_try_again_cooldown_end(
+            "Weekly usage limit reached. Please try again next week.",
+            second_now,
+        )
+
+        self.assertEqual(deadline, datetime(2026, 4, 28, 5, 0, 0))
+        self.assertEqual(reason, "weekly rate limit; probing every 4 hours")
+
+    @mock.patch("automation.ui.button_clicker.datetime", autospec=True)
+    @mock.patch("automation.core.audio.speak", autospec=True)
+    @mock.patch("automation.rate_limit.cooldown.set_cooldown_end", autospec=True)
+    @mock.patch("automation.rate_limit.cooldown.start_cooldown", autospec=True)
+    def test_trigger_rate_limit_cooldown_uses_parsed_message(
+        self,
+        mock_start_cooldown,
+        mock_set_cooldown_end,
+        mock_speak,
+        mock_datetime,
+    ):
+        now = datetime(2026, 4, 27, 10, 0, 0)
+        mock_datetime.now.return_value = now
+        mock_datetime.min = datetime.min
+
+        automation.trigger_rate_limit_cooldown(
+            "Trading - Visual Studio Code",
+            "You have exceeded your usage limit. Try again in 5 hours.",
+        )
+
+        self.assertEqual(automation._try_again_cooldown_until, datetime(2026, 4, 27, 15, 0, 0))
+        mock_start_cooldown.assert_called_once()
+        mock_set_cooldown_end.assert_called_once_with(datetime(2026, 4, 27, 15, 0, 0))
+        mock_speak.assert_called_once_with("Rate limited. 5 hour rate limit.")
 
 
 if __name__ == "__main__":

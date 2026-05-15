@@ -22,12 +22,20 @@ As soon as a source yields configs, later fallbacks are skipped. This guarantees
 
 ### Environment Variable Format
 
-`MASTER_AGENT_REPO_CONFIGS` accepts JSON or a semicolon-delimited string:
+`MASTER_AGENT_REPO_CONFIGS` accepts JSON or a semicolon-delimited string. JSON is the safer operator format because it supports `repo_root` and mixed file or directory sources per repo:
 
 ```json
 [
-  {"name": "repo1", "docs_dirs": ["/path/to/repo1/docs", "/path/to/repo1/docs/open_tasks"]},
-  {"name": "repo2", "docs_dirs": ["/path/to/repo2/docs"]}
+  {
+    "name": "repo1",
+    "repo_root": "/path/to/repo1",
+    "docs_dirs": ["/path/to/repo1/docs", "/path/to/repo1/docs/open_tasks"]
+  },
+  {
+    "name": "repo2",
+    "repo_root": "/path/to/repo2",
+    "docs_dirs": ["/path/to/repo2/README.md", "/path/to/repo2/schemas"]
+  }
 ]
 ```
 
@@ -62,6 +70,51 @@ If a repo feed is missing and fallback is disabled, the dispatcher logs the expe
 - **Single repo** – no changes needed; defaults continue to work.
 - **Multiple repos** – set `MASTER_AGENT_REPO_CONFIGS` and ensure each repo's docs are reachable locally. Run `python -m automation.master_prompt_orchestrator --repos repoA=/path/to/docsA repoB=/path/to/docsB` for ad-hoc generation.
 - **Auto-discover siblings** – enable the cross-repo Todo service (`CROSS_REPO_TODO_ENABLED=true`) and keep the cache fresh; the orchestrator will reuse the snapshot to build prompt batches without extra configuration.
+
+### Contracts-only override
+
+If only `contracts` has a nonstandard layout, do not change `TRADING_SYSTEM_ROOT_WIN`. That changes the default root for `contracts`, `TF`, and `Trading` together. Use `MASTER_AGENT_REPO_CONFIGS` and declare all three repos explicitly so only `contracts` is redirected.
+
+Validated PowerShell example:
+
+```powershell
+$env:MASTER_AGENT_REPO_CONFIGS = @'
+[
+  {
+    "name": "contracts",
+    "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts",
+    "docs_dirs": [
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\README.md",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\contracts",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\schemas",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\rules",
+      "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\data_formats"
+    ],
+    "role": "source of truth"
+  },
+  {
+    "name": "TF",
+    "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF",
+    "docs_dirs": ["\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF\\docs"],
+    "role": "upstream framework"
+  },
+  {
+    "name": "Trading",
+    "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\Trading",
+    "docs_dirs": ["\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\Trading\\docs"],
+    "role": "downstream live system"
+  }
+]
+'@
+```
+
+Validation command:
+
+```powershell
+python -m automation.master_prompt_orchestrator --readiness-check --json
+```
+
+Expected result: `contracts`, `TF`, and `Trading` all report `live_ready`.
 
 ## Troubleshooting
 

@@ -11,7 +11,7 @@ several helper names remain defined here and are used via late binding.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, cast
 
 # ---------------------------------------------------------------------------
 # Optional OpenAI dependency (tests monkeypatch `openai_module`).
@@ -34,41 +34,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from automation import prompt_resolver  # noqa: E402
 from automation.config import (  # noqa: E402
-    ENABLE_CLIPBOARD_TEXT_READING,
     ENABLE_FINISHED_PANEL_FOLLOWUPS,
-    ENABLE_KEEP_EDITS_CONFIRMATION,
-    ENABLE_NEW_CHAT_RETRY,
-    ENABLE_ROBUST_PANEL_PROCESSING,
     ENABLE_SEND_TO_INACTIVE_PANELS,
     FINISHED_PANEL_DRY_RUN,
     FINISHED_PANEL_PROMPT_PATH,
-    FINISHED_PANEL_REVIEW_BACKOFF_SECONDS,
-    FINISHED_PANEL_REVIEW_MAX_RETRIES,
-    FINISHED_PANEL_REVIEW_MODEL,
-    FINISHED_PANEL_REVIEW_TEMPERATURE,
-    FINISHED_PANEL_REVIEW_TRANSCRIPT_CHARS,
-    MODEL_PICKER_LABELS,
-    REPO_PROMPT_MAP,
-    VSCODE_TITLE_SUFFIX,
+    PANEL_CLASSIFICATION_MODEL,
 )
-
 from automation.cost_tracker import get_cost_tracker  # noqa: E402
 from automation.metrics import get_metrics_tracker  # noqa: E402
-from automation import prompt_resolver  # noqa: E402
 from automation.panel_task_dispatcher import (  # noqa: E402
-    ASSIGNED_PROMPT_ID_LEN,
-    ASSIGNED_PROMPT_PREVIEW_CHARS,
-    DEFAULT_REPO_PROMPT_KEY,
     compute_prompt_identifier as dispatcher_compute_prompt_identifier,
+)
+from automation.panel_task_dispatcher import (
     detect_model_label as dispatcher_detect_model_label,
-    get_repo_prompt_cache_key,
-    get_task_panel_dispatcher,
+)
+from automation.panel_task_dispatcher import (
     load_prompt_blocks as dispatcher_load_prompt_blocks,
+)
+from automation.panel_task_dispatcher import (
     load_prompt_blocks_for_repo as dispatcher_load_prompt_blocks_for_repo,
+)
+from automation.panel_task_dispatcher import (
     preview_prompt_text as dispatcher_preview_prompt_text,
 )
-from automation.response_parser import ResponseCategory, classify_response  # noqa: E402
 
 if TYPE_CHECKING:  # pragma: no cover
     import uiautomation as auto
@@ -77,43 +67,35 @@ if TYPE_CHECKING:  # pragma: no cover
 # Re-exported state + core tracking
 # ---------------------------------------------------------------------------
 
-from automation.panel_state import (  # noqa: E402
-    IdleReason,
-    PanelState,
-    PanelStatus,
-    TranscriptSnapshot,
-    TRANSCRIPT_FILTER_PLACEHOLDER,
-    TRANSCRIPT_HASH_LEN,
-    TRANSCRIPT_KIND_COMPLETION,
-    TRANSCRIPT_KIND_REVIEW,
-    TRANSCRIPT_KIND_SEED_PROMPT,
-    TRANSCRIPT_MAX_SNAPSHOTS,
-    TRANSCRIPT_PREVIEW_CHARS,
-    extract_repo_name_from_title,
-)
-
-from automation.panel_tracker_core import (  # noqa: E402
-    DEFAULT_PANEL_STATE_PATH,
-    OUTPUT_SAMPLE_CHARS,
-    PANEL_FINISHED_THRESHOLD_MINUTES,
-    PANEL_IDLE_THRESHOLD_MINUTES,
-    PANEL_STALE_THRESHOLD_MINUTES,
-    PanelTracker,
-)
+# Share the same user-text guard set name as the legacy module.
+from automation import panel_ui as _panel_ui  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Re-exported UI + detection helpers
 # ---------------------------------------------------------------------------
-
 from automation.panel_detection import (  # noqa: E402
     detect_idle_reason,
     detect_panel_running_state,
     detect_panel_state_detailed,
     get_comprehensive_panel_state,
 )
-
+from automation.panel_state import (  # noqa: E402
+    TRANSCRIPT_FILTER_PLACEHOLDER,
+    TRANSCRIPT_KIND_COMPLETION,
+    TRANSCRIPT_KIND_SEED_PROMPT,
+    TRANSCRIPT_MAX_SNAPSHOTS,
+    IdleReason,
+    PanelState,
+    PanelStatus,
+    TranscriptSnapshot,
+    extract_repo_name_from_title,
+)
+from automation.panel_tracker_core import (  # noqa: E402
+    PanelTracker,
+)
 from automation.panel_ui import (  # noqa: E402
     _check_editor_has_text_via_clipboard,
+    _get_chat_input_via_clipboard,
     _get_clipboard_text,
     _set_clipboard_text,
     find_chat_editor_control,
@@ -121,12 +103,8 @@ from automation.panel_ui import (  # noqa: E402
     find_send_button,
     get_chat_input_text,
     get_panel_output_text,
-    iter_controls,
     send_text_to_chat,
 )
-
-# Share the same user-text guard set name as the legacy module.
-from automation import panel_ui as _panel_ui  # noqa: E402
 
 _panels_with_user_text = _panel_ui._panels_with_user_text
 
@@ -162,6 +140,28 @@ def _resolve_prompt_path_for_repo(repo_name: Optional[str]) -> Path:
 def resolve_prompt_path_for_window(window_title: str) -> Path:
     """Resolve which prompt feed path to use for a VS Code window title."""
     return prompt_resolver.resolve_prompt_path_for_window_title(window_title)
+
+
+def get_task_panel_dispatcher():
+    from automation.panel_task_dispatcher import get_task_panel_dispatcher as _get_task_panel_dispatcher
+
+    return _get_task_panel_dispatcher()
+
+
+def get_workstream_coordinator():
+    from automation.workstream_coordination import get_workstream_coordinator as _get_workstream_coordinator
+
+    return _get_workstream_coordinator()
+
+
+def apply_workstream_chat_policy(*, tracker: Any, panel: PanelState, assignment_prompt: str):
+    from automation.workstream_coordination import apply_workstream_chat_policy as _apply_workstream_chat_policy
+
+    return _apply_workstream_chat_policy(
+        tracker=tracker,
+        panel=panel,
+        assignment_prompt=assignment_prompt,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ AWAITING_USER: The agent is waiting for user input or clarification.
 
 Respond with ONLY the classification category name, no explanation."""
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=PANEL_CLASSIFICATION_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Panel output:\n{text_to_analyze}"},
@@ -265,7 +265,7 @@ Respond with ONLY the classification category name, no explanation."""
                 cost_tracker.record_text_usage(
                     source="panel_tracker",
                     event="panel_classification",
-                    model="gpt-4o-mini",
+                    model=PANEL_CLASSIFICATION_MODEL,
                     usage=response.usage,
                     details={"classification": classification},
                 )

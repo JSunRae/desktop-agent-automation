@@ -30,6 +30,7 @@ from automation.master_prompt_orchestrator import (
     RepositoryAnalysis,
     RepositoryAnalyzer,
 )
+from automation.north_star import ActiveTask, NorthStarContext, RepoRole
 
 
 def _doc_slice(content: str, path: Path | None = None, repo_name: str = "demo") -> DocumentSlice:
@@ -107,6 +108,40 @@ def _prepare_repo(tmp_path: Path, repo_name: str = "demo") -> tuple[RepoConfig, 
     (docs_dir / "Todo.md").write_text("- [ ] Fix bug", encoding="utf-8")
     repo_config = RepoConfig(name=repo_name, docs_dirs=[docs_dir])
     return repo_config, docs_dir
+
+
+def _north_star_context(*active_tasks: ActiveTask) -> NorthStarContext:
+    repo_roles = {
+        "contracts": RepoRole(
+            name="contracts",
+            owns=["schemas", "rules", "fixtures"],
+            must_not_do=["model code", "trading code"],
+            depends_on=[],
+            depended_on_by=["TF", "Trading"],
+        ),
+        "TF": RepoRole(
+            name="TF",
+            owns=["training", "features", "model export"],
+            must_not_do=["order execution", "schema changes"],
+            depends_on=["contracts"],
+            depended_on_by=["Trading"],
+        ),
+        "Trading": RepoRole(
+            name="Trading",
+            owns=["execution", "routing", "market data"],
+            must_not_do=["training", "schema changes"],
+            depends_on=["contracts", "TF"],
+            depended_on_by=[],
+        ),
+    }
+    return NorthStarContext(
+        primary_goal="Unblock the paper-trading promotion path.",
+        primary_task_id="NS-1",
+        active_tasks=list(active_tasks),
+        repo_roles=repo_roles,
+        dependency_order=["contracts", "TF", "Trading"],
+        routing_summary="contracts -> TF -> Trading",
+    )
 
 
 def _build_integration_orchestrator(
@@ -876,3 +911,89 @@ class TestIntegrationWorkflow:
         manifest_entry = json.loads(last_line)
         assert manifest_entry["repo_name"] == repo_config.name
         assert manifest_entry["prompt_count"] == result.prompt_count
+
+
+class TestNorthStarPromptEnhancements:
+    def test_system_prompt_includes_repo_role_and_priority_tasks(
+        self,
+        orchestrator_stub: MasterPromptOrchestrator,
+    ):
+        north_star = _north_star_context(
+            ActiveTask(
+                task_id="TF-101",
+                title="Export the promoted model manifest",
+                description="Ship the next manifest to Trading.",
+                status="in_progress",
+                priority="P0",
+                repo="TF",
+            ),
+            ActiveTask(
+                task_id="TF-102",
+                title="Tighten feature validation",
+                description="Guard input assumptions before export.",
+                status="planned",
+                priority="P1",
+                repo="TF",
+            ),
+        )
+        repo_analysis = _repo_analysis("TF")
+        repo_config = RepoConfig(
+            name="TF",
+            docs_dirs=[],
+            role="upstream framework",
+        )
+
+        with patch.object(orchestrator_stub, "_load_north_star_context", return_value=north_star):
+            prompt = orchestrator_stub._build_system_prompt(
+                _feedback_insights(),
+                repo_analysis,
+                repo_config,
+            )
+
+        assert "Role: upstream framework" in prompt
+        assert "Current repo P0/P1 North Star tasks" in prompt
+        assert "TF-101: Export the promoted model manifest" in prompt
+        assert "TF-102: Tighten feature validation" in prompt
+        assert "Must not do" in prompt
+
+    def test_generate_cross_repo_coordination_prompt_writes_non_empty_output(
+        self,
+        tmp_path: Path,
+        disable_cross_repo,
+    ):
+        north_star = _north_star_context(
+            ActiveTask(
+                task_id="C-1",
+                title="Finalize schema checksum",
+                description="Lock the schema used downstream.",
+                status="in_progress",
+                priority="P0",
+                repo="contracts",
+            ),
+            ActiveTask(
+                task_id="T-7",
+                title="Prepare live routing validation",
+                description="Validate the paper-trading handoff.",
+                status="planned",
+                priority="P1",
+                repo="Trading",
+            ),
+        )
+        orchestrator = MasterPromptOrchestrator(
+            repo_configs=[RepoConfig(name="Trading", docs_dirs=[])],
+            output_dir=tmp_path / "out",
+            client=_StaticResponseClient("1. Prompt (Grok): do work"),
+            max_docs=1,
+            max_chars=200,
+        )
+
+        with patch.object(orchestrator, "_load_north_star_context", return_value=north_star):
+            output_path = orchestrator.generate_cross_repo_coordination_prompt()
+
+        assert output_path is not None
+        assert output_path.exists()
+        contents = output_path.read_text(encoding="utf-8")
+        assert contents.strip()
+        assert "contracts" in contents
+        assert "Trading" in contents
+        assert "Advance contracts task C-1" in contents

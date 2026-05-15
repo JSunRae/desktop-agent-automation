@@ -11,7 +11,7 @@ import re
 import time
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, List, Optional, TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, List, Optional, cast
 
 from automation.config import (
     FINISHED_PANEL_REVIEW_BACKOFF_SECONDS,
@@ -22,15 +22,15 @@ from automation.config import (
 )
 from automation.cost_tracker import get_cost_tracker
 from automation.panel_state import (
-    PanelState,
     TRANSCRIPT_FILTER_PLACEHOLDER,
     TRANSCRIPT_KIND_REVIEW,
     TRANSCRIPT_KIND_SEED_PROMPT,
     TRANSCRIPT_MAX_SNAPSHOTS,
+    PanelState,
     extract_repo_name_from_title,
 )
-from automation.panel_ui import get_panel_output_text, send_text_to_chat
 from automation.panel_tracker_core import PanelTracker
+from automation.panel_ui import get_panel_output_text, send_text_to_chat
 
 if TYPE_CHECKING:
     import uiautomation as auto
@@ -65,7 +65,7 @@ class PanelReviewDecision:
 
 
 REVIEW_SYSTEM_PROMPT = dedent(
-    """You are GPT-5.1 Codex acting as a completion reviewer for Copilot chat panels.
+    """You are an OpenAI completion reviewer for Copilot chat panels.
 Evaluate the supplied seed prompt context, transcript excerpt, and timeline to decide
 how to close the conversation before reseeding the panel.
 

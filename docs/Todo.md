@@ -1,103 +1,78 @@
 # Todo - Desktop Agent Automation
 
-## Current Status
-This is a living document tracking all open tasks, blockers, and priorities for the desktop agent automation system.
+## Status Snapshot
 
-## High Priority Tasks
+Planning artifacts were reconciled on 2026-05-14 against the current repository state.
 
-### Feature Enhancements
-- [x] API call to classify idle panel output before seeding
-- [ ] Handle "OK" button after Keep Edits if confirmation needed
-- [x] Add retry logic if New Chat fails to open
-- [x] Better error recovery for failed seeding attempts
+- Full validation gate on 2026-05-14 passed: `311 passed, 7 deselected, 4 warnings in 22.99s`.
+- Focused orchestration and pilot validation slices are green on the current branch, including:
+	- `tests/test_orchestration_v1_discovery.py::test_orchestration_v1_reports_collector_enriched_status_rejections_in_discovery_diagnostics`
+	- `tests/test_orchestration_v1_pilot_flow.py::test_duplicate_candidates_are_rejected_with_observable_metadata`
+- The April 2026 full-suite and orchestration-only pass counts remain historical reconciliation evidence, not the current branch-state summary.
+- Verified the agent dashboard JSON contract and the registered `master --run agent-dashboard` workflow render without runtime errors.
+- Verified all-repo readiness is green under the documented contracts-only `MASTER_AGENT_REPO_CONFIGS` override.
+- Verified WSL-backed document discovery for `TF` and `Trading`, with cache snapshots written under `state/docs_cache/`.
+- Verified current pilot allowlist diagnostics from the managed-workspace registry audit and the new orchestration_v1 golden-path coverage.
+- Closed the pilot allowlist calibration decision: keep the narrow policy with phrase-level schema and database migration blockers plus staged rollout guardrails.
+- Verified recurring Copilot usage monitoring is now wired into the main automation loop behind explicit scheduling controls.
+- Verified exact-window trading pilot targeting and readiness in the fresh pass; `ready_to_send=true` is still the only green state before live dispatch.
+- In-repo blockers found in the fresh pass: none.
+- External environment blocker: the local OpenAI credential check still fails with `401 invalid_api_key`.
+- Removed stale roadmap items that duplicated already-shipped work from the finished-panels phase.
 
-### Documentation
-- [x] Document model picker UI dependencies
-- [ ] Create troubleshooting guide for common failures
-- [ ] Refresh cost-tracker pricing tables + `.env` overrides whenever OpenAI updates rates (monthly check via `python scripts/verify_pricing.py` + follow-up PR)
+## Completed During Reconciliation
 
-## Recurring Reminders
-- [ ] First business day of every month: run `python scripts/verify_pricing.py --json`, review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes in `logs/pricing_checks/`.
+- [x] Replace markdown-bullet-only orchestration_v1 work discovery with enriched structured ingestion, per-source mismatch diagnostics, and structured JSON task ingestion
+- [x] Close the finished-panel feedback seam so empty prompt feeds can trigger on-demand refresh and reseeding
+- [x] Wire Copilot usage monitoring into an active recurring poller in the live automation loop
+- [x] Harden the WSL-to-Windows document path boundary with doc-cache fallback and cache writes on successful reads
+- [x] Add orchestration_v1 end-to-end integration coverage for dispatch, worker-response, and no-eligible-item flows
+- [x] Ship the agent dashboard JSON/live CLI surface and register it under `master --run agent-dashboard`
+- [x] Expand the multi-repo prompt-generation path so `contracts`, `TF`, and `Trading` participate in dependency order with repo-aware prompt context
 
-## Medium Priority
+## Active Backlog
 
-### Advanced Features
-- [ ] Multi-repo support with separate prompt batches
-- [ ] Agent assignment tracking (which prompt → which panel)
-- [ ] Feedback loop to parse agent responses
-- [ ] Cost tracking for OpenAI spend
+- [ ] Fix the OpenAI credentials used by `automation.master_prompt_orchestrator` so the live non-`--dry-run` refresh path can complete without `401 invalid_api_key`
 
-### Code Quality
-- [ ] Add comprehensive error handling throughout
+## Recurring Maintenance
 
-## Roadmap Items
+- [ ] Refresh cost-tracker pricing tables + any `COST_TRACKER_MODEL_RATES` overrides whenever OpenAI updates rates (monthly check via `master --run pricing-verification`; direct fallback `python scripts/verify_pricing.py --monthly-check`)
+- [ ] First business day of every month: run `master --run pricing-verification`, review the saved diff report in `logs/pricing_checks/`, update `DEFAULT_MODEL_RATES` and any runtime overrides if needed, then commit the pricing change alongside the report artifacts
 
-### Immediate (High Priority)
-- [ ] Validate dry-run on real test panel ("Testing window functionality - desktop-agent-automation") - Depends on: test panel setup, dry-run mode enabled
-- [ ] Test live mode on same panel with a benign prompt - Depends on: dry-run validation, safety flags enabled
-- [ ] Monitor logs for 5-10 minutes to ensure no false positives - Depends on: logging system active
+## Handover References
 
-### Short-term (Medium Priority)
-- [ ] Implement prompt queue/round-robin instead of always first prompt - Depends on: prompt file parsing, panel state tracking
-- [ ] Add repo-root detection from foreground VS Code window title (parse for repo name) - Depends on: window title parsing, workspace detection
-- [ ] Create `docs/Todo.md` stub in both repos (currently missing) - Depends on: repo detection, file creation
-- [ ] Add metrics: track seeded prompts, model selections, success rates - Depends on: metrics.py, panel state updates
+- `HANDOVER.md` is the current repo-local handover and next-action list.
+- `HANDOVER_COMPLETE.md` is a historical finished-panels archive and should not be used as the current roadmap.
 
-### Medium-term (Low Priority)
-- [ ] Handle "OK" button after Keep Edits if agent wants confirmation - Depends on: UI element detection, confirmation dialog handling
-- [ ] Retry logic if New Chat fails to open or model picker not found - Depends on: error handling, UI interaction retries
-- [ ] Better error recovery: if seeding fails, mark panel as needing retry instead of seeded - Depends on: panel state management, error classification
+## Historical Reconciliation Log
 
-### Advanced (Future)
-- [ ] Multi-repo support: maintain separate prompt batches per repo - Depends on: repo detection, prompt batch management
-- [ ] Agent assignment tracking: which prompt was sent to which panel - Depends on: panel state, prompt metadata
-- [ ] Feedback loop: parse agent response to auto-mark as completed or adjust next prompt - Depends on: response parsing, task status updates
-- [ ] Cost tracking: estimate OpenAI spend from seeded prompts + agent runs - Depends on: cost_tracker.py, API usage metrics
-
-## Completed Tasks
-
-### Recent Completions (December 8, 2025)
-- [x] Fix window scanning on inactive desktops when using cache
-- [x] Update README.md with finished-panel follow-through section
-- [x] Deepen quick panel detection depth so Allow dialogs classify as live
-- [x] Always sweep idle windows to catch stray Allow dialogs after live passes
-- [x] Reacquire cached window handles after desktop switches to click Trading allows reliably
-- [x] Add environment variable reference table
-- [x] Fix type errors in panel_tracker.py (uiautomation stubs)
-- [x] Refactor duplicated code across modules (logging utils)
-
-### Recent Completions (December 7, 2025)
-- [x] Validate finished panel follow-through on real test panel
-- [x] Test live mode with benign prompt
-- [x] Monitor logs for false positives
-- [x] Implement prompt queue/round-robin
-- [x] Add repo-root detection from foreground VS Code window title
-- [x] Add metrics tracking for seeded prompts and model selections
-
-### Previous Completions
-- [x] Implement finished panel detection
-- [x] Add dry-run mode for safe testing
-- [x] Create unit tests for finished panel followups
-- [x] Update system prompt for master orchestrator
-- [x] Add workspace detection for docs folders
-- [x] Implement model selection logic (Grok/Codex Mini/Codex/Codex Max)
-- [x] Validate finished panel follow-through with validation infrastructure
-- [x] Create live mode testing prerequisites checker
-- [x] Implement log analysis tool for false positive detection
-- [x] Implement comprehensive metrics tracking for prompts and models
+- 2026-04-25: closed seven landed workstreams in one reconciliation pass: enriched orchestration_v1 discovery, finished-panel feedback seam, recurring Copilot usage polling, WSL doc-cache fallback, orchestration_v1 end-to-end coverage, agent dashboard CLI/live view, and multi-repo prompt generation for `contracts` -> `TF` -> `Trading`; verified `275 passed, 7 deselected` for `tests/`, `68 passed, 245 deselected` for `-m orchestration`, confirmed dashboard rendering, and recorded the remaining blockers for `contracts/docs` and the invalid OpenAI API key.
+- 2026-04-24: closed stale plan items for panel transcript persistence, cross-repo Todo ingestion, and adaptive agent selection after verifying shipped code and tests.
+- 2026-04-25: closed Copilot usage monitoring after verifying the recurring monitor loop in `automation/orchestrator.py`, config flags in `automation/config.py`, and runtime-loop coverage in `tests/test_orchestrator_scheduling.py`.
+- 2026-04-25: refined orchestration_v1 stop diagnostics so matched structured files with zero extracted task candidates are reported separately from source-pattern mismatches.
+- 2026-04-25: closed source-discovery follow-through by adding per-source mismatch diagnostics and structured JSON task ingestion.
+- 2026-04-25: closed Copilot usage monitor follow-through by scheduling recurring polls in the main automation loop behind explicit config.
+- 2026-04-25: closed the stale README and docs-navigation cleanup after pointing active links at the current operator runbook and archived completed references.
+- 2026-04-25: closed the pilot allowlist calibration stream after documenting the narrow-policy decision, calibrated blocked terms, diagnostics, regression coverage, and staged rollout guardrails in `docs/ORCHESTRATION_V1_ALLOWLIST_ROLLOUT.md`.
+- 2026-04-25: closed the orchestration_v1 runtime hygiene and operator-doc alignment stream after documenting `state/orchestration/` as runtime scratch space, ignoring live dispatch and worker-report artifacts, retiring the tracked live ledger, and reserving sanitized orchestration fixtures under `tests/fixtures/orchestration_v1/`.
+- 2026-04-25: removed duplicate or already-shipped roadmap items for Keep Edits confirmation, New Chat retry, seeding recovery, multi-repo support, assignment tracking, feedback loop, and cost tracking.
 
 ## Blocked Items
-None currently.
+
+- Live prompt-feed refresh is currently blocked by an invalid OpenAI API key (`401 invalid_api_key`) in the local environment.
+- In-repo blockers: none found in the fresh validation pass.
 
 ## Appendix: CLI prerequisites & workflow (tasks_cli.py / master.py)
 
 This repo’s task ledger + launcher tooling relies on a local Python environment with the repo dependencies installed.
 
 ### Prerequisites
+
 - **Python:** `>=3.11` (see `pyproject.toml` → `requires-python`)
 - **Repo dependencies:** install via `requirements.txt` or editable install (recommended)
 
 ### Recommended setup (Windows / PowerShell)
+
 ```powershell
 cd "<path>\desktop-agent-automation"
 
@@ -113,6 +88,7 @@ pip install -e ".[dev]"
 ```
 
 ### Quick smoke commands
+
 ```powershell
 # Task CLI (writes to `agent_assignments.json`)
 python scripts\tasks_cli.py --help
@@ -123,12 +99,15 @@ python master.py --list
 ```
 
 ### Workflow pointer (traceability)
+
 Follow the repo workflow in `.copilot-instructions.md`, especially the **Task Claiming** + **status update** commands using `python scripts/tasks_cli.py ...` so changes remain traceable in `agent_assignments.json`.
 
 ## Notes
-- Test panel name: "Testing window functionality - desktop-agent-automation"
-- Prompt file location: `tasks/generated_prompts/latest.txt`
-- Panel state persisted in: `automation/panel_state.json`
+
+- Current planning focus is the external OpenAI credential blocker above plus recurring pricing verification.
+- Historical finished-panels validation is archived in `HANDOVER_COMPLETE.md`.
+- Treat `state/orchestration/` as runtime scratch space, not as committed planning evidence.
 
 ---
-*Last updated: December 11, 2025*
+
+Last updated: May 14, 2026

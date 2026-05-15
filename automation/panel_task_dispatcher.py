@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import hashlib
 import re
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
 from automation import prompt_resolver
 from automation.config import FINISHED_PANEL_ALLOW_DEFAULT_PROMPT_FALLBACK
 from automation.prompt_scoring import PromptScorer
 
 if TYPE_CHECKING:  # pragma: no cover - imported for type hints only
-    from automation.panel_tracker import PanelTracker, PanelState
+    from automation.panel_tracker import PanelState, PanelTracker
 
 DEFAULT_REPO_PROMPT_KEY = "__default__"
 ASSIGNED_PROMPT_PREVIEW_CHARS = 200
@@ -70,6 +71,9 @@ class TaskPanelDispatcher:
         self._idle_panel_keys: List[str] = []
         self._missing_repos: set[str] = set()
         self._prompt_scorer = PromptScorer()
+        self._feed_empty_callback: Optional[Callable[[], None]] = None
+        self._feed_empty_callback_lock = threading.Lock()
+        self._feed_empty_callback_inflight = False
 
     # ------------------------------------------------------------------
     # Public API
@@ -77,6 +81,10 @@ class TaskPanelDispatcher:
     def reset_cache(self) -> None:
         """Clear cached prompt batches (primarily used in tests)."""
         self._feed_cache.clear()
+
+    def register_feed_empty_callback(self, callback: Callable[[], None]) -> None:
+        """Register a callback fired when all known feed caches are empty."""
+        self._feed_empty_callback = callback
 
     def sync_active_assignments(self, tracker: "PanelTracker") -> None:
         """Rebuild the set of active task assignments from tracker state."""
@@ -128,9 +136,24 @@ class TaskPanelDispatcher:
         repo_name: Optional[str],
     ) -> Optional[TaskFeedEntry]:
         """Find the next available task for the given panel."""
+        return self.next_entry(
+            tracker=tracker,
+            panel_key=panel_key,
+            repo_name=repo_name,
+        )
+
+    def next_entry(
+        self,
+        *,
+        tracker: "PanelTracker",
+        panel_key: str,
+        repo_name: Optional[str],
+    ) -> Optional[TaskFeedEntry]:
+        """Return the next assignable task entry for a repo, if any."""
         cache = self._get_feed_cache(repo_name)
         entries = cache.entries
         if not entries:
+            self._maybe_fire_feed_empty_callback()
             return None
 
         prompt_count = len(entries)
@@ -156,6 +179,7 @@ class TaskPanelDispatcher:
                 f"[TaskPanelDispatcher] No prompts remaining for repo '{label}'."
             )
             self._missing_repos.add(repo_key)
+        self._maybe_fire_feed_empty_callback()
         return None
 
     def release_task(self, task_id: Optional[str], panel_key: str) -> None:
@@ -185,6 +209,35 @@ class TaskPanelDispatcher:
         )
         self._feed_cache[repo_key] = cache
         return cache
+
+    def _all_repo_caches_empty(self) -> bool:
+        if not self._feed_cache:
+            return True
+        return all(not cache.entries for cache in self._feed_cache.values())
+
+    def _maybe_fire_feed_empty_callback(self) -> None:
+        callback = self._feed_empty_callback
+        if callback is None or not self._all_repo_caches_empty():
+            return
+
+        with self._feed_empty_callback_lock:
+            if self._feed_empty_callback_inflight:
+                return
+            self._feed_empty_callback_inflight = True
+
+        threading.Thread(
+            target=self._run_feed_empty_callback,
+            args=(callback,),
+            daemon=True,
+            name="TaskPanelDispatcherFeedEmpty",
+        ).start()
+
+    def _run_feed_empty_callback(self, callback: Callable[[], None]) -> None:
+        try:
+            callback()
+        finally:
+            with self._feed_empty_callback_lock:
+                self._feed_empty_callback_inflight = False
 
     def _resolve_prompt_path_for_repo(self, repo_name: Optional[str]) -> Path:
         """Resolve which prompt feed file to use for a repo.

@@ -1,5 +1,11 @@
 # Quick Reference: Common Operations
 
+## Current Validated State
+
+- In-repo status: full repo-root pytest is green, focused orchestration and pilot slices are green, all-repo readiness is green under the documented contracts-only `MASTER_AGENT_REPO_CONFIGS` override, and no in-repo blockers were found in the fresh pass.
+- External environment blocker: live OpenAI-backed prompt refresh still fails in this environment with `401 invalid_api_key`.
+- Exact-window trading pilot targeting/readiness has been validated; `ready_to_send=true` remains the only green readiness state before live dispatch.
+
 ## Master Orchestrator
 
 - Start orchestrator (Windows PowerShell):
@@ -133,6 +139,20 @@
 
 ## Cost and Metrics
 
+- Run standard automation with Copilot usage monitor enabled for the session:
+
+  ```powershell
+  $env:ENABLE_COPILOT_USAGE_MONITOR = "true"
+  python run_automation.py
+  ```
+
+- Change Copilot usage polling cadence:
+
+  ```powershell
+  $env:COPILOT_USAGE_MONITOR_INTERVAL_SECONDS = "120"
+  python run_automation.py
+  ```
+
 - Check budget alerts:
 
   ```powershell
@@ -170,6 +190,111 @@
   print("Repos:", [r.repo_name for r in snap.repos])
   EOF
   ```
+
+## Master Orchestrator Config Overrides
+
+- Contracts-only `MASTER_AGENT_REPO_CONFIGS` override for the trading-system layout:
+
+  This is the documented current-branch path for green all-repo readiness in the present environment.
+
+  ```powershell
+  $env:MASTER_AGENT_REPO_CONFIGS = @'
+  [
+    {
+      "name": "contracts",
+      "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts",
+      "docs_dirs": [
+        "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\README.md",
+        "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\contracts",
+        "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\schemas",
+        "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\rules",
+        "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\data_formats"
+      ],
+      "role": "source of truth"
+    },
+    {
+      "name": "TF",
+      "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF",
+      "docs_dirs": ["\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF\\docs"],
+      "role": "upstream framework"
+    },
+    {
+      "name": "Trading",
+      "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\Trading",
+      "docs_dirs": ["\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\Trading\\docs"],
+      "role": "downstream live system"
+    }
+  ]
+  '@
+  ```
+
+- Why not `TRADING_SYSTEM_ROOT_WIN` for this case: if only `contracts` changed layout, changing that root would repoint `contracts`, `TF`, and `Trading` together.
+
+- Validate the override:
+
+  ```powershell
+  python -m automation.master_prompt_orchestrator --readiness-check --json
+  ```
+
+- Expected result: `contracts`, `TF`, and `Trading` all report `live_ready`.
+
+## Orchestration V1 Operator Flow
+
+- Read-only preflight for all managed repos:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-preflight --json
+  ```
+
+- Read-only preflight for one repo:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-preflight --pilot-preflight-repo trading --json
+  ```
+
+- Readiness-only probe for one exact repo window:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-readiness-only --pilot-readiness-repo trading --pilot-window-id <window_id> --json
+  ```
+
+- Live dry-run rehearsal without sending text:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-dry-run --pilot-dry-run-repo trading --pilot-window-id <window_id> --json
+  ```
+
+- Live pilot with fail-closed activation checks:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-safe-activate --pilot-window-id <window_id> --json
+  ```
+
+- Strict first-reply mode for live pilot:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-known-good-strict --pilot-window-id <window_id> --strict-plain-text
+  ```
+
+- Explicit fallback targeting before dispatch:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-fallback-explicit-target --pilot-fallback-repo trading --pilot-fallback-workspace-path <absolute_workspace_path> --pilot-window-id <window_id> --json
+  ```
+
+- Sandbox self-test:
+
+  ```powershell
+  python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-sandbox-self-test --pilot-window-id <window_id> --json
+  ```
+
+- Operator runbook:
+
+  `docs/ORCHESTRATION_V1_OPERATOR_RUNBOOK.md`
+
+- Strict rejection guide:
+
+  `docs/ORCHESTRATION_V1_STRICT_RESPONSE_GUIDE.md`
 
 ---
 

@@ -1,0 +1,41 @@
+{
+  "scenario": "ambiguous_equal_strength",
+  "notes": "Sanitized representative of duplicate same-repo windows where foreground alone must not collapse ambiguity.",
+  "repo_id": "TF",
+  "repo_root": "C:/repos/TF",
+  "foreground_window_id": "hwnd:111",
+  "windows": [
+    {
+      "window_id": "hwnd:111",
+      "window_index": 1,
+      "title": "Task A - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+      "parsed_repo": "TF",
+      "normalized_parsed_repo": "tf",
+      "is_visible": true,
+      "is_minimized": false,
+      "is_cloaked": false,
+      "inclusion_reason": "included_by_uia",
+      "win32_lookup": "matched"
+    },
+    {
+      "window_id": "hwnd:112",
+      "window_index": 2,
+      "title": "Task B - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+      "parsed_repo": "TF",
+      "normalized_parsed_repo": "tf",
+      "is_visible": true,
+      "is_minimized": false,
+      "is_cloaked": false,
+      "inclusion_reason": "included_by_uia",
+      "win32_lookup": "matched"
+    }
+  ],
+  "omitted_windows": [],
+  "expected": {
+    "reason_code": "ambiguous_repo_window",
+    "eligible_for_dispatch": false,
+    "matched_windows": 2,
+    "win32_only_matches": 0,
+    "selected_window_id": null
+  }
+}

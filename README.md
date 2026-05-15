@@ -60,6 +60,26 @@ python scripts/panel_quality_dashboard.py --json --weekly-report
 
 Weekly reports are written to `automation/quality_reports/quality_report_YYYY_MM_DD.json` and include status counts, average quality scores, quality alerts, and actionable recommendations. The dashboard pulls from the same data to surface panels that require human review so you can intervene before quality regresses.
 
+## Workstream Lifecycle Dashboard
+
+The automation also persists workstream-level chat lifecycle state in `state/workstream_coordination.json`. This lets you see which workstreams are being reused, condensed into fresh chats, or forced into a clean restart because of context pressure or severe transcript issues.
+
+Use the dashboard directly:
+
+```powershell
+# Render the current workstream dashboard
+python scripts/workstream_dashboard.py
+
+# Emit JSON for automation or external reporting
+python scripts/workstream_dashboard.py --json
+```
+
+Or launch it from the unified `master` command:
+
+```powershell
+master --run workstream-dashboard
+```
+
 ## Quick Start (Launcher)
 
 - **Launcher:** `master`
@@ -84,8 +104,14 @@ master --run desktop-auto-allow
 # Dry run to see what command would be executed
 master --dry-run --run align-panels
 
+# Run the default launch-readiness gate
+master --run launch-preflight
+
 # Get JSON metadata for external tools
 master --describe
+
+# Run the canonical monthly pricing audit
+master --run pricing-verification
 
 # Capture currently open VS Code repos per desktop
 master --run capture-vscode-session
@@ -98,6 +124,10 @@ master --run restore-vscode-session -- --startup
 
 # Install startup runner (runs restore picker automatically on login)
 master --run install-vscode-restore-startup
+
+# Preview or execute a tracked runtime-state reset
+master --run reset-runtime-state
+master --run reset-runtime-state -- --execute
 ```
 
 Available workflows include:
@@ -106,10 +136,13 @@ Available workflows include:
 - **desktop-auto-allow**: Computer-Use API agent for clicking approval buttons
 - **vs-code-automation**: Primary VS Code chat automation with hotkeys
 - **master-prompt-orchestrator**: Idle supervisor for generating prompt batches
+- **pricing-verification**: Canonical monthly pricing audit with timestamped reports
+- **launch-preflight**: Parent-repo launch gate for hygiene, tests, dashboard smoke, docs readiness, and OpenAI credentials
 - **align-panels**: Panel alignment utility
 - **capture-vscode-session**: Save open VS Code repos by desktop
 - **restore-vscode-session**: Reopen captured repos on their desktops
 - **install-vscode-restore-startup**: Add login startup restore prompt
+- **reset-runtime-state**: Preview or reset tracked runtime-state files to a clean launch baseline
 - **prompt-tester**: Validation tool for new prompt packs
 - And various test suites for different components
 
@@ -131,6 +164,22 @@ Use this quick flow to restart exactly where you left off:
    master --run install-vscode-restore-startup
    ```
    On login, it runs startup mode and asks which historically opened repos to reopen.
+
+---
+
+## Submodule-Safe Workflow
+
+`tools/TelegramNotifications` is tracked as a Git submodule. Treat it as a separate repository, not as runtime scratch space.
+
+- Install the repo-local guard once per clone with `python scripts/install_git_hooks.py`.
+- Run `python scripts/check_submodule_state.py --fail-if-dirty` before a parent commit if you want the same check without invoking `git commit`.
+- Before creating a parent-repo commit, run `git status --short` and `git diff --submodule=log` to verify whether the submodule is intentionally involved.
+- Review nested changes with `git -C tools/TelegramNotifications status --short --branch`.
+- If the nested work is intentional, commit or stash it inside `tools/TelegramNotifications` first, then update the parent repo only with the reviewed gitlink pointer change.
+- If the nested work is accidental drift, clean it from the nested repo before committing the parent repo: `git -C tools/TelegramNotifications restore --worktree --staged .`.
+- Automation or runtime-only artifacts must not be committed from inside the submodule. A parent-repo automation commit should either leave the submodule untouched or include an intentional pointer update that is called out in review.
+
+This keeps submodule changes explicit in status reviews and prevents unrelated automation commits from carrying nested repo edits.
 
 ---
 
@@ -176,26 +225,49 @@ Configure the daemon cadence in `.env` or `automation/config.py`:
 
 - `TASK_DISCOVERY_INTERVAL_SECONDS` (default: 900)
 - `TASK_DISCOVERY_LOW_TASK_THRESHOLD` (default: 2)
+- `ENABLE_COPILOT_USAGE_MONITOR` (default: false)
+- `COPILOT_USAGE_MONITOR_INTERVAL_SECONDS` (default: 300)
 
-### Orchestration V1 Foundation
+If enabled, the standard `run_automation.py` process starts a recurring Copilot usage monitor thread for the lifetime of the automation session and records normalized status snapshots into the cost tracker telemetry.
 
-Run one controlled orchestration cycle that is file-first and auditable:
+### Orchestration V1
+
+Run one controlled orchestration cycle:
 
 ```powershell
 python scripts/orchestration_v1.py --json
 ```
 
-What it does in V1:
+What it does:
 
-- Loads managed repo registry from `automation/managed_workspace_registry.json`.
-- Collects repo-local instructions/tasks/handovers/reports from configured sources.
-- Normalizes findings into a common work-item schema.
-- Applies safety/concurrency constraints (max workers, retry loop guard, protected signal checks).
-- Dispatches one scoped task by writing a prompt + dispatch envelope to `state/orchestration/dispatch_queue/<repo>/`.
-- Polls for a structured worker completion report in `state/orchestration/worker_reports/`.
-- Writes append-only ledger entries to `state/orchestration/global_ledger.jsonl`.
+- Loads the managed repo registry from `automation/managed_workspace_registry.json`.
+- Collects repo-local instructions, tasks, handovers, and reports from configured sources.
+- Normalizes findings into one work-item schema.
+- Applies safety and concurrency constraints before selecting work.
+- Writes a prompt and dispatch envelope to `state/orchestration/dispatch_queue/<repo>/`.
+- Reads worker completion reports from `state/orchestration/worker_reports/`.
+- Appends terminal events and diagnostics to `state/orchestration/global_ledger.jsonl`.
 
-This is a scaffolding pass: it establishes deterministic interfaces and logs first, then can be wired to direct VS Code panel send/read in subsequent iterations.
+Operator notes:
+
+- The default baseline run uses `--poll-seconds 0`, so it dispatches file-first work and does not wait for a worker reply unless you opt into longer polling.
+- `state/orchestration/` is runtime scratch space. Do not commit dispatch queue files, worker reports, or the live ledger.
+- Live pilot behavior is opt-in through `--pilot-live-dispatch`.
+- Use preflight and readiness-only before any live send.
+
+Recommended docs:
+
+- `docs/ORCHESTRATION_V1_OPERATOR_RUNBOOK.md` for operator workflows, exit codes, failure cookbook, and run lifecycle.
+- `docs/pilot_window_targeting_checklist.md` for the short targeting checklist.
+- `docs/ORCHESTRATION_V1_STRICT_RESPONSE_GUIDE.md` for strict-mode rejection codes and next actions.
+
+Important CLI shortcuts:
+
+- `--pilot-preflight` is read-only and lists repo/window matchability.
+- `--pilot-readiness-only` checks one exact repo/window target and never sends text.
+- `--pilot-dry-run` rehearses live pilot selection without sending text.
+- `--pilot-strict-response` and `--pilot-known-good-strict` only affect live pilot response handling.
+- `--pilot-sandbox-self-test` is a live pilot sandbox path for strict triage-only validation.
 
 ### Configuration
 
@@ -295,7 +367,7 @@ The Desktop Auto-Allow Agent uses OpenAI's Computer Use API with vision capabili
 
 ### Prerequisites
 
-1. **OpenAI API Key** with access to vision-capable models (GPT-4o or computer-use-preview when available)
+1. **OpenAI API Key** with access to the configured desktop auto-allow models (`AUTO_ALLOW_COMPUTER_USE_MODEL`, default `computer-use-preview`, and `AUTO_ALLOW_VISION_FALLBACK_MODEL`, default `gpt-4o`)
 2. Install dependencies:
    ```powershell
    pip install -r requirements.txt
@@ -313,6 +385,13 @@ To persist the key across sessions, add it to your PowerShell profile:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable('OPENAI_API_KEY', 'sk-your-api-key-here', 'User')
+```
+
+Optional model overrides:
+
+```powershell
+$env:AUTO_ALLOW_COMPUTER_USE_MODEL = "computer-use-preview"
+$env:AUTO_ALLOW_VISION_FALLBACK_MODEL = "gpt-4o"
 ```
 
 ### Running the Agent
@@ -394,10 +473,20 @@ The agent is designed with multiple safety measures:
 When Copilot hasn't shown an `Allow` button for 60 minutes (after at least one successful Allow in the session), the script now promotes itself to a "master agent":
 
 1. Pulls the latest docs from configured repository paths (supports multiple repos with separate prompt batches discovered via env, cross-repo snapshots, or legacy fallbacks).
-2. Uploads concise slices of up to 18 recently modified text files (3.5k chars each) per repo to OpenAI and asks for **exactly 10** independent prompts that include a recommended model (Grok, Sonnet 4.5, or GPT 5.1 codex mini) plus instructions to update Todos, task assignments, README, Architecture, and the originating doc.
+2. Uploads concise slices of up to 18 recently modified text files (3.5k chars each) per repo to OpenAI using `MASTER_AGENT_MODEL` (default `gpt-5.4`) and asks for **exactly 10** independent prompts that include a recommended model (Grok, Sonnet 4.5, or GPT 5.1 codex mini) plus instructions to update Todos, task assignments, README, Architecture, and the originating doc.
 3. Stores separate prompt batches as `tasks/generated_prompts/{repo_name}/master_prompts_<timestamp>.txt` and mirrors to `tasks/generated_prompts/{repo_name}/latest.txt` for easy access. A JSONL manifest is maintained for each repo.
 
 **Multi-Repo Support**: Configure multiple repositories with `MASTER_AGENT_REPO_CONFIGS` or `--repos`, or rely on the cross-repo Todo snapshot for automatic discovery. Each repo gets its own isolated prompt batch under `tasks/generated_prompts/<repo>/` to prevent context mixing.
+
+**OpenAI credential path**: `automation.master_prompt_orchestrator` reads `OPENAI_API_KEY` from the process environment first, then from the repo-root `.env` file at `desktop-agent-automation/.env`. It does not rely on parent-directory `.env` discovery for this path.
+
+**Credential readiness check**:
+
+```powershell
+python -m automation.master_prompt_orchestrator --check-openai-credentials
+```
+
+If the key is missing or rejected, the command fails before prompt generation with an operator-facing message that identifies the lookup path and makes clear that the secret itself must be supplied outside repository code.
 
 See `docs/multi_repo_prompt_batches.md` for a detailed walkthrough of discovery order, environment overrides, and dispatcher routing.
 
@@ -407,8 +496,46 @@ Environment knobs (all optional):
 - `PROMPT_GENERATION_COOLDOWN_MINUTES` – cooldown between prompt batches (default 90 minutes).
 - `MASTER_AGENT_DOCS_ROOT`, `MASTER_AGENT_OPEN_TASKS_ROOT` – UNC paths to scan (single repo mode).
 - `MASTER_AGENT_REPO_CONFIGS` – JSON array defining multiple repos with their doc paths.
+- `MASTER_AGENT_MODEL` – OpenAI model for prompt generation (default `gpt-5.4`).
 - `MASTER_AGENT_MAX_DOCS`, `MASTER_AGENT_MAX_CHARS` – cap volume sent to OpenAI.
 - `MASTER_AGENT_PROMPT_DIR` – change the output folder if you want to feed another automation loop.
+
+If only `contracts` uses a different layout, do not change `TRADING_SYSTEM_ROOT_WIN`. That root is the shared default for `contracts`, `TF`, and `Trading`, so changing it would repoint all three repos. Use `MASTER_AGENT_REPO_CONFIGS` instead and declare all three repos explicitly so only `contracts` is redirected.
+
+```powershell
+$env:MASTER_AGENT_REPO_CONFIGS = @'
+[
+    {
+        "name": "contracts",
+        "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts",
+        "docs_dirs": [
+            "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\README.md",
+            "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\contracts",
+            "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\schemas",
+            "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\rules",
+            "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\contracts\\data_formats"
+        ],
+        "role": "source of truth"
+    },
+    {
+        "name": "TF",
+        "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF",
+        "docs_dirs": ["\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\TF\\docs"],
+        "role": "upstream framework"
+    },
+    {
+        "name": "Trading",
+        "repo_root": "\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\Trading",
+        "docs_dirs": ["\\\\wsl.localhost\\Ubuntu-24.04\\home\\jrae\\wsl_projects\\trading-system\\Trading\\docs"],
+        "role": "downstream live system"
+    }
+]
+'@
+
+python -m automation.master_prompt_orchestrator --readiness-check --json
+```
+
+That documented override was validated to keep all three repos at `live_ready` while redirecting only `contracts`.
 
 Use the prompts however you like: open 10 new Copilot chats manually, or use the automated prompt seeding tools. Each prompt already reminds the sub-agent to update the CLI, Todos, README, Architecture, and the source doc it came from so you keep state in sync.
 
@@ -483,6 +610,24 @@ $env:COST_TRACKER_MODEL_RATES = '{
 ```
 
 > **Approximate only:** Leave the variable unset _only_ if you accept these placeholder rates. For accurate budget alerts and reports, set `COST_TRACKER_MODEL_RATES` explicitly.
+
+### Monthly Pricing Verification
+
+Use the unified launcher for the canonical monthly pricing audit:
+
+```powershell
+master --run pricing-verification
+```
+
+The launcher runs the hardened monthly workflow in `scripts/verify_pricing.py --monthly-check` and writes timestamped JSON and Markdown reports to `logs/pricing_checks/`.
+
+Direct script fallback:
+
+```powershell
+python scripts/verify_pricing.py --monthly-check
+```
+
+If rates changed, update `automation/cost_tracker.py` and any `COST_TRACKER_MODEL_RATES` override you rely on, then re-run the same monthly command before committing.
 
 ### Metrics Tracking
 
@@ -671,15 +816,16 @@ success = send_text_to_chat(vs_win, "please continue")
 
 For detailed documentation on specific features:
 
-- **[Environment Variables](docs/ENVIRONMENT_VARIABLES.md)**: Complete guide to all configuration options
+- **[Orchestration V1 Operator Runbook](docs/ORCHESTRATION_V1_OPERATOR_RUNBOOK.md)**: Safe preflight, readiness-only, live pilot, strict mode, and failure cookbook
+- **[Environment Variables](docs/completed/ENVIRONMENT_VARIABLES.md)**: Complete guide to all configuration options
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)**: Common issues and solutions
 - **[Architecture](docs/ARCHITECTURE.md)**: System design and component interactions
 - **[Panel Alignment](docs/PANEL_ALIGNMENT.md)**: Detailed panel positioning guide
-- **[Cost Tracking](docs/COST_TRACKING.md)**: Advanced cost management features
+- **[Cost Tracking](docs/completed/COST_TRACKING.md)**: Advanced cost management features
 - **[Metrics](docs/METRICS.md)**: Performance monitoring and analytics
-- **[Rate Limiting](docs/RATE_LIMIT_HANDLING.md)**: Managing API limits and cooldowns
-- **[Feedback Loop](docs/FEEDBACK_LOOP.md)**: Improving prompt generation
-- **[Panel Tracking](docs/PANEL_TRACKING.md)**: Advanced panel state management
+- **[Rate Limiting](docs/completed/RATE_LIMIT_HANDLING.md)**: Managing API limits and cooldowns
+- **[Feedback Loop](docs/completed/FEEDBACK_LOOP.md)**: Improving prompt generation
+- **[Panel Tracking](docs/completed/PANEL_TRACKING.md)**: Advanced panel state management
 
 ---
 
@@ -905,31 +1051,30 @@ Automatic detection of repository root from VS Code window titles:
 
 The project includes comprehensive test suites for all major components:
 
-### Run All Tests
+### Default Safe Run
 
 ```powershell
-# Run all tests
-python -m pytest tests/
+# Run the default non-interactive suite (unit + orchestration)
+python -m pytest -q
 
-# With coverage
-python -m pytest tests/ --cov=automation --cov-report=html
+# With coverage for the default non-desktop suite
+python -m pytest --cov=automation --cov-report=html
 ```
 
-### Run Specific Test Suites
+### Gate Matrix
 
 ```powershell
-# Test chat extraction functionality
-python -m pytest tests/test_chat_extraction.py
+# Fast unit-only check
+python -m pytest -m unit -q
 
-# Test click verification
-python -m pytest tests/test_click_verification.py
+# Orchestration regression gate
+python -m pytest -m orchestration -q
 
-# Test master orchestrator
-python -m pytest tests/test_master_prompt_orchestrator.py
-
-# Test VS Code detection
-python -m pytest tests/test_vscode_detection.py
+# Optional live desktop integration check
+python -m pytest -m desktop -s
 ```
+
+Pytest ignores script-style `test_*.py` files that do not define actual pytest or unittest cases. Live UI automation modules are marked `desktop` and excluded from the default run, while the `test_orchestration_v1_*` suite is marked `orchestration` for a stable regression gate. The parent repo default test contract covers `tests/` only; the `tools/TelegramNotifications` submodule is treated as a separate repo and should be tested inside that repo when its own release gate matters.
 
 ### Test Coverage
 

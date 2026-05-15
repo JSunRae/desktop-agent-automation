@@ -11,31 +11,32 @@ Provides reliable button clicking that:
 
 from __future__ import annotations
 
+import re
 import time
 from collections import defaultdict
 from datetime import datetime, timedelta
-from typing import Optional, TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import uiautomation as auto
 
-from automation.ui.window_utils import (
-    get_cursor_pos,
-    set_cursor_pos,
-    get_foreground_window,
-    set_foreground_window,
-    send_mouse_click,
-    get_root_window,
-    force_foreground_window,
-)
-from automation.ui.scroll import scroll_control_into_view
 from automation.config import (
-    VSCODE_TITLE_SUFFIX,
-    TRY_AGAIN_COOLDOWN_MINUTES,
     IGNORE_KEEP_BUTTONS,
+    TRY_AGAIN_COOLDOWN_MINUTES,
+    TRY_AGAIN_WEEKLY_RETRY_INTERVAL_HOURS,
+    TRY_AGAIN_WEEKLY_RETRY_LOCAL_HOUR,
 )
-
-from automation.title_parsing import is_vscode_window_title
 from automation.core.logging import log_verbose
+from automation.title_parsing import is_vscode_window_title
+from automation.ui.scroll import scroll_control_into_view
+from automation.ui.window_utils import (
+    force_foreground_window,
+    get_cursor_pos,
+    get_foreground_window,
+    get_root_window,
+    send_mouse_click,
+    set_cursor_pos,
+    set_foreground_window,
+)
 
 if TYPE_CHECKING:
     pass
@@ -143,8 +144,8 @@ def _maybe_switch_to_window_desktop(hwnd: int) -> bool:
     if not hwnd:
         return False
     try:
-        from automation.desktop.window_cache import get_desktop_for_handle
         from automation.desktop.switcher import needs_desktop_switch, switch_to_desktop
+        from automation.desktop.window_cache import get_desktop_for_handle
     except Exception:
         return False
 
@@ -265,40 +266,182 @@ def ensure_window_focus(
 
 # Cooldown state triggered by Try Again detection
 _try_again_cooldown_until: datetime = datetime.min
+_try_again_weekly_retry_mode = False
 
 # Seconds to wait after an Allow click to check for Try Again
 POST_ALLOW_CHECK_DELAY = 2.0
 
+_DURATION_TOKEN_TO_INT = {
+    "a": 1,
+    "an": 1,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+}
 
-def trigger_rate_limit_cooldown(window_title: str) -> None:
+_RATE_LIMIT_DURATION_PATTERN = re.compile(
+    r"(?P<count>\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten)\s+"
+    r"(?P<unit>hour|hours|day|days|week|weeks)"
+)
+
+
+def _reset_try_again_rate_limit_state() -> None:
+    """Clear adaptive retry cadence after a successful retry or approval."""
+    global _try_again_weekly_retry_mode
+    _try_again_weekly_retry_mode = False
+
+
+def _parse_duration_token(token: str) -> Optional[int]:
+    """Convert a numeric or spelled-out duration token to an integer count."""
+    token = token.strip().lower()
+    if token.isdigit():
+        return int(token)
+    return _DURATION_TOKEN_TO_INT.get(token)
+
+
+def _extract_rate_limit_message(vs_win: auto.Control) -> str:
+    """Collect likely rate-limit text from current panel controls, with a full-text fallback."""
+    try:
+        from automation.rate_limit.detector import (
+            find_rate_limit_text_panels,
+            get_chat_panel_text_snapshot,
+        )
+    except ImportError:
+        return ""
+
+    fragments: List[str] = []
+    try:
+        for panel in find_rate_limit_text_panels(vs_win):
+            try:
+                name = panel.Name
+            except Exception:
+                name = ""
+            if name:
+                fragments.append(name)
+    except Exception:
+        fragments = []
+
+    if fragments:
+        return "\n".join(fragments)
+
+    try:
+        return get_chat_panel_text_snapshot(vs_win)
+    except Exception:
+        return ""
+
+
+def _find_rate_limit_duration(message_text: str) -> tuple[Optional[int], Optional[str]]:
+    """Return the last explicit duration mentioned in a rate-limit message."""
+    if not message_text:
+        return None, None
+
+    last_match: Optional[re.Match[str]] = None
+    for match in _RATE_LIMIT_DURATION_PATTERN.finditer(message_text.lower()):
+        last_match = match
+
+    if not last_match:
+        if re.search(r"\b(?:next\s+week|this\s+week|weekly|week)\b", message_text.lower()):
+            return 1, "week"
+        return None, None
+
+    count = _parse_duration_token(last_match.group("count"))
+    unit = last_match.group("unit")
+    if count is None:
+        return None, None
+    return count, unit.rstrip("s")
+
+
+def _next_weekly_retry_probe(now: datetime, first_probe: bool) -> datetime:
+    """Schedule the next weekly limit probe: first at 1am local, then every 4 hours."""
+    anchor = now.replace(
+        hour=TRY_AGAIN_WEEKLY_RETRY_LOCAL_HOUR,
+        minute=0,
+        second=0,
+        microsecond=0,
+    )
+
+    if first_probe:
+        if now >= anchor:
+            anchor += timedelta(days=1)
+        return anchor
+
+    interval_hours = max(1, TRY_AGAIN_WEEKLY_RETRY_INTERVAL_HOURS)
+    if now < anchor:
+        return anchor
+
+    elapsed_hours = (now - anchor).total_seconds() / 3600.0
+    steps = int(elapsed_hours // interval_hours) + 1
+    return anchor + timedelta(hours=steps * interval_hours)
+
+
+def _determine_try_again_cooldown_end(
+    message_text: str,
+    now: Optional[datetime] = None,
+) -> tuple[datetime, str]:
+    """Compute the next retry time from visible rate-limit text."""
+    global _try_again_weekly_retry_mode
+
+    now = now or datetime.now()
+    count, unit = _find_rate_limit_duration(message_text)
+
+    if unit == "hour" and count is not None:
+        _try_again_weekly_retry_mode = False
+        return now + timedelta(hours=count), f"{count} hour rate limit"
+    if unit == "day" and count is not None:
+        _try_again_weekly_retry_mode = False
+        return now + timedelta(days=count), f"{count} day rate limit"
+    if unit == "week":
+        deadline = _next_weekly_retry_probe(now, first_probe=not _try_again_weekly_retry_mode)
+        if not _try_again_weekly_retry_mode:
+            _try_again_weekly_retry_mode = True
+            return deadline, "weekly rate limit; next probe at local 1am"
+        return deadline, "weekly rate limit; probing every 4 hours"
+
+    _try_again_weekly_retry_mode = False
+    return now + timedelta(minutes=TRY_AGAIN_COOLDOWN_MINUTES), (
+        f"default {TRY_AGAIN_COOLDOWN_MINUTES} minute cooldown"
+    )
+
+
+def trigger_rate_limit_cooldown(window_title: str, message_text: str = "") -> None:
     """
     Trigger rate limit cooldown when a Try Again button is detected after an Allow click.
     
     Args:
         window_title: Title of the VS Code window where rate limit was detected
+        message_text: Visible rate-limit text used to determine retry cadence
     """
     global _try_again_cooldown_until
     
     now = datetime.now()
-    _try_again_cooldown_until = now + timedelta(minutes=TRY_AGAIN_COOLDOWN_MINUTES)
+    _try_again_cooldown_until, cooldown_reason = _determine_try_again_cooldown_end(message_text, now)
     
     # Also update the global cooldown system
     try:
         from automation.rate_limit.cooldown import start_cooldown
         start_cooldown(now, {window_title})
+        from automation.rate_limit.cooldown import set_cooldown_end
+        set_cooldown_end(_try_again_cooldown_until)
     except ImportError:
         pass
     
     # Speak alert for rate limit
     try:
         from automation.core.audio import speak
-        speak("Rate limited. Waiting 5 minutes.")
+        speak(f"Rate limited. {cooldown_reason}.")
     except ImportError:
         pass
     
-    print(f"\n🔴 RATE LIMITED! 'Try Again' button appeared after Allow click.")
+    print("\n🔴 RATE LIMITED! 'Try Again' button appeared after Allow click.")
     print(f"   Window: {window_title[:60]}...")
-    print(f"   Entering {TRY_AGAIN_COOLDOWN_MINUTES} minute cooldown until {_try_again_cooldown_until.strftime('%H:%M:%S')}")
+    print(f"   {cooldown_reason.capitalize()} until {_try_again_cooldown_until.strftime('%Y-%m-%d %H:%M:%S')}")
 
 
 def is_try_again_cooldown_active() -> bool:
@@ -809,9 +952,9 @@ def click_all_action_buttons(vs_win: auto.Control) -> tuple:
         Tuple of (counts_dict, buttons_clicked_list)
         counts_dict has keys: 'allow', 'keep_edits', 'try_again', 'rate_limited'
     """
-    from automation.ui.button_finder import find_all_allow_buttons_in_window
-    from automation.rate_limit.tracker import record_allow_click
     from automation.panel_tracker import get_tracker
+    from automation.rate_limit.tracker import record_allow_click
+    from automation.ui.button_finder import find_all_allow_buttons_in_window
     
     counts = {'allow': 0, 'keep_edits': 0, 'try_again': 0, 'rate_limited': False}
     buttons_clicked: List[str] = []
@@ -903,9 +1046,10 @@ def click_all_action_buttons(vs_win: auto.Control) -> tuple:
                 
                 if check_for_try_again_button(vs_win):
                     # Rate limited! Trigger cooldown and stop processing
-                    trigger_rate_limit_cooldown(window_title)
+                    trigger_rate_limit_cooldown(window_title, _extract_rate_limit_message(vs_win))
                     counts['rate_limited'] = True
                     return counts, buttons_clicked
+                _reset_try_again_rate_limit_state()
                     
             elif btn_type == 'keep_edits':
                 print(f"  ✓ Keep Edits click counted in {window_title}")
@@ -918,20 +1062,21 @@ def click_all_action_buttons(vs_win: auto.Control) -> tuple:
                 
                 if check_for_try_again_button(vs_win):
                     # Still rate limited after retry! Trigger cooldown
-                    trigger_rate_limit_cooldown(window_title)
+                    trigger_rate_limit_cooldown(window_title, _extract_rate_limit_message(vs_win))
                     counts['rate_limited'] = True
                     return counts, buttons_clicked
                 else:
                     # Try Again worked - treat it like an Allow for tracking
-                    print(f"  ✓ Retry succeeded (no new Try Again appeared)")
+                    _reset_try_again_rate_limit_state()
+                    print("  ✓ Retry succeeded (no new Try Again appeared)")
         else:
             # Debug: show verification failure
             if btn_type == 'allow':
-                print(f"  ✗ Allow click NOT counted (verification failed)")
+                print("  ✗ Allow click NOT counted (verification failed)")
             elif btn_type == 'keep_edits':
-                print(f"  ✗ Keep Edits click NOT counted (verification failed)")
+                print("  ✗ Keep Edits click NOT counted (verification failed)")
             elif btn_type == 'try_again':
-                print(f"  ✗ Try Again click NOT counted (verification failed)")
+                print("  ✗ Try Again click NOT counted (verification failed)")
     
     if any(
         counts[key] > 0 for key in ('allow', 'keep_edits', 'try_again')

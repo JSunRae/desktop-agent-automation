@@ -1,9 +1,16 @@
 """
 Send confirmation message to finished panel using panel_tracker functions
 """
+import sys
 import time
+from pathlib import Path
+
 import uiautomation as auto
 import pyperclip
+
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from automation.panel_tracker import (
     detect_panel_running_state,

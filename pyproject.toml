@@ -35,3 +35,22 @@ master = "automation.cli.master:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["automation*"]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+addopts = "-ra --strict-config --strict-markers -m \"not desktop\""
+norecursedirs = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "debug",
+    "logs",
+    "state",
+]
+markers = [
+    "unit: deterministic tests safe for CI and local non-interactive runs",
+    "orchestration: deterministic orchestration_v1 regression gate, including tests/test_orchestration_v1_e2e.py",
+    "desktop: requires a live Windows desktop, VS Code windows, or interactive UI automation",
+]

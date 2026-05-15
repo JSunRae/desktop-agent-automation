@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
 
+from automation.config import HANDOVER_SUMMARY_MODEL
+
 # ---------------------------------------------------------------------------
 # Optional imports (graceful degradation when coordination modules missing)
 # ---------------------------------------------------------------------------
@@ -331,7 +333,7 @@ def _openai_summarise(transcript: str, repo: str) -> str:
 
         client = openai.OpenAI(api_key=api_key)
         resp = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=HANDOVER_SUMMARY_MODEL,
             messages=[
                 {
                     "role": "system",

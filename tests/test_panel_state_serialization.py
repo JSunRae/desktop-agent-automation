@@ -32,6 +32,10 @@ def test_panel_state_round_trip_without_transcripts():
 
 def test_panel_state_round_trip_with_transcripts():
     panel = _make_panel_state()
+    panel.workstream_id = "repo:task:abc123"
+    panel.estimated_context_tokens = 128
+    panel.last_chat_action = "condense_to_fresh"
+    panel.last_chat_action_reason = "Estimated context exceeded threshold"
     snapshot = pt.TranscriptSnapshot(
         kind=pt.TRANSCRIPT_KIND_SEED_PROMPT,
         timestamp=dt.datetime(2025, 1, 1, 13, 0, 0),
@@ -50,6 +54,10 @@ def test_panel_state_round_trip_with_transcripts():
     assert restored_snapshot.content_hash == snapshot.content_hash
     assert restored_snapshot.preview == snapshot.preview
     assert restored_snapshot.filtered is False
+    assert restored.workstream_id == panel.workstream_id
+    assert restored.estimated_context_tokens == 128
+    assert restored.last_chat_action == "condense_to_fresh"
+    assert restored.last_chat_action_reason == "Estimated context exceeded threshold"
 
 
 def test_tracker_records_transcript_snapshots(monkeypatch):

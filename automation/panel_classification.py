@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, cast
 
+from automation.config import PANEL_CLASSIFICATION_MODEL
+
 # OpenAI dependency is optional.
 openai_module: Any
 try:
@@ -47,7 +49,7 @@ AWAITING_USER: The agent is waiting for user input or clarification.
 
 Respond with ONLY the classification category name, no explanation."""
         response = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=PANEL_CLASSIFICATION_MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Panel output:\n{text_to_analyze}"},
@@ -67,7 +69,7 @@ Respond with ONLY the classification category name, no explanation."""
                 cost_tracker.record_text_usage(
                     source="panel_tracker",
                     event="panel_classification",
-                    model="gpt-4o-mini",
+                    model=PANEL_CLASSIFICATION_MODEL,
                     usage=response.usage,
                     details={"classification": classification},
                 )

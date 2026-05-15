@@ -26,10 +26,7 @@
           "kind": "success"
         }
       ],
-      "tags": [
-        "setup",
-        "automation"
-      ]
+      "tags": ["setup", "automation"]
     },
     {
       "id": "task-002",
@@ -39,10 +36,7 @@
       "priority": "medium",
       "created_at": "2025-12-11T13:00:00Z",
       "updated_at": "2025-12-11T18:51:31.316895+00:00",
-      "tags": [
-        "testing",
-        "cli"
-      ],
+      "tags": ["testing", "cli"],
       "claimed_by": {
         "type": "agent",
         "id": "github-copilot",
@@ -71,9 +65,7 @@
           "timestamp": "2025-12-11T18:51:28.263809+00:00",
           "message": "Test logs attached",
           "kind": "info",
-          "artifact_paths": [
-            "logs/test.log"
-          ]
+          "artifact_paths": ["logs/test.log"]
         },
         {
           "author": "github-copilot",
@@ -87,15 +79,11 @@
       "id": "panel-transcript-persistence",
       "title": "Panel Transcript Persistence",
       "description": "Extend panel tracker persistence so panels store rolling transcript snapshots with hashing while keeping state files compact.",
-      "status": "planned",
+      "status": "completed",
       "priority": "high",
       "created_at": "2025-12-11T19:00:00Z",
-      "updated_at": "2025-12-11T21:02:15.291794+00:00",
-      "tags": [
-        "panels",
-        "state",
-        "transcripts"
-      ],
+      "updated_at": "2026-04-24T21:26:28.1179205+02:00",
+      "tags": ["panels", "state", "transcripts"],
       "claimed_by": {
         "type": "agent",
         "id": "github-copilot",
@@ -112,6 +100,12 @@
           "timestamp": "2025-12-11T21:02:15.291794+00:00",
           "message": "Task claimed by agent:github-copilot",
           "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-24T21:26:28.1179205+02:00",
+          "message": "Status updated to completed: audit verified transcript snapshot persistence in panel_state.py and panel_tracker_core.py, with regression coverage in tests/test_panel_state_serialization.py.",
+          "kind": "info"
         }
       ]
     },
@@ -119,10 +113,10 @@
       "id": "todo-doc-sync",
       "title": "Todo Documentation Sync",
       "description": "Update Todo.md to mark panel classification task complete, add new roadmap items plus dependencies, and reflect changes in HANDOVER.md for latest plan.",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "high",
       "created_at": "2025-12-11T22:00:00Z",
-      "updated_at": "2025-12-11T22:00:00Z",
+      "updated_at": "2026-04-25T16:35:00+02:00",
       "assignee": {
         "type": "agent",
         "id": "github-copilot",
@@ -139,27 +133,31 @@
           "timestamp": "2025-12-11T22:00:00Z",
           "message": "Task claimed by agent:github-copilot",
           "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-24T21:26:28.1179205+02:00",
+          "message": "Status updated to completed: reconciled docs/Todo.md and HANDOVER.md to the current orchestration_v1 backlog, and marked HANDOVER_COMPLETE.md as historical archive material.",
+          "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-25T16:35:00+02:00",
+          "message": "Status re-verified during full regression reconciliation: docs/Todo.md and HANDOVER.md now record the seven closed workstreams, the passing regression totals, dashboard verification, and the newly surfaced blockers for the missing contracts docs path and invalid OpenAI API key.",
+          "kind": "info"
         }
       ],
-      "tags": [
-        "documentation",
-        "todo",
-        "sync"
-      ]
+      "tags": ["documentation", "todo", "sync"]
     },
     {
       "id": "copilot-usage-monitor",
       "title": "Copilot Usage Monitor",
       "description": "Implement a Copilot usage poller that reads the UI Automation element for the \"Copilot status\" percentage, normalizes it against calendar progress, feeds the result into cost_tracker.py, and raises alerts according to policy.",
-      "status": "planned",
+      "status": "completed",
       "priority": "high",
       "created_at": "2025-12-11T23:00:00Z",
-      "updated_at": "2025-12-12T14:01:24.281687+00:00",
-      "tags": [
-        "monitoring",
-        "copilot",
-        "cost"
-      ],
+      "updated_at": "2026-04-25T11:30:00+02:00",
+      "tags": ["monitoring", "copilot", "cost"],
       "claimed_by": {
         "type": "agent",
         "id": "github-copilot",
@@ -176,6 +174,18 @@
           "timestamp": "2025-12-12T14:01:24.281687+00:00",
           "message": "Task claimed by agent:github-copilot",
           "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-24T21:26:28.1179205+02:00",
+          "message": "Status updated to in_progress: audit verified copilot_usage_monitor.py, cost_tracker integration, and tests/test_copilot_usage_monitor.py, but recurring runtime poller wiring still needs to be completed.",
+          "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-25T11:30:00+02:00",
+          "message": "Status updated to completed: added recurring scheduling in automation/orchestrator.py using the existing Copilot usage monitor config flags, and covered the scheduling hook with focused regression tests.",
+          "kind": "info"
         }
       ]
     },
@@ -183,15 +193,11 @@
       "id": "cross-repo-todo-ingestion",
       "title": "Cross-Repo Todo Ingestion",
       "description": "Discover sibling repository Todo.md files (Windows + WSL paths), parse priorities/blockers into a structured cache, and expose a refreshable service for downstream modules.",
-      "status": "planned",
+      "status": "completed",
       "priority": "high",
       "created_at": "2025-12-12T12:17:49.831373+00:00",
-      "updated_at": "2025-12-12T12:18:11.808358+00:00",
-      "tags": [
-        "orchestrator",
-        "todo",
-        "ingestion"
-      ],
+      "updated_at": "2026-04-24T21:26:28.1179205+02:00",
+      "tags": ["orchestrator", "todo", "ingestion"],
       "claimed_by": {
         "type": "agent",
         "id": "github-copilot",
@@ -208,6 +214,12 @@
           "timestamp": "2025-12-12T12:18:11.808358+00:00",
           "message": "Task claimed by agent:github-copilot",
           "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-24T21:26:28.1179205+02:00",
+          "message": "Status updated to completed: audit verified ingestion service, daemon refresh, dependency analysis, generated cache output, and regression coverage for cross-repo todo parsing.",
+          "kind": "info"
         }
       ]
     },
@@ -215,15 +227,11 @@
       "id": "agent-selection-policy",
       "title": "Adaptive Agent Selection Policy",
       "description": "Build a policy module that ingests usage metrics, supports normal and maximise modes, recommends Grok/Codex Mini/Codex per thresholds, and annotates prompts with the chosen model; wire into dispatcher and add unit tests verifying mode behavior.",
-      "status": "in_progress",
+      "status": "completed",
       "priority": "high",
       "created_at": "2025-12-12T00:00:00Z",
-      "updated_at": "2025-12-12T14:55:41.750415+00:00",
-      "tags": [
-        "policy",
-        "agent-selection",
-        "prompts"
-      ],
+      "updated_at": "2026-04-24T21:26:28.1179205+02:00",
+      "tags": ["policy", "agent-selection", "prompts"],
       "claimed_by": {
         "type": "agent",
         "id": "github-copilot",
@@ -251,6 +259,12 @@
           "author": "github-copilot",
           "timestamp": "2025-12-12T14:55:41.750415+00:00",
           "message": "Status updated to in_progress: Implemented and integrated adaptive agent selection policy; now validating full test suite",
+          "kind": "info"
+        },
+        {
+          "author": "github-copilot",
+          "timestamp": "2026-04-24T21:26:28.1179205+02:00",
+          "message": "Status updated to completed: audit verified adaptive selection policy integration in master_prompt_orchestrator.py and regression coverage in tests/test_agent_selection_policy.py.",
           "kind": "info"
         }
       ]

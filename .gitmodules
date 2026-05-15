@@ -1,0 +1,4 @@
+[submodule "tools/TelegramNotifications"]
+	path = tools/TelegramNotifications
+	url = https://github.com/JSunRae/TelegramNotifications.git
+	branch = main

@@ -3,20 +3,23 @@
 from __future__ import annotations
 
 import time
-import keyboard
+import typing
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, TYPE_CHECKING
-import typing
+from typing import TYPE_CHECKING, Dict, List, Optional
 
+import keyboard
+
+from automation import prompt_resolver, task_discovery_daemon
 from automation.config import (
     ENABLE_KEEP_EDITS_CONFIRMATION,
     ENABLE_NEW_CHAT_RETRY,
+    ENABLE_ON_DEMAND_FEED_REFRESH,
     ENABLE_ROBUST_PANEL_PROCESSING,
     MODEL_PICKER_LABELS,
 )
-from automation.metrics import get_metrics_tracker
 from automation.core.hotkeys import check_hotkeys_polled, is_paused
+from automation.metrics import get_metrics_tracker
 from automation.panel_state import (
     PanelState,
     PanelStatus,
@@ -25,16 +28,25 @@ from automation.panel_state import (
 from automation.panel_task_dispatcher import (
     TaskFeedEntry,
     build_task_id,
-    compute_prompt_identifier as dispatcher_compute_prompt_identifier,
-    detect_model_label as dispatcher_detect_model_label,
     get_repo_prompt_cache_key,
+)
+from automation.panel_task_dispatcher import (
+    compute_prompt_identifier as dispatcher_compute_prompt_identifier,
+)
+from automation.panel_task_dispatcher import (
+    detect_model_label as dispatcher_detect_model_label,
+)
+from automation.panel_task_dispatcher import (
     load_prompt_blocks as dispatcher_load_prompt_blocks,
+)
+from automation.panel_task_dispatcher import (
     load_prompt_blocks_for_repo as dispatcher_load_prompt_blocks_for_repo,
+)
+from automation.panel_task_dispatcher import (
     preview_prompt_text as dispatcher_preview_prompt_text,
 )
 from automation.panel_tracker_core import PanelTracker
 from automation.panel_ui import iter_controls, send_text_to_chat
-from automation import prompt_resolver
 
 if TYPE_CHECKING:
     import uiautomation as auto
@@ -156,7 +168,9 @@ def _try_click_keep_edits(vs_win: "auto.Control", panel: PanelState) -> tuple[bo
             # Delegate deep OK-dialog handling to panel_followups helper to
             # benefit from its wait-and-recheck logic.
             try:
-                from automation.panel_followups import handle_keep_edits_confirmation_dialog
+                from automation.panel_followups import (
+                    handle_keep_edits_confirmation_dialog,
+                )
 
                 ok_clicked = handle_keep_edits_confirmation_dialog(vs_win)
             except Exception as exc:  # noqa: BLE001
@@ -541,6 +555,9 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
 
                 legacy_prompts = pt._load_prompt_blocks_for_repo(repo_name)
                 if not legacy_prompts:
+                    if ENABLE_ON_DEMAND_FEED_REFRESH:
+                        task_discovery_daemon.trigger_immediate_refresh()
+                        print("[SEEDING] feed empty — triggered immediate refresh")
                     continue
 
                 legacy_index = tracker.get_prompt_index_for_repo(repo_name, len(legacy_prompts))
@@ -570,6 +587,22 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
                     pass
 
             prompt_to_send = assignment.prompt_text
+            lifecycle = pt.apply_workstream_chat_policy(
+                tracker=tracker,
+                panel=panel,
+                assignment_prompt=prompt_to_send,
+            )
+            prompt_to_send = lifecycle.rendered_prompt
+            panel.workstream_id = lifecycle.workstream_id
+            panel.estimated_context_tokens = lifecycle.estimated_context_tokens
+            panel.last_chat_action = lifecycle.action.value
+            panel.last_chat_action_reason = lifecycle.reason
+            _record_keep_flow_event(
+                step="chat_lifecycle",
+                status=lifecycle.action.value,
+                detail=lifecycle.reason,
+                panel=panel,
+            )
             panel.assigned_prompt_index = assignment.prompt_index
             panel.assigned_prompt_id = assignment.prompt_id or str(assignment.prompt_index)
             panel.assigned_prompt_text = assignment.prompt_preview
@@ -591,6 +624,7 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
                 )
                 panel.seeded_prompt = True
                 tracker._record_transcript_snapshot(panel, kind=pt.TRANSCRIPT_KIND_SEED_PROMPT, text=prompt_to_send)
+                pt.get_workstream_coordinator().record_dispatch_result(panel, lifecycle, success=True)
                 tracker._save_state()
                 try:
                     metrics = get_metrics_tracker()
@@ -644,6 +678,7 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
                 panel.seed_last_failure_reason = None
                 panel.seed_next_retry_at = None
                 tracker._record_transcript_snapshot(panel, kind=pt.TRANSCRIPT_KIND_SEED_PROMPT, text=prompt_to_send)
+                pt.get_workstream_coordinator().record_dispatch_result(panel, lifecycle, success=True)
                 tracker._save_state()
                 try:
                     metrics = get_metrics_tracker()
@@ -660,6 +695,7 @@ def process_finished_panels_with_prompts(tracker: PanelTracker, vs_windows: List
                 processed += 1
             else:
                 dispatcher.release_task(assignment.task_id, panel_key)
+                pt.get_workstream_coordinator().record_dispatch_result(panel, lifecycle, success=False)
                 backoff_seconds = _update_retry_backoff(tracker, panel, "seed_prompt_failed")
                 print(f"[PanelTracker] Failed to seed prompt in {panel.window_title[:50]}")
                 try:

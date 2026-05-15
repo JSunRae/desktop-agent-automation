@@ -28,6 +28,7 @@ class CommandSpec:
     use_python: bool = True
     cwd: Path | None = None
     options: tuple["InteractiveOption", ...] | None = None
+    ensure_orchestrator: bool = True
 
     def as_dict(self) -> dict[str, object]:
         payload: dict[str, object] = {
@@ -113,6 +114,20 @@ COMMANDS: tuple[CommandSpec, ...] = (
         description="Live telemetry: allow rates, rate limits, agent activity.",
     ),
     CommandSpec(
+        key="agent-dashboard",
+        category="Analytics",
+        title="Agent Estate Dashboard",
+        args=("scripts/agent_dashboard.py",),
+        description="Live state of every managed agent panel, queue depth, cost, and orchestration status.",
+    ),
+    CommandSpec(
+        key="workstream-dashboard",
+        category="Analytics",
+        title="Workstream Lifecycle Dashboard",
+        args=("scripts/workstream_dashboard.py",),
+        description="Inspect workstream token pressure, fresh-vs-condense decisions, and multi-panel coordination state.",
+    ),
+    CommandSpec(
         key="metrics-export",
         category="Analytics",
         title="Export Telemetry Report",
@@ -125,6 +140,24 @@ COMMANDS: tuple[CommandSpec, ...] = (
         title="Financial Usage Report",
         args=("scripts/cost_report.py",),
         description="Analyzes OpenAI API spend and token usage.",
+    ),
+    CommandSpec(
+        key="pricing-verification",
+        category="Analytics",
+        title="Monthly Pricing Verification",
+        args=("scripts/verify_pricing.py", "--monthly-check"),
+        description="Canonical monthly pricing audit. Runs the hardened workflow and writes timestamped reports.",
+    ),
+    CommandSpec(
+        key="launch-preflight",
+        category="Launch",
+        title="Launch Preflight",
+        args=("scripts/launch_preflight.py",),
+        description=(
+            "Runs the default launch-readiness gate: repo hygiene, parent tests, "
+            "dashboard smoke, docs readiness, and OpenAI credential validation."
+        ),
+        ensure_orchestrator=False,
     ),
     CommandSpec(
         key="align-panels",
@@ -259,6 +292,68 @@ COMMANDS: tuple[CommandSpec, ...] = (
                 extra_args=("--json",),
             ),
         ),
+    ),
+    CommandSpec(
+        key="check-submodule-state",
+        category="Utilities",
+        title="Check Submodule State",
+        args=("scripts/check_submodule_state.py",),
+        description="Reports whether declared submodules have local dirty content that should block parent commits.",
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Human-readable status",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Fail non-zero if any submodule is dirty",
+                extra_args=("--fail-if-dirty",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="JSON output",
+                extra_args=("--json",),
+            ),
+        ),
+    ),
+    CommandSpec(
+        key="install-git-hooks",
+        category="Utilities",
+        title="Install Repo Git Hooks",
+        args=("scripts/install_git_hooks.py",),
+        description="Configures the repo-local pre-commit hook path so submodule dirtiness blocks parent commits.",
+    ),
+    CommandSpec(
+        key="reset-runtime-state",
+        category="Utilities",
+        title="Reset Runtime State (dry-run default)",
+        args=("scripts/reset_runtime_state.py",),
+        description=(
+            "Preview or reset tracked runtime state files to a clean launch baseline. "
+            "Dry-run by default; use --execute to write the reset."
+        ),
+        options=(
+            InteractiveOption(
+                key="1",
+                title="Preview full reset plan (default)",
+            ),
+            InteractiveOption(
+                key="2",
+                title="Execute full reset",
+                extra_args=("--execute",),
+            ),
+            InteractiveOption(
+                key="3",
+                title="Preview panel state only",
+                extra_args=("--targets", "panel-state"),
+            ),
+            InteractiveOption(
+                key="4",
+                title="Execute panel state only",
+                extra_args=("--execute", "--targets", "panel-state"),
+            ),
+        ),
+        ensure_orchestrator=False,
     ),
     # ------------------------------------------------------------------
     # Coordination
@@ -886,6 +981,8 @@ def _interactive_menu(passthrough: Sequence[str], dry_run: bool) -> int:
             return 0
         extra_args = prompted
 
+    if spec.ensure_orchestrator:
+        _ensure_orchestrator()
     return _run_spec(spec, extra_args, dry_run)
 
 
@@ -909,13 +1006,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     if args.run:
-        _ensure_orchestrator()
         spec = _resolve_command(args.run)
         if spec is None:
             parser.error(f"Unknown workflow: {args.run}")
+        if spec.ensure_orchestrator:
+            _ensure_orchestrator()
         return _run_spec(spec, passthrough, args.dry_run)
 
-    _ensure_orchestrator()
     return _interactive_menu(passthrough, args.dry_run)
 
 

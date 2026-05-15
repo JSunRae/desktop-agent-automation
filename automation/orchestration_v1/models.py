@@ -74,6 +74,12 @@ class WorkspaceConstraints:
     loop_retry_limit: int = 3
     respect_repo_boundaries: bool = True
     prefer_structured_sources: bool = True
+    pilot_allowlist_enabled: bool = False
+    pilot_allowed_task_classes: List[str] = field(default_factory=list)
+    pilot_allowed_categories: List[str] = field(default_factory=list)
+    pilot_allowed_severities: List[str] = field(default_factory=list)
+    pilot_allowed_sources: List[str] = field(default_factory=list)
+    pilot_blocked_title_terms: List[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -91,10 +97,26 @@ class RepoContextBundle:
     root_path: str
     instruction_texts: List[str] = field(default_factory=list)
     task_texts: List[str] = field(default_factory=list)
+    structured_task_items: List["StructuredTaskItem"] = field(default_factory=list)
+    prebuilt_work_items: List["WorkItem"] = field(default_factory=list)
     handover_texts: List[str] = field(default_factory=list)
     report_texts: List[str] = field(default_factory=list)
     protected_signals: List[str] = field(default_factory=list)
     files_seen: List[str] = field(default_factory=list)
+    source_diagnostics: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    warnings: List[str] = field(default_factory=list)
+
+
+@dataclass
+class StructuredTaskItem:
+    source_path: str
+    text: str
+    title: str
+    priority: Optional[str] = None
+    is_blocked: bool = False
+    blocked_by: List[str] = field(default_factory=list)
+    section: Optional[str] = None
+    parse_mode: str = "todo_markdown"
 
 
 @dataclass
@@ -164,6 +186,7 @@ class OrchestrationCycleResult:
     decision: Optional[OrchestrationDecision]
     report: Optional[WorkerCompletionReport]
     notes: List[str] = field(default_factory=list)
+    diagnostics: Dict[str, Any] = field(default_factory=dict)
 
 
 def now_iso() -> str:

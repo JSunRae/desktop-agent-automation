@@ -2,7 +2,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from automation.cross_repo_todo_ingestion import discover_repo_todos, parse_todo_markdown
+from automation.cross_repo_todo_ingestion import (
+    discover_repo_todos,
+    parse_todo_markdown,
+)
 
 
 class CrossRepoTodoIngestionTests(unittest.TestCase):
@@ -49,6 +52,25 @@ class CrossRepoTodoIngestionTests(unittest.TestCase):
             discovered_names = {name for name, _ in discovered}
             self.assertIn("SPECIAL", discovered_names)
 
+    def test_discover_repo_todos_finds_backlog_filename(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            workspace_root = root / "current"
+            workspace_root.mkdir(parents=True)
+
+            repo_a = root / "repoA"
+            (repo_a / "docs").mkdir(parents=True)
+            (repo_a / "docs" / "Backlog.md").write_text("Action: refresh docs", encoding="utf-8")
+
+            discovered = discover_repo_todos(
+                workspace_root=workspace_root,
+                search_roots=[],
+                repo_overrides={},
+            )
+            discovered_set = {(name, Path(path).name) for name, path in discovered}
+
+            self.assertIn(("repoA", "Backlog.md"), discovered_set)
+
     def test_parse_todo_markdown_extracts_priority_and_blockers(self):
         md = """
 # Todo
@@ -73,6 +95,27 @@ class CrossRepoTodoIngestionTests(unittest.TestCase):
 
         last = snapshot.items[-1]
         self.assertIsNone(last.priority)
+
+    def test_parse_todo_markdown_extracts_actionable_prefix_lines(self):
+        md = """
+# Status
+
+Summary: stale links remain in the README
+Next: update troubleshooting references
+Blocker: waiting on upstream repo sync
+""".strip()
+
+        snapshot = parse_todo_markdown(md, repo_name="repo", todo_path="/tmp/Backlog.md")
+
+        self.assertEqual(
+            [item.title for item in snapshot.items],
+            [
+                "stale links remain in the README",
+                "update troubleshooting references",
+                "waiting on upstream repo sync",
+            ],
+        )
+        self.assertTrue(snapshot.items[-1].is_blocked)
 
 
 if __name__ == "__main__":

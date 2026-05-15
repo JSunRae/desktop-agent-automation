@@ -48,7 +48,7 @@
 │  │  2. Send to OpenAI Responses API                         │  │
 │  │                                                          │  │
 │  │     client.responses.create(                            │  │
-│  │         model="computer-use-preview",                   │  │
+│  │         model=AUTO_ALLOW_COMPUTER_USE_MODEL,            │  │
 │  │         tools=[{"type": "computer_use_preview", ...}],  │  │
 │  │         input=[{                                        │  │
 │  │             "type": "input_text",                       │  │
@@ -66,7 +66,7 @@
                           │
          ╔════════════════╧════════════════╗
          ║   OpenAI Computer Use API      ║
-         ║   (computer-use-preview model) ║
+         ║   (AUTO_ALLOW_COMPUTER_USE_MODEL) ║
          ╚════════════════╤════════════════╝
                           │
                           ▼

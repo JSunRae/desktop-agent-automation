@@ -27,7 +27,7 @@ The implementation is **100% complete**:
 1. ✅ All dependencies installed
 2. ✅ Region monitoring (right-half, monitors 0,1) implemented
 3. ✅ Coordinate mapping working
-4. ✅ GPT-4 Vision fallback implemented
+4. ✅ Configurable vision fallback implemented
 5. ✅ Command-line interface functional
 6. ✅ Code tested and validated
 
@@ -53,9 +53,9 @@ Visit: https://platform.openai.com/
 - May need to join waitlist or upgrade plan
 - Currently in limited beta
 
-### Solution 3: Use GPT-4 Vision (Already Implemented!)
+### Solution 3: Use the Vision Fallback Model (Already Implemented!)
 
-The code automatically falls back to `gpt-4o` with vision when `computer-use-preview` isn't available.
+The code automatically falls back to the configured vision-capable chat model when `AUTO_ALLOW_COMPUTER_USE_MODEL` is unavailable. By default that fallback is `AUTO_ALLOW_VISION_FALLBACK_MODEL=gpt-4o`.
 
 **Once you have API credits**, this will work:
 
@@ -70,8 +70,8 @@ python -m automation.desktop_auto_allow_agent --dry-run --once --monitors 0,1 --
 ```
 Step 1: ✅ Captured screenshots of monitors 0,1, right-half only
 Step 2: ✅ Attempted computer-use-preview API call
-Step 3: ✅ Detected model not available, fell back to GPT-4 Vision
-Step 4: ❌ Hit quota limit on GPT-4 Vision
+Step 3: ✅ Detected model not available, fell back to the configured vision model
+Step 4: ❌ Hit quota limit on the vision fallback model
 Step 5: ✅ Gracefully returned NO_BUTTON status
 ```
 
@@ -109,7 +109,7 @@ python -m automation.desktop_auto_allow_agent `
    - Most reliable detection
    
 3. If not available (current):
-   - Uses GPT-4 Vision fallback
+   - Uses the configured vision fallback model
    - Parses coordinates from text response
    - Still works well!
 

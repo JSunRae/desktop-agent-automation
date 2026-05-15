@@ -23,6 +23,7 @@ import pyautogui
 from openai import OpenAI
 from PIL import Image, ImageGrab
 
+from automation.config import AUTO_ALLOW_COMPUTER_USE_MODEL, AUTO_ALLOW_VISION_FALLBACK_MODEL
 from automation.utils import ensure_log_file, log_message
 from automation.cost_tracker import get_cost_tracker
 
@@ -245,7 +246,7 @@ class AutoAllowAgent:
             # Try computer-use-preview first (if available)
             try:
                 response = self.client.responses.create(
-                    model="computer-use-preview",
+                    model=AUTO_ALLOW_COMPUTER_USE_MODEL,
                     tools=[{
                         "type": "computer_use_preview",
                         "display_width": display_width,
@@ -273,9 +274,12 @@ class AutoAllowAgent:
                     truncation="auto"
                 )
             except Exception as e:
-                if "model_not_found" in str(e) or "computer-use-preview" in str(e):
-                    log_message("computer-use-preview not available, falling back to GPT-4 Vision", LOG_PATH)
-                    return self._call_gpt4_vision_fallback(screenshot_b64, display_width, display_height)
+                if "model_not_found" in str(e) or AUTO_ALLOW_COMPUTER_USE_MODEL in str(e):
+                    log_message(
+                        f"{AUTO_ALLOW_COMPUTER_USE_MODEL} not available, falling back to {AUTO_ALLOW_VISION_FALLBACK_MODEL}",
+                        LOG_PATH,
+                    )
+                    return self._call_vision_fallback(screenshot_b64, display_width, display_height)
                 log_message(f"OpenAI API error: {e}", LOG_PATH)
                 raise
 
@@ -308,7 +312,7 @@ class AutoAllowAgent:
             _COST_TRACKER.record_vision_usage(
                 source="desktop_auto_allow",
                 event="computer_use_preview",
-                model="computer-use-preview",
+                model=AUTO_ALLOW_COMPUTER_USE_MODEL,
                 usage=usage,
                 image_count=1,
                 details={"status": status},
@@ -319,9 +323,9 @@ class AutoAllowAgent:
             log_message(f"Error calling OpenAI API: {e}", LOG_PATH)
             return "NO_BUTTON", None
 
-    def _call_gpt4_vision_fallback(self, screenshot_b64: str, display_width: int, display_height: int) -> Tuple[Status, Optional[Dict]]:
+    def _call_vision_fallback(self, screenshot_b64: str, display_width: int, display_height: int) -> Tuple[Status, Optional[Dict]]:
         """
-        Fallback to GPT-4 Vision when computer-use-preview is not available.
+        Fallback to a vision-capable chat model when computer-use is not available.
         Uses text-based response parsing instead of structured computer_call.
 
         Args:
@@ -344,7 +348,7 @@ Screen dimensions: {display_width}x{display_height}
 Check if there is a GitHub Copilot Agent approval button to click."""
 
             response = self.client.chat.completions.create(
-                model="gpt-4o",
+                model=AUTO_ALLOW_VISION_FALLBACK_MODEL,
                 messages=[
                     {
                         "role": "user",
@@ -366,7 +370,7 @@ Check if there is a GitHub Copilot Agent approval button to click."""
             )
 
             response_text = response.choices[0].message.content or ""
-            log_message(f"GPT-4 Vision response: {response_text[:200]}", LOG_PATH)
+            log_message(f"Vision fallback response: {response_text[:200]}", LOG_PATH)
 
             # Parse status
             status: Status = "NO_BUTTON"
@@ -394,8 +398,8 @@ Check if there is a GitHub Copilot Agent approval button to click."""
             usage = getattr(response, "usage", None)
             _COST_TRACKER.record_vision_usage(
                 source="desktop_auto_allow",
-                event="gpt4_vision_fallback",
-                model="gpt-4o",
+                event="vision_fallback",
+                model=AUTO_ALLOW_VISION_FALLBACK_MODEL,
                 usage=usage,
                 image_count=1,
                 details={"status": status},
@@ -404,7 +408,7 @@ Check if there is a GitHub Copilot Agent approval button to click."""
             return status, click_action
 
         except Exception as e:
-            log_message(f"Error in GPT-4 Vision fallback: {e}", LOG_PATH)
+            log_message(f"Error in vision fallback: {e}", LOG_PATH)
             return "NO_BUTTON", None
 
     def _map_screenshot_to_desktop_coords(self, x: int, y: int) -> Tuple[int, int]:
@@ -593,6 +597,21 @@ Check if there is a GitHub Copilot Agent approval button to click."""
             import sys
             traceback.print_exc(file=sys.stderr)
 
+    def log_startup_configuration(self, *, mode: str, check_interval: Optional[int] = None, rate_limit_cooldown: Optional[int] = None) -> None:
+        """Log resolved runtime configuration once at startup."""
+        log_message(
+            "Desktop Auto-Allow model configuration: "
+            f"computer_use_model={AUTO_ALLOW_COMPUTER_USE_MODEL}, "
+            f"vision_fallback_model={AUTO_ALLOW_VISION_FALLBACK_MODEL}",
+            LOG_PATH,
+        )
+        log_message(
+            "Desktop Auto-Allow runtime configuration: "
+            f"mode={mode}, dry_run={self.dry_run}, monitors={self.monitor_indices if self.monitor_indices is not None else 'all'}, "
+            f"quadrant={self.quadrant or 'full'}, check_interval={check_interval}, rate_limit_cooldown={rate_limit_cooldown}",
+            LOG_PATH,
+        )
+
 
 def main() -> None:
     """Entry point for the Desktop Auto-Allow Agent."""
@@ -652,6 +671,12 @@ def main() -> None:
             dry_run=args.dry_run,
             monitor_indices=monitor_indices,
             quadrant=args.quadrant
+        )
+
+        agent.log_startup_configuration(
+            mode="once" if args.once else "loop",
+            check_interval=args.interval,
+            rate_limit_cooldown=args.rate_limit_cooldown,
         )
 
         if args.once:

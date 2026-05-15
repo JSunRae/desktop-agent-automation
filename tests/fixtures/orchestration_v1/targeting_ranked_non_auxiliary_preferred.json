@@ -1,0 +1,41 @@
+{
+  "scenario": "ranked_non_auxiliary_preferred",
+  "notes": "Sanitized representative of same-repo windows where the selector should reduce an avoidable ambiguous stop by preferring the visible non-auxiliary workspace surface.",
+  "repo_id": "alpha",
+  "repo_root": "C:/repos/alpha",
+  "foreground_window_id": "hwnd:1201",
+  "windows": [
+    {
+      "window_id": "hwnd:1201",
+      "window_index": 1,
+      "title": "Chat - alpha (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+      "parsed_repo": "alpha",
+      "normalized_parsed_repo": "alpha",
+      "is_visible": true,
+      "is_minimized": false,
+      "is_cloaked": false,
+      "inclusion_reason": "included_by_uia",
+      "win32_lookup": "matched"
+    },
+    {
+      "window_id": "hwnd:1202",
+      "window_index": 2,
+      "title": "Task B - alpha (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+      "parsed_repo": "alpha",
+      "normalized_parsed_repo": "alpha",
+      "is_visible": true,
+      "is_minimized": false,
+      "is_cloaked": false,
+      "inclusion_reason": "included_by_uia",
+      "win32_lookup": "matched"
+    }
+  ],
+  "omitted_windows": [],
+  "expected": {
+    "reason_code": "selected_best_ranked_match",
+    "eligible_for_dispatch": true,
+    "matched_windows": 2,
+    "win32_only_matches": 0,
+    "selected_window_id": "hwnd:1202"
+  }
+}

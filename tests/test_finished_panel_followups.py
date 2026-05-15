@@ -3,6 +3,10 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import automation.panel_tracker as pt
+from automation.workstream_coordination import (
+    ChatLifecycleAction,
+    ChatLifecycleDecision,
+)
 
 
 class _StubDispatcher:
@@ -137,6 +141,49 @@ def test_finished_panel_live_path(monkeypatch):
     assert panel.seeded_prompt is True
     assert panel.status == pt.PanelStatus.RUNNING
     assert panel.last_allow_click > datetime.datetime.now() - datetime.timedelta(minutes=5)
+
+
+def test_finished_panel_uses_condensed_workstream_prompt(monkeypatch):
+    panel_title = "Testing window functionality - desktop-agent-automation"
+    tracker = _make_tracker(panel_title, monkeypatch)
+
+    monkeypatch.setattr(pt, "ENABLE_FINISHED_PANEL_FOLLOWUPS", True)
+    monkeypatch.setattr(pt, "FINISHED_PANEL_DRY_RUN", False)
+    _install_dispatcher_stub(monkeypatch)
+    monkeypatch.setattr(pt, "classify_panel_output", lambda text: "IDLE_SAFE")
+    monkeypatch.setattr(pt, "_try_click_keep_edits", lambda vs, panel: (True, True))
+    monkeypatch.setattr(pt, "get_tracker", lambda: tracker)
+
+    captured = {}
+
+    def seed_stub(vs, prompt, panel_title="", prompt_index=-1, panel_id=""):
+        captured["prompt"] = prompt
+        return True
+
+    lifecycle = ChatLifecycleDecision(
+        workstream_id="desktop-agent-automation:task:abc123",
+        action=ChatLifecycleAction.CONDENSE_TO_FRESH,
+        reason="Estimated context exceeded threshold",
+        estimated_context_tokens=9100,
+        rendered_prompt="Workstream handoff summary\n\nCurrent assignment:\nPrompt 1 (Codex Max): Do the thing",
+        condensed_context="Workstream handoff summary",
+    )
+
+    monkeypatch.setattr(pt, "apply_workstream_chat_policy", lambda **kwargs: lifecycle)
+    monkeypatch.setattr(pt, "_seed_prompt_in_window", seed_stub)
+
+    class _StubCoordinator:
+        def record_dispatch_result(self, panel, decision, *, success):
+            captured["dispatch_success"] = success
+
+    monkeypatch.setattr(pt, "get_workstream_coordinator", lambda: _StubCoordinator())
+
+    vs_win = SimpleNamespace(Name=panel_title)
+    processed = pt.process_finished_panels_with_prompts([vs_win])  # type: ignore[arg-type]
+
+    assert processed == 1
+    assert "Workstream handoff summary" in captured["prompt"]
+    assert captured["dispatch_success"] is True
 
 
 def test_finished_panel_classification_skip(monkeypatch):

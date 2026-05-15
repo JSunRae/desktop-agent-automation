@@ -1,5 +1,42 @@
 # Desktop Auto-Allow Agent - Quick Start Guide
 
+## Orchestration V1 Operator Quickstart
+
+If you are operating orchestration v1, use this sequence before the older desktop auto-allow workflow below.
+
+Safe order:
+
+0. Run `master --run launch-preflight` on the operator machine and clear any failing launch blockers before live use.
+1. Run preflight.
+2. Run readiness-only for the exact window id.
+3. Rehearse with live dry-run if you are testing a new targeting path.
+4. Run live pilot only after readiness reports `ready_to_send`.
+
+Minimal commands:
+
+```powershell
+# 1. Read-only preflight
+python scripts\orchestration_v1.py --pilot-preflight --pilot-preflight-repo trading --json
+
+# 2. Readiness-only probe for one exact repo window
+python scripts\orchestration_v1.py --pilot-readiness-only --pilot-readiness-repo trading --pilot-window-id <window_id> --json
+
+# 3. Optional repo-targeted live dry-run rehearsal
+python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-dry-run --pilot-dry-run-repo trading --pilot-window-id <window_id> --json
+
+# 4. Live pilot with fail-closed activation checks
+python scripts\orchestration_v1.py --pilot-live-dispatch --pilot-safe-activate --pilot-window-id <window_id> --json
+```
+
+Primary references:
+
+- `docs/ORCHESTRATION_V1_OPERATOR_RUNBOOK.md`
+- `docs/QUICK_REFERENCE.md`
+- `docs/ORCHESTRATION_V1_STRICT_RESPONSE_GUIDE.md`
+- `docs/pilot_window_targeting_checklist.md`
+
+Use the rest of this file for the legacy desktop auto-allow setup and monitor-capture workflow.
+
 ## ✅ Installation Complete!
 
 ## Developer setup (tests + lint)
@@ -15,6 +52,7 @@ pip install -r requirements-dev.txt -c constraints-dev.txt
 ```
 
 All dependencies have been installed:
+
 - ✅ `openai` - OpenAI API client
 - ✅ `pillow` - Screenshot capture
 - ✅ `pyautogui` - Mouse automation
@@ -33,10 +71,12 @@ To reduce API costs and screenshot size, you can now:
 ### Why This Matters
 
 **Full desktop capture (3 monitors, 1920x1080 each):**
+
 - Screenshot size: ~16 MB
 - Cost: Higher per API call
 
 **Selective capture (2 monitors, bottom-left quadrant):**
+
 - Screenshot size: ~2 MB (8x smaller!)
 - Cost: Significantly lower
 
@@ -102,6 +142,7 @@ python -m automation.desktop_auto_allow_agent --monitors 0,2 --quadrant bottom-l
 ## 🎯 Recommended Configuration for Your Setup
 
 Based on your requirements:
+
 - 3 monitors (left, middle, right)
 - Only monitor left and right
 - Approval button always in bottom-left quadrant
@@ -117,6 +158,7 @@ python -m automation.desktop_auto_allow_agent `
 ```
 
 This will:
+
 - ✅ Only capture monitors 0 and 2 (left and right)
 - ✅ Only capture bottom-left quadrant of each (~1/4 of full size)
 - ✅ Check every 90 seconds (vs default 60)
@@ -147,6 +189,7 @@ The agent automatically handles coordinate translation:
 4. **Click executed**: At the correct desktop location
 
 **Example:**
+
 ```
 Screenshot: Click at (150, 200) in bottom-left quadrant
 ↓
@@ -157,12 +200,12 @@ Desktop: Click at (150, 1080 + 200) = (150, 1280)
 
 ## 📊 Cost Comparison
 
-| Configuration | Screenshot Size | Monitors | Reduction | Recommended For |
-|---------------|----------------|----------|-----------|-----------------|
-| Full desktop (3 monitors) | ~16 MB | All 3 | Baseline | Testing only |
-| Two monitors only | ~11 MB | 0, 2 | 31% smaller | Basic setup |
-| Full + bottom-left quadrant | ~4 MB | All 3 | 75% smaller | If middle monitor needed |
-| **Two monitors + bottom-left** | **~2 MB** | **0, 2** | **87% smaller** | **Best for your setup** |
+| Configuration                  | Screenshot Size | Monitors | Reduction       | Recommended For          |
+| ------------------------------ | --------------- | -------- | --------------- | ------------------------ |
+| Full desktop (3 monitors)      | ~16 MB          | All 3    | Baseline        | Testing only             |
+| Two monitors only              | ~11 MB          | 0, 2     | 31% smaller     | Basic setup              |
+| Full + bottom-left quadrant    | ~4 MB           | All 3    | 75% smaller     | If middle monitor needed |
+| **Two monitors + bottom-left** | **~2 MB**       | **0, 2** | **87% smaller** | **Best for your setup**  |
 
 ---
 
@@ -182,6 +225,7 @@ python -m automation.desktop_auto_allow_agent --dry-run --once --monitors 0,2 --
 ```
 
 Expected output:
+
 ```
 [2025-11-22 XX:XX:XX] Capturing 2 monitor region(s), quadrant: bottom-left
 [2025-11-22 XX:XX:XX] Calling OpenAI Computer Use API...
@@ -237,16 +281,19 @@ Options:
 ## 🐛 Troubleshooting
 
 ### "Error: OpenAI API key required"
+
 ```powershell
 $env:OPENAI_API_KEY = "sk-your-key-here"
 ```
 
 ### Coordinates are off
+
 - Verify monitor indices with `screeninfo` library
 - Check log for "screenshot -> desktop" coordinate mappings
 - Test with `--dry-run` to see coordinate translation
 
 ### Not detecting button
+
 - Try without `--quadrant` first to verify button is visible
 - Check if button is actually in the bottom-left quadrant
 - Review logs for detection status
@@ -258,6 +305,7 @@ $env:OPENAI_API_KEY = "sk-your-key-here"
 All activity is logged to: `automation/auto_allow.log`
 
 View logs:
+
 ```powershell
 # See last 20 lines
 Get-Content automation\auto_allow.log -Tail 20

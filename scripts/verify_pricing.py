@@ -24,7 +24,7 @@ import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from urllib.error import URLError
 from urllib.request import urlopen
 
@@ -39,7 +39,9 @@ DEFAULT_PRICING_URLS = [
 ]
 
 REPORTS_DIR = PROJECT_ROOT / "logs" / "pricing_checks"
-CHECKER_VERSION = "1.1.0"
+CHECKER_VERSION = "1.2.0"
+REPORT_TYPE = "openai_pricing_verification"
+REPORT_SCHEMA_VERSION = 2
 PER_MILLION_TOKENS = 1000  # Rates are stored per 1k tokens
 RATE_TYPES = ("input", "output", "vision")
 
@@ -313,6 +315,10 @@ def build_recommendations(changes: Dict[str, Any]) -> List[str]:
         recommendations.append(f"Evaluate new model '{model}' for potential adoption.")
     for model in changes["deprecated"]:
         recommendations.append(f"Confirm whether '{model}' should be removed from DEFAULT_MODEL_RATES.")
+    if any([changes["increased"], changes["decreased"], changes["new_models"], changes["deprecated"]]):
+        recommendations.append(
+            "If your deployments use COST_TRACKER_MODEL_RATES overrides, update those overrides with any DEFAULT_MODEL_RATES changes."
+        )
     if not recommendations:
         recommendations.append("No action required. Pricing matches DEFAULT_MODEL_RATES.")
     return recommendations
@@ -329,18 +335,44 @@ def generate_markdown_report(payload: Dict[str, Any], output_path: Path) -> Path
     counts = payload["comparison"]
     changes = payload["changes"]
     age_days = payload.get("local_rates_age_days")
+    source = payload["source"]
+    baseline = payload["baseline"]
     lines: List[str] = []
     lines.append(f"# OpenAI Pricing Check - {check_dt.strftime('%B %d, %Y')}")
     lines.append("")
     lines.append("## Summary")
+    lines.append(f"- Status: {payload['status']}")
     lines.append(f"- {counts['unchanged_count']} models unchanged")
-    lines.append(f"- {counts['increased_count']} models increased")
-    lines.append(f"- {counts['decreased_count']} models decreased")
+    lines.append(f"- {counts['increased_count']} rate increases")
+    lines.append(f"- {counts['decreased_count']} rate decreases")
     lines.append(f"- {counts['new_models_count']} new models detected")
-    lines.append(f"- {counts['deprecated_count']} deprecated models")
+    lines.append(f"- {counts['deprecated_count']} local models missing from selected source")
     if age_days is not None:
         lines.append(f"- Local defaults last updated {age_days} days ago")
     lines.append("")
+
+    lines.append("## Source")
+    lines.append(f"- Selected source: {source['selected_source']}")
+    lines.append(f"- Retrieval mode: {source['mode']}")
+    if source.get("fallback_reason"):
+        lines.append(f"- Fallback reason: {source['fallback_reason']}")
+    lines.append("")
+
+    lines.append("## Baseline")
+    lines.append(f"- Source of truth: {baseline['defaults_path']} (`DEFAULT_MODEL_RATES`)")
+    lines.append(f"- Models in baseline: {baseline['model_count']}")
+    lines.append(f"- Defaults last updated: {baseline['defaults_last_updated']}")
+    lines.append("")
+
+    if source.get("attempts"):
+        lines.append("## Source Attempts")
+        for attempt in source["attempts"]:
+            target = attempt["target"]
+            status = attempt["status"]
+            model_count = attempt.get("model_count")
+            suffix = f" ({model_count} models parsed)" if model_count is not None else ""
+            lines.append(f"- {attempt['kind']}: {target} -> {status}{suffix}")
+        lines.append("")
 
     if changes["increased"]:
         lines.append("## Price Increases")
@@ -361,13 +393,13 @@ def generate_markdown_report(payload: Dict[str, Any], output_path: Path) -> Path
             model_rates = api_latest.get(model, {})
             line = (
                 f"- **{model}**: input {_format_currency(model_rates.get('input'))}, "
-                f"output {_format_currency(model_rates.get('output'))}"
+                f"output {_format_currency(model_rates.get('output'))}, vision {_format_currency(model_rates.get('vision'))}"
             )
             lines.append(line)
         lines.append("")
 
     if changes["deprecated"]:
-        lines.append("## Deprecated Models")
+        lines.append("## Models Missing From Selected Source")
         for model in changes["deprecated"]:
             lines.append(f"- {model}")
         lines.append("")
@@ -396,16 +428,20 @@ def _markdown_change_block(change: Dict[str, Any]) -> List[str]:
     lines = [f"### {change['model']} ({change['rate_type']} tokens)"]
     lines.append(f"- Old: {_format_currency(change['old_price'])}")
     lines.append(f"- New: {_format_currency(change['new_price'])}")
+    if change["delta"] is not None:
+        lines.append(f"- Delta: {_format_signed_currency(change['delta'])}")
     if change["change_pct"] is not None:
         lines.append(f"- Change: {change['change_pct']:+.2f}%")
     if change["change_per_1m_tokens"] is not None:
-        lines.append(f"- Impact per 1M tokens: {_format_currency(change['change_per_1m_tokens'])}")
+        lines.append(f"- Impact per 1M tokens: {_format_signed_currency(change['change_per_1m_tokens'])}")
     return lines
 
 
 def format_console_output(payload: Dict[str, Any], previous: Optional[Dict[str, Any]]) -> str:
     counts = payload["comparison"]
     changes = payload["changes"]
+    source = payload["source"]
+    baseline = payload["baseline"]
     lines: List[str] = []
     title = "OpenAI Pricing Verification Report"
     date_str = datetime.fromisoformat(payload["check_date"]).strftime("%B %d, %Y")
@@ -422,9 +458,15 @@ def format_console_output(payload: Dict[str, Any], previous: Optional[Dict[str, 
         f"INC {counts['increased_count']:>3} | DEC {counts['decreased_count']:>3} | "
         f"NEW {counts['new_models_count']:>3} | DEP {counts['deprecated_count']:>3}"
     )
+    lines.append(f"Source: {source['selected_source']} ({source['mode']})")
+    lines.append(
+        f"Baseline: {baseline['defaults_path']} DEFAULT_MODEL_RATES ({baseline['model_count']} models)"
+    )
     age_days = payload.get("local_rates_age_days")
     if age_days is not None:
         lines.append(f"Local defaults last updated {age_days} days ago.")
+    if source.get("fallback_reason"):
+        lines.append(f"Fallback: {source['fallback_reason']}")
     lines.append("")
     if changes["increased"]:
         lines.append("Price Increases:")
@@ -436,14 +478,25 @@ def format_console_output(payload: Dict[str, Any], previous: Optional[Dict[str, 
         lines.append("")
     if changes["new_models"]:
         lines.append("New Models Detected:")
+        api_latest = payload["full_pricing"]["api_latest"]
         for model in changes["new_models"]:
-            lines.append(f"  - {model}")
+            model_rates = api_latest.get(model, {})
+            lines.append(
+                f"  - {model} | input {_format_currency(model_rates.get('input'))} | "
+                f"output {_format_currency(model_rates.get('output'))}"
+            )
         lines.append("")
     if changes["deprecated"]:
         lines.append("Models Missing From API:")
         for model in changes["deprecated"]:
             lines.append(f"  - {model}")
         lines.append("")
+    lines.append("Recommended Action:")
+    for recommendation in payload["recommendations"][:3]:
+        lines.append(f"  - {recommendation}")
+    if len(payload["recommendations"]) > 3:
+        lines.append("  - ...")
+    lines.append("")
     if previous:
         lines.append("Comparison With Previous Check:")
         lines.append(f"  Trend: {previous['price_trend']}")
@@ -460,23 +513,38 @@ def _format_console_changes(items: Sequence[Dict[str, Any]]) -> List[str]:
     formatted: List[str] = []
     for item in items:
         pct = f" ({item['change_pct']:+.2f}%)" if item["change_pct"] is not None else ""
+        delta = f" | delta {_format_signed_currency(item['delta'])}" if item["delta"] is not None else ""
+        impact = (
+            f" | 1M {_format_signed_currency(item['change_per_1m_tokens'])}"
+            if item["change_per_1m_tokens"] is not None
+            else ""
+        )
         formatted.append(
-            f"  - {item['model']} [{item['rate_type']}] { _format_currency(item['old_price']) } -> { _format_currency(item['new_price']) }{pct}"
+            f"  - {item['model']} [{item['rate_type']}] {_format_currency(item['old_price'])} -> {_format_currency(item['new_price'])}{pct}{delta}{impact}"
         )
     return formatted
 
 
-def load_previous_report(reports_dir: Path) -> Optional[Dict[str, Any]]:
+def load_previous_report(reports_dir: Path) -> Optional[Tuple[Dict[str, Any], Path]]:
     if not reports_dir.exists():
         return None
-    candidates = sorted(reports_dir.glob("pricing_check_*.json"))
-    if not candidates:
+    compatible_reports: List[Tuple[datetime, Path, Dict[str, Any]]] = []
+    for path in sorted(reports_dir.glob("pricing_check_*.json")):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            continue
+        if payload.get("report_type") != REPORT_TYPE:
+            continue
+        check_dt = _parse_report_datetime(payload.get("check_date"))
+        if check_dt is None:
+            continue
+        compatible_reports.append((check_dt, path, payload))
+    if not compatible_reports:
         return None
-    latest = candidates[-1]
-    try:
-        return json.loads(latest.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return None
+    compatible_reports.sort(key=lambda item: item[0])
+    _, path, payload = compatible_reports[-1]
+    return payload, path
 
 
 def compare_with_previous(current: Dict[str, Any], previous: Dict[str, Any]) -> Dict[str, Any]:
@@ -509,6 +577,15 @@ def compare_with_previous(current: Dict[str, Any], previous: Dict[str, Any]) -> 
         "cumulative_increase_since_previous": cumulative_increase,
         "time_since_last_check": f"{delta_days} days",
     }
+
+
+def _parse_report_datetime(raw: object) -> Optional[datetime]:
+    if not isinstance(raw, str):
+        return None
+    try:
+        return datetime.fromisoformat(raw)
+    except ValueError:
+        return None
 
 
 def notify_pricing_changes(changes: Dict[str, Any], method: str) -> None:
@@ -622,6 +699,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--manual", action="store_true", help="Skip fetch attempts and prompt for manual values")
     parser.add_argument("--tolerance", type=float, default=0.05, help="Relative delta threshold (default: 5%)")
     parser.add_argument("--json", action="store_true", help="Output full report payload in JSON")
+    parser.add_argument(
+        "--monthly-check",
+        action="store_true",
+        help="Run the standard monthly workflow: compare against the latest report and save a new audit report",
+    )
     parser.add_argument("--save-report", action="store_true", help="Persist reports under logs/pricing_checks")
     parser.add_argument(
         "--auto-commit",
@@ -642,34 +724,77 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def fetch_remote_rates(args: argparse.Namespace) -> Tuple[PricingMap, str]:
+def apply_cli_presets(args: argparse.Namespace) -> None:
+    if args.monthly_check:
+        args.save_report = True
+        args.compare_previous = True
+
+
+def fetch_remote_rates(args: argparse.Namespace) -> Tuple[PricingMap, Dict[str, Any]]:
     remote_rates: PricingMap = {}
-    source = ""
+    attempts: List[Dict[str, Any]] = []
+    source_metadata: Dict[str, Any] = {
+        "mode": "manual",
+        "selected_source": "manual",
+        "attempts": attempts,
+        "fallback_reason": None,
+    }
     if not args.manual:
         candidate_urls = args.pricing_url or DEFAULT_PRICING_URLS
         for url in candidate_urls:
             text = download_text(url)
             if not text:
+                attempts.append({"kind": "url", "target": url, "status": "unreachable"})
                 continue
             parsed = parse_pricing_text(text)
             if parsed:
                 remote_rates = parsed
-                source = url
+                attempts.append(
+                    {"kind": "url", "target": url, "status": "parsed", "model_count": len(parsed)}
+                )
+                source_metadata = {
+                    "mode": "remote",
+                    "selected_source": url,
+                    "attempts": attempts,
+                    "fallback_reason": None,
+                }
                 break
+            attempts.append({"kind": "url", "target": url, "status": "unparsed"})
         if not remote_rates and args.pricing_file:
             for path in args.pricing_file:
                 text = load_pricing_file(path)
                 if not text:
+                    attempts.append({"kind": "file", "target": str(path), "status": "unreadable"})
                     continue
                 parsed = parse_pricing_text(text)
                 if parsed:
                     remote_rates = parsed
-                    source = str(path)
+                    attempts.append(
+                        {
+                            "kind": "file",
+                            "target": str(path),
+                            "status": "parsed",
+                            "model_count": len(parsed),
+                        }
+                    )
+                    source_metadata = {
+                        "mode": "file",
+                        "selected_source": str(path),
+                        "attempts": attempts,
+                        "fallback_reason": None,
+                    }
                     break
+                attempts.append({"kind": "file", "target": str(path), "status": "unparsed"})
     if not remote_rates:
         remote_rates = prompt_for_rates()
-        source = "manual"
-    return remote_rates, source
+        fallback_reason = "manual mode requested" if args.manual else "No pricing source could be fetched and parsed"
+        source_metadata = {
+            "mode": "manual",
+            "selected_source": "manual",
+            "attempts": attempts,
+            "fallback_reason": fallback_reason,
+        }
+    return remote_rates, source_metadata
 
 
 def build_full_pricing_map(pricing_map: PricingMap) -> Dict[str, Dict[str, Optional[float]]]:
@@ -686,9 +811,24 @@ def _format_currency(value: Optional[float]) -> str:
     return f"${value:.4f}"
 
 
+def _format_signed_currency(value: Optional[float]) -> str:
+    if value is None:
+        return "-"
+    sign = "+" if value >= 0 else "-"
+    return f"{sign}${abs(value):.4f}"
+
+
+def _display_path(path: Path, root: Path = PROJECT_ROOT) -> str:
+    try:
+        return str(path.relative_to(root))
+    except ValueError:
+        return str(path)
+
+
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
+    apply_cli_presets(args)
     if args.auto_commit and not args.save_report:
         parser.error("--auto-commit requires --save-report")
 
@@ -697,16 +837,26 @@ def main() -> None:
         reports_dir.mkdir(parents=True, exist_ok=True)
 
     current_rates = build_current_rates()
-    remote_rates, metadata_source = fetch_remote_rates(args)
+    remote_rates, source_metadata = fetch_remote_rates(args)
     changes = compare_pricing(current_rates, remote_rates, args.tolerance)
     recommendations = build_recommendations(changes)
     now = datetime.now(timezone.utc)
     local_age_days = (datetime.now() - DEFAULT_RATES_LAST_UPDATED).days
+    change_detected = any(
+        [
+            changes["increased"],
+            changes["decreased"],
+            changes["new_models"],
+            changes["deprecated"],
+        ]
+    )
 
     previous_analysis = None
+    previous_report_details = None
     if args.compare_previous:
-        previous = load_previous_report(reports_dir)
-        if previous:
+        previous_entry = load_previous_report(reports_dir)
+        if previous_entry:
+            previous, previous_path = previous_entry
             previous_analysis = compare_with_previous(
                 {
                     "check_date": now.isoformat(),
@@ -714,8 +864,12 @@ def main() -> None:
                 },
                 previous,
             )
+            previous_report_details = {
+                "path": _display_path(previous_path),
+                "check_date": previous.get("check_date"),
+            }
         else:
-            print("No previous pricing check found. This will act as the baseline.")
+            previous_report_details = {"path": None, "check_date": None}
 
     comparison_counts = {
         "unchanged_count": len(changes["unchanged"]),
@@ -726,9 +880,18 @@ def main() -> None:
     }
 
     payload = {
+        "report_type": REPORT_TYPE,
+        "report_schema_version": REPORT_SCHEMA_VERSION,
         "check_date": now.isoformat(),
         "checker_version": CHECKER_VERSION,
-        "api_source": metadata_source,
+        "status": "changes_detected" if change_detected else "matched",
+        "api_source": source_metadata["selected_source"],
+        "source": source_metadata,
+        "baseline": {
+            "defaults_path": "automation/cost_tracker.py",
+            "defaults_last_updated": DEFAULT_RATES_LAST_UPDATED.date().isoformat(),
+            "model_count": len(current_rates),
+        },
         "comparison": comparison_counts,
         "changes": changes,
         "full_pricing": {
@@ -737,38 +900,46 @@ def main() -> None:
         },
         "recommendations": recommendations,
         "local_rates_age_days": local_age_days,
+        "invocation": {
+            "argv": sys.argv[1:],
+            "monthly_check": bool(args.monthly_check),
+            "tolerance": args.tolerance,
+            "save_report": bool(args.save_report),
+            "compare_previous": bool(args.compare_previous),
+            "json_output": bool(args.json),
+        },
     }
     if previous_analysis:
         payload["previous_comparison"] = previous_analysis
+    if previous_report_details:
+        payload["previous_report"] = previous_report_details
+
+    report_paths: List[Path] = []
+    if args.save_report:
+        base_name = now.strftime("pricing_check_%Y-%m-%dT%H%M%SZ")
+        json_path = reports_dir / f"{base_name}.json"
+        md_path = reports_dir / f"{base_name}.md"
+        report_paths = [json_path, md_path]
+        payload["report_files"] = [_display_path(path) for path in report_paths]
+        generate_json_report(payload, json_path)
+        generate_markdown_report(payload, md_path)
 
     if args.json:
         print(json.dumps(payload, indent=2))
         return
 
+    if args.compare_previous and not previous_analysis:
+        print("No previous compatible pricing check found. This run will act as the baseline.")
+        print("")
+
     console = format_console_output(payload, payload.get("previous_comparison"))
     print(console)
-
-    report_paths: List[Path] = []
-    if args.save_report:
-        base_name = f"pricing_check_{now.date().isoformat()}"
-        json_path = reports_dir / f"{base_name}.json"
-        md_path = reports_dir / f"{base_name}.md"
-        generate_json_report(payload, json_path)
-        generate_markdown_report(payload, md_path)
-        report_paths = [json_path, md_path]
+    if report_paths:
+        print("")
         print("Reports saved to:")
         for path in report_paths:
-            rel = path.relative_to(PROJECT_ROOT)
-            print(f"  - {rel}")
+            print(f"  - {_display_path(path)}")
 
-    change_detected = any(
-        [
-            changes["increased"],
-            changes["decreased"],
-            changes["new_models"],
-            changes["deprecated"],
-        ]
-    )
     if change_detected:
         notify_pricing_changes(changes, args.notify)
 

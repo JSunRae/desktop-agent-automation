@@ -7,12 +7,14 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 ## Key Features
 
 ### 1. **Feedback Loop Integration** ✅
+
 - **Historical Success Pattern Analysis**: Integrates `feedback_analyzer.py` to identify which prompt patterns have historically succeeded or failed
 - **Successful Pattern Replication**: Uses insights from completed tasks to guide new prompt structure
 - **Problematic Pattern Avoidance**: Filters out prompt patterns that have led to errors or clarification requests
 - **Adaptive Learning**: Continuously improves based on agent performance metrics
 
 ### 2. **Context-Aware Repository Analysis** ✅
+
 - **Language Detection**: Automatically identifies primary programming language
 - **Architecture Style Recognition**: Detects architectural patterns (microservices, monolithic, layered, event-driven, serverless)
 - **Code Pattern Extraction**: Identifies common design patterns (singleton, factory, observer, MVC, etc.)
@@ -20,12 +22,14 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 - **Dependency Mapping**: Analyzes external dependencies from requirements.txt and other config files
 
 ### 3. **Cross-Repo Dependency Integration** ✅
+
 - **Todo Item Analysis**: Extracts tasks from cross-repo service with priority and blocker information
 - **Dependency-Aware Prompts**: Generates prompts only for unblocked tasks
 - **Priority-Based Selection**: Prioritizes high-priority, unblocked tasks
 - **Blocker Awareness**: Explicitly avoids generating prompts for blocked tasks
 
 ### 4. **Prompt Quality Validation & Scoring** ✅
+
 - **Multi-Criteria Scoring System**:
   - Clarity and Specificity (25%): Clear goals, specific language, proper structure
   - Actionability and Completeness (25%): Clear deliverables, success criteria, file references
@@ -36,6 +40,7 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 - **Metadata Tracking**: Quality scores stored with each prompt for analysis
 
 ### 5. **Adaptive Prompt Complexity** ✅
+
 - **Agent Performance Monitoring**: Tracks overall agent success rates from feedback
 - **Dynamic Complexity Adjustment**:
   - Success rate < 50% → Simplify complex tasks, add step-by-step guidance
@@ -45,6 +50,7 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 - **Complexity Metadata**: Tracks adjustment rationale for each prompt
 
 ### 6. **Proven Prompt Templates** ✅
+
 - **Template Library**: 5 proven templates for common task types:
   - **Bug Fix Template** (85% success rate): Structured approach to identifying and fixing bugs
   - **Feature Addition Template** (78% success rate): Comprehensive feature implementation guide
@@ -56,6 +62,7 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 - **Success Rate Tracking**: Templates ranked by historical performance
 
 ### 7. **Diversity & Deduplication Mechanisms** ✅
+
 - **Hash-Based Deduplication**: Prevents identical prompts from being generated
 - **Semantic Similarity Detection**: Filters prompts with >70% word overlap
 - **Task Type Diversity**: Ensures balanced distribution across different task types
@@ -63,6 +70,7 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 - **Diversity Limits**: Caps prompts per task type to prevent over-concentration
 
 ### 8. **Prompt Metadata Storage** ✅
+
 - **Comprehensive Metadata** for each prompt:
   - `prompt_id`: Unique identifier (12-char hash)
   - `prompt_hash`: Full SHA-256 hash for deduplication
@@ -80,6 +88,7 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 - **Manifest Integration**: Enhanced manifest.jsonl with quality metrics
 
 ### 9. **Human Review Feedback Mechanism** ✅
+
 - **Review Queue**: Optional human review before prompt deployment
 - **Pending Review Storage**: Prompts saved to `pending_review.json` with full metadata
 - **Approval Workflow**: Placeholder for UI integration (auto-approves for now)
@@ -88,11 +97,13 @@ The Master Prompt Orchestrator has been significantly enhanced to generate highe
 ## Usage
 
 ### Basic Usage (with all enhancements enabled)
+
 ```bash
 python -m automation.master_prompt_orchestrator
 ```
 
 ### Disable Specific Features
+
 ```bash
 # Disable quality validation
 python -m automation.master_prompt_orchestrator --disable-quality-validation
@@ -111,6 +122,7 @@ python -m automation.master_prompt_orchestrator --enable-human-review
 ```
 
 ### Multi-Repository Support
+
 ```bash
 python -m automation.master_prompt_orchestrator \
   --repos "tf_1=/path/to/tf_1/docs" \
@@ -120,13 +132,15 @@ python -m automation.master_prompt_orchestrator \
 ## Output Files
 
 ### 1. Prompt Batch File
+
 **Location**: `tasks/generated_prompts/{repo_name}/master_prompts_{timestamp}.txt`
 
 **Format**:
+
 ```
 Master Agent Prompt Batch (UTC 2025-12-12_15-30-00Z)
 Repository: my-repo
-Model: gpt-4o-mini
+Model: gpt-5.4
 Documents used: 15
 Prompts generated: 8
 Average quality score: 0.72
@@ -136,20 +150,22 @@ Quality threshold: 0.4
 
 1. Fix authentication timeout bug (Grok): [Quality: 0.68, Type: bug_fix, Difficulty: moderate]
    Fix the following bug: User sessions timing out prematurely...
-   
+
 2. Implement user profile dashboard (Codex): [Quality: 0.75, Type: feature, Difficulty: complex]
    Implement the following feature: User profile dashboard...
 ```
 
 ### 2. Metadata File
+
 **Location**: `tasks/generated_prompts/{repo_name}/prompt_metadata_{timestamp}.json`
 
 **Structure**:
+
 ```json
 {
   "generated_at": "2025-12-12_15-30-00Z",
   "repo_name": "my-repo",
-  "model": "gpt-4o-mini",
+  "model": "gpt-5.4",
   "prompt_count": 8,
   "average_quality_score": 0.72,
   "quality_threshold": 0.4,
@@ -182,14 +198,16 @@ Quality threshold: 0.4
 ```
 
 ### 3. Enhanced Manifest
+
 **Location**: `tasks/generated_prompts/{repo_name}/manifest.jsonl`
 
 Each line contains:
+
 ```json
 {
   "generated_at": "2025-12-12_15-30-00Z",
   "repo_name": "my-repo",
-  "model": "gpt-4o-mini",
+  "model": "gpt-5.4",
   "prompt_count": 8,
   "average_quality_score": 0.72,
   "metadata_file": "prompt_metadata_2025-12-12_15-30-00Z.json",
@@ -270,7 +288,7 @@ class PromptTemplate:
 2. **Document Collection**: Gather markdown/text files from docs directories
 3. **Repository Analysis**: Analyze structure, patterns, conventions, dependencies
 4. **Todo Dependency Extraction**: Get unblocked vs blocked tasks from cross-repo service
-5. **Enhanced Prompt Request**: 
+5. **Enhanced Prompt Request**:
    - Build system prompt with feedback insights and repo context
    - Build user prompt with dependency information
    - Request from LLM
@@ -288,13 +306,15 @@ class PromptTemplate:
 ## Configuration
 
 ### Environment Variables
+
 - `MASTER_AGENT_DOCS_ROOT`: Default docs directory
 - `MASTER_AGENT_OPEN_TASKS_ROOT`: Default open tasks directory
 - `MASTER_AGENT_PROMPT_DIR`: Output directory (default: `tasks/generated_prompts`)
-- `MASTER_AGENT_MODEL`: LLM model to use (default: `gpt-4o-mini`)
+- `MASTER_AGENT_MODEL`: LLM model to use (default: `gpt-5.4`)
 - `MASTER_AGENT_REPO_CONFIGS`: JSON array of repo configurations
 
 ### Programmatic Configuration
+
 ```python
 from automation.master_prompt_orchestrator import MasterPromptOrchestrator
 
@@ -326,6 +346,7 @@ results = orchestrator.generate_prompt_batches()
 ## Metrics & Monitoring
 
 The system tracks and logs:
+
 - Repository analysis results (language, architecture, patterns)
 - Feedback insights (successful/problematic patterns)
 - Quality scores for each prompt
@@ -337,6 +358,7 @@ The system tracks and logs:
 ## Future Enhancements
 
 Potential additions:
+
 - **ML-Based Quality Prediction**: Train model on historical prompt performance
 - **Custom Template Creation**: UI for creating organization-specific templates
 - **Real-Time Human Review UI**: Interactive approval interface
@@ -389,6 +411,7 @@ orchestrator = MasterPromptOrchestrator(
 ## Testing
 
 Enhanced testing coverage includes:
+
 - Repository analysis unit tests
 - Quality scoring validation
 - Template matching accuracy
@@ -400,6 +423,7 @@ Enhanced testing coverage includes:
 ## Support
 
 For issues or questions:
+
 1. Check logs for detailed processing information
 2. Review generated metadata files for prompt quality details
 3. Analyze manifest.jsonl for batch-level statistics
@@ -409,6 +433,7 @@ For issues or questions:
 ## Version History
 
 ### v2.0.0 (Current)
+
 - ✅ Feedback loop integration
 - ✅ Context-aware repository analysis
 - ✅ Cross-repo dependency integration
@@ -420,6 +445,7 @@ For issues or questions:
 - ✅ Human review feedback mechanism
 
 ### v1.0.0 (Previous)
+
 - Basic prompt generation
 - Multi-repository support
 - Agent selection policy

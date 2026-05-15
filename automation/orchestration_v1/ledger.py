@@ -74,3 +74,17 @@ class OrchestrationLedger:
             if str(payload.get("work_item_id", "")) == work_item_id:
                 attempts += 1
         return attempts
+
+    def has_terminal_event(self, run_id: str) -> bool:
+        if not run_id:
+            return False
+        terminal = {"run_completed", "run_failed", "run_blocked", "run_stopped"}
+        latest_event = ""
+        for row in self.read_rows():
+            payload = row.get("payload")
+            if not isinstance(payload, dict):
+                continue
+            if str(payload.get("run_id", "")).strip() != run_id:
+                continue
+            latest_event = str(row.get("event", "")).strip()
+        return latest_event in terminal

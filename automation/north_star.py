@@ -19,23 +19,25 @@ agents always know:
 from __future__ import annotations
 
 import json
-import os
 import re
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from automation.config import (
+    NORTH_STAR_CACHE_TTL_SECONDS,
+    TRADING_SYSTEM_ROOT,
+    WSL_PATH_PROBE_TIMEOUT_SECONDS,
+)
+from automation.utils import probe_wsl_path
 
 # ---------------------------------------------------------------------------
 # Path constants (resolved via env vars so CI/tests can override them)
 # ---------------------------------------------------------------------------
 
-_WSL_BASE = Path(
-    os.environ.get(
-        "TRADING_SYSTEM_ROOT_WIN",
-        r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system",
-    )
-)
+_WSL_BASE = TRADING_SYSTEM_ROOT
+NORTH_STAR_CACHE_PATH = Path("state") / "north_star_cache.json"
 
 TRADING_SYSTEM_ROOT: Path = _WSL_BASE
 TRADING_REPO_ROOT: Path = _WSL_BASE / "Trading"
@@ -421,7 +423,45 @@ def load_north_star(
 # Singleton cache -----------------------------------------------------------
 _cached_context: Optional[NorthStarContext] = None
 _cache_loaded_at: Optional[datetime] = None
-_CACHE_TTL_SECONDS = int(os.environ.get("NORTH_STAR_CACHE_TTL_SECONDS", "300"))
+_CACHE_TTL_SECONDS = NORTH_STAR_CACHE_TTL_SECONDS
+
+
+def _north_star_from_dict(payload: Dict[str, Any]) -> NorthStarContext:
+    active_tasks = [ActiveTask(**task) for task in payload.get("active_tasks", [])]
+    repo_roles = {
+        name: RepoRole(**role)
+        for name, role in payload.get("repo_roles", {}).items()
+    }
+    return NorthStarContext(
+        primary_goal=payload.get("primary_goal", ""),
+        primary_task_id=payload.get("primary_task_id"),
+        active_tasks=active_tasks,
+        repo_roles=repo_roles,
+        dependency_order=payload.get("dependency_order", REPO_DEPENDENCY_ORDER),
+        routing_summary=payload.get("routing_summary", ""),
+        loaded_at=payload.get("loaded_at", datetime.now(timezone.utc).isoformat()),
+    )
+
+
+def _load_cached_north_star(cache_path: Optional[Path] = None) -> Optional[NorthStarContext]:
+    resolved_cache_path = cache_path or NORTH_STAR_CACHE_PATH
+    try:
+        payload = json.loads(resolved_cache_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    try:
+        return _north_star_from_dict(payload)
+    except Exception:
+        return None
+
+
+def _write_cached_north_star(
+    context: NorthStarContext,
+    cache_path: Optional[Path] = None,
+) -> None:
+    resolved_cache_path = cache_path or NORTH_STAR_CACHE_PATH
+    resolved_cache_path.parent.mkdir(parents=True, exist_ok=True)
+    resolved_cache_path.write_text(json.dumps(asdict(context), indent=2), encoding="utf-8")
 
 
 def get_north_star(*, force_refresh: bool = False) -> NorthStarContext:
@@ -434,10 +474,22 @@ def get_north_star(*, force_refresh: bool = False) -> NorthStarContext:
         or (now - _cache_loaded_at).total_seconds() > _CACHE_TTL_SECONDS
     )
     if force_refresh or stale:
+        if not probe_wsl_path(TRADING_SYSTEM_ROOT, WSL_PATH_PROBE_TIMEOUT_SECONDS):
+            cached_context = _load_cached_north_star()
+            if cached_context is not None:
+                _cached_context = cached_context
+                _cache_loaded_at = now
+                return cached_context
         try:
             _cached_context = load_north_star()
+            _write_cached_north_star(_cached_context)
         except Exception as exc:  # pragma: no cover
             # If loading fails, return a minimal fallback context
+            cached_context = _load_cached_north_star()
+            if cached_context is not None:
+                _cached_context = cached_context
+                _cache_loaded_at = now
+                return cached_context
             if _cached_context is not None:
                 return _cached_context  # use stale cache rather than crashing
             _cached_context = NorthStarContext(

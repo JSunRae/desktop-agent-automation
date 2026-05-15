@@ -91,6 +91,30 @@ _PN_RE = re.compile(r"(?i)\bP([0-3])\b")
 _HEADING_RE = re.compile(r"^\s*#{1,6}\s+(.+?)\s*$")
 _BULLET_RE = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)(.+?)\s*$")
 _CHECKBOX_PREFIX_RE = re.compile(r"^\s*\[[ xX]\]\s*")
+_CHECKBOX_LINE_RE = re.compile(r"^\s*\[[ xX]\]\s+(.+?)\s*$")
+_ACTIONABLE_LINE_RE = re.compile(
+    r"^\s*(?:todo|action(?:\s+item)?|next(?:\s+step)?|blocker|risk|issue|fixme|follow[- ]?up|summary)\s*[:\-]\s+(.+?)\s*$",
+    re.IGNORECASE,
+)
+_ACTIONABLE_SENTENCE_RE = re.compile(
+    r"^\s*(?:must|should|need\s+to|needs\s+to|follow\s*up|investigate|fix|implement|add|update|remove|refactor|write|verify|review|harden|test|document)\b.{4,}$",
+    re.IGNORECASE,
+)
+_ACTIONABLE_HEADING_KEYWORDS = ("todo", "next", "action", "open", "follow-up", "follow up", "backlog")
+_TASK_CANDIDATE_NAMES = (
+    "Todo.md",
+    "todo.md",
+    "TODO.md",
+    "Tasks.md",
+    "tasks.md",
+    "TASKS.md",
+    "Backlog.md",
+    "backlog.md",
+    "BACKLOG.md",
+    "OpenTasks.md",
+    "open_tasks.md",
+    "OPEN_TASKS.md",
+)
 
 
 def _now_iso_utc() -> str:
@@ -129,25 +153,38 @@ def _priority_rank(priority: Optional[str]) -> int:
 
 
 def parse_todo_markdown(content: str, *, repo_name: str, todo_path: Optional[str] = None) -> RepoTodoSnapshot:
-    """Parse a Todo.md into structured items with priority + blockers.
+    """Parse a task-style markdown source into structured items with priority + blockers.
 
     The parser is intentionally permissive: it extracts bullet/numbered lines and looks for common
     priority patterns (P0/P1/..., priority: high/medium/low) and blocker phrases.
     """
     section: Optional[str] = None
+    section_actionable = False
     items: List[TodoItem] = []
 
     for line in (content or "").splitlines():
         heading_match = _HEADING_RE.match(line)
         if heading_match:
             section = heading_match.group(1).strip()
+            section_lower = section.lower()
+            section_actionable = any(keyword in section_lower for keyword in _ACTIONABLE_HEADING_KEYWORDS)
             continue
 
         bullet_match = _BULLET_RE.match(line)
-        if not bullet_match:
+        checkbox_match = _CHECKBOX_LINE_RE.match(line)
+        actionable_match = _ACTIONABLE_LINE_RE.match(line)
+        sentence_match = _ACTIONABLE_SENTENCE_RE.match(line) if section_actionable else None
+        if not bullet_match and not checkbox_match and not actionable_match and not sentence_match:
             continue
 
-        text = bullet_match.group(1).strip()
+        if bullet_match:
+            text = bullet_match.group(1).strip()
+        elif checkbox_match:
+            text = checkbox_match.group(1).strip()
+        elif actionable_match:
+            text = actionable_match.group(1).strip()
+        else:
+            text = line.strip()
         if not text:
             continue
 
@@ -166,7 +203,11 @@ def parse_todo_markdown(content: str, *, repo_name: str, todo_path: Optional[str
 
         # Blocker extraction
         lowered = text_no_checkbox.lower()
-        is_blocked = "blocked" in lowered or (section or "").lower().startswith("block")
+        is_blocked = (
+            "blocked" in lowered
+            or (section or "").lower().startswith("block")
+            or line.strip().lower().startswith("blocker:")
+        )
         blocked_by: List[str] = []
         by_idx = lowered.find("blocked by")
         if by_idx >= 0:
@@ -211,13 +252,15 @@ def _looks_like_repo_dir(path: Path) -> bool:
 def _todo_candidates_for_repo_root(repo_root: Path) -> List[Path]:
     candidates: List[Path] = []
 
-    for direct in [repo_root / "Todo.md", repo_root / "todo.md"]:
+    for name in _TASK_CANDIDATE_NAMES:
+        direct = repo_root / name
         if direct.is_file():
             candidates.append(direct)
 
     docs_dir = repo_root / "docs"
     if docs_dir.is_dir():
-        for doc_candidate in [docs_dir / "Todo.md", docs_dir / "todo.md", docs_dir / "TODO.md"]:
+        for name in _TASK_CANDIDATE_NAMES:
+            doc_candidate = docs_dir / name
             if doc_candidate.is_file():
                 candidates.append(doc_candidate)
 
@@ -281,7 +324,7 @@ def discover_repo_todos(
 
 
 class CrossRepoTodoIngestionService:
-    """Discovers and parses sibling-repo Todo.md files into a refreshable on-disk cache."""
+    """Discovers and parses sibling-repo task files into a refreshable on-disk cache."""
 
     def __init__(
         self,
@@ -385,7 +428,7 @@ class CrossRepoTodoIngestionService:
         lines.append("")
 
         if not snapshot.repos:
-            lines.append("No Todo.md files discovered.")
+            lines.append("No task source files discovered.")
             return "\n".join(lines).strip() + "\n"
 
         for repo in snapshot.repos:
@@ -395,7 +438,7 @@ class CrossRepoTodoIngestionService:
                 lines.append(f"- Source: {todo_path}")
 
             if not repo.items:
-                lines.append("- (No parseable bullet items)")
+                lines.append("- (No parseable work items)")
                 lines.append("")
                 continue
 
@@ -487,7 +530,7 @@ def analyze_cross_repo_dependencies(snapshot: CrossRepoTodoSnapshot) -> CrossRep
             dependents[key] = []
             indexed_items.append((key, repo_lower, item))
 
-    def _resolve_blocker_ref(blocker_raw: str, current_repo_lower: str) -> Optional[str]:
+    def _resolve_blocker_ref(blocker_raw: str, current_repo_lower: str, current_key: str) -> Optional[str]:
         token = (blocker_raw or "").strip().lower()
         if not token:
             return None
@@ -498,6 +541,8 @@ def analyze_cross_repo_dependencies(snapshot: CrossRepoTodoSnapshot) -> CrossRep
 
         # First, prefer matches within the same repo.
         for key, repo_lower, item in indexed_items:
+            if key == current_key:
+                continue
             if repo_lower != current_repo_lower:
                 continue
             text_l = (item.text or "").lower()
@@ -507,6 +552,8 @@ def analyze_cross_repo_dependencies(snapshot: CrossRepoTodoSnapshot) -> CrossRep
 
         # Fallback: any repo containing this token.
         for key, _repo_lower, item in indexed_items:
+            if key == current_key:
+                continue
             text_l = (item.text or "").lower()
             title_l = (item.title or "").lower()
             if token in title_l or token in text_l:
@@ -519,7 +566,7 @@ def analyze_cross_repo_dependencies(snapshot: CrossRepoTodoSnapshot) -> CrossRep
         for index, item in enumerate(repo.items):
             to_key = f"{repo.repo_name}:{index}"
             for blocker in item.blocked_by or []:
-                dep_key = _resolve_blocker_ref(blocker, current_repo_lower)
+                dep_key = _resolve_blocker_ref(blocker, current_repo_lower, to_key)
                 if not dep_key or dep_key == to_key:
                     continue
                 if dep_key not in tasks:

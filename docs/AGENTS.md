@@ -61,6 +61,7 @@ Tasks are stored as JSON objects with the following structure:
 ## CLI Usage Examples
 
 ### Claim a Task
+
 ```bash
 # Claim by human
 python scripts/tasks_cli.py claim --id task-123 --by john.doe
@@ -73,6 +74,7 @@ python scripts/tasks_cli.py claim --id task-123 --by bot:automation-bot
 ```
 
 ### Update Task Status
+
 ```bash
 # Mark as in progress
 python scripts/tasks_cli.py update-status --id task-123 --status in_progress --by agent:github-copilot
@@ -85,6 +87,7 @@ python scripts/tasks_cli.py update-status --id task-123 --status blocked --by ag
 ```
 
 ### Add Notes
+
 ```bash
 # Add informational note
 python scripts/tasks_cli.py add-note --id task-123 --by agent:github-copilot --message "Debug logs attached"
@@ -99,6 +102,7 @@ python scripts/tasks_cli.py add-note --id task-123 --by agent:github-copilot --m
 ## Validation
 
 ### Schema Validation
+
 The task ledger is validated against the JSON schema on every change:
 
 ```bash
@@ -110,6 +114,7 @@ python scripts/validate_agent_tasks.py --summary
 ```
 
 ### CI/CD Integration
+
 GitHub Actions automatically validates the task ledger on pushes and pull requests to the main branch.
 
 ## Assignee Types
@@ -135,6 +140,7 @@ When working across repositories:
 ## Workflow Recommendations
 
 ### For AI Agents
+
 1. Always claim tasks before starting work
 2. Update status regularly with meaningful notes
 3. Include artifact paths for deliverables
@@ -142,18 +148,22 @@ When working across repositories:
 5. Mark tasks as `review` when ready for human oversight
 
 ### For Human Assignees
+
 1. Review agent work in task notes
 2. Provide feedback through task updates
 3. Assign tasks to agents when appropriate
 4. Use `blocked` status for issues requiring human intervention
 
 ### Task Creation
+
 While the CLI currently supports updates and notes, task creation can be done by:
+
 1. Manually editing `agent_assignments.json`
 2. Using external tools to generate task entries
 3. Future CLI enhancement for task creation
 
 ### Best Practices
+
 - Keep task descriptions clear and actionable
 - Use consistent naming conventions for task IDs
 - Add notes for significant decisions or changes
@@ -163,6 +173,6 @@ While the CLI currently supports updates and notes, task creation can be done by
 
 ## Integration with Agent Guidance
 
-See `docs/copilot-instructions.md` for detailed agent behavior guidelines and workflow integration.
+See `../.copilot-instructions.md` for detailed agent behavior guidelines and workflow integration.
 
 This system ensures transparent, auditable task management while supporting both human and automated workflows.

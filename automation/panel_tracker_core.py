@@ -21,23 +21,23 @@ from automation.config import (
 from automation.feedback_analyzer import get_feedback_analyzer
 from automation.metrics import get_metrics_tracker
 from automation.panel_quality import get_panel_quality_analyzer
-from automation.panel_task_dispatcher import DEFAULT_REPO_PROMPT_KEY
 from automation.panel_state import (
-    IdleReason,
-    PanelState,
-    PanelStatus,
-    QualityStatus,
     TRANSCRIPT_FILTER_PLACEHOLDER,
     TRANSCRIPT_HASH_LEN,
     TRANSCRIPT_KIND_COMPLETION,
     TRANSCRIPT_MAX_SNAPSHOTS,
+    IdleReason,
+    PanelState,
+    PanelStatus,
+    QualityStatus,
     TranscriptSnapshot,
     _preview_transcript_text,
     extract_repo_name_from_title,
 )
+from automation.panel_task_dispatcher import DEFAULT_REPO_PROMPT_KEY
 from automation.panel_transcript_analysis import analyze_panel_transcripts
 from automation.response_parser import ResponseCategory, classify_response
-
+from automation.workstream_coordination import get_workstream_coordinator
 
 _REPO_PRIORITY_MAP = {key.lower(): value for key, value in REPO_PRIORITY_WEIGHTS.items()}
 _MODEL_PRIORITY_MAP = {key.lower(): value for key, value in MODEL_PRIORITY_WEIGHTS.items()}
@@ -288,6 +288,11 @@ class PanelTracker:
 
             with self.state_path.open("w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
+
+            try:
+                get_workstream_coordinator().sync_panels(self.panels.values())
+            except Exception:
+                pass
         except Exception as e:
             print(f"[PanelTracker] Warning: Could not save panel state: {e}")
 

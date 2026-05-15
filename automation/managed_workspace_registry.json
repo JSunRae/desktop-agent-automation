@@ -7,7 +7,33 @@
     "max_active_workers_per_repo": 1,
     "loop_retry_limit": 3,
     "respect_repo_boundaries": true,
-    "prefer_structured_sources": true
+    "prefer_structured_sources": true,
+    "pilot_allowlist_enabled": true,
+    "pilot_allowed_task_classes": [
+      "docs_hygiene",
+      "test_hardening",
+      "diagnostics_analysis"
+    ],
+    "pilot_allowed_categories": ["maintenance", "analysis", "bug"],
+    "pilot_allowed_severities": ["low"],
+    "pilot_allowed_sources": ["task", "handover", "report"],
+    "pilot_blocked_title_terms": [
+      "deploy",
+      "migration",
+      "database migration",
+      "schema migration",
+      "gateway",
+      "live",
+      "campaign",
+      "training",
+      "backfill",
+      "credential",
+      "secret",
+      "token",
+      "production",
+      "delete",
+      "drop"
+    ]
   },
   "repos": [
     {
@@ -20,17 +46,35 @@
         ".github/copilot-instructions.md"
       ],
       "task_sources": [
+        "TODO.md",
         "Todo.md",
         "todo.md",
         "docs/Todo.md",
         "docs/TODO.md",
+        "docs/todo.md",
+        "open_tasks/**/*.md",
+        "docs/open_tasks/**/*.md",
         "tasks/**/*.md"
       ],
-      "handover_locations": ["handover/**/*.md", "docs/handover/**/*.md"],
+      "handover_locations": [
+        "HANDOVER.md",
+        "handover.md",
+        "docs/HANDOVER.md",
+        "docs/handover.md",
+        "handover/**/*.md",
+        "docs/handover/**/*.md"
+      ],
       "report_locations": [
         "agent_reports/**/*.md",
         "handover/**/*.md",
-        "state/agent_reports/**/*.json"
+        "report/**/*.md",
+        "reports/**/*.md",
+        "docs/report/**/*.md",
+        "docs/reports/**/*.md",
+        "docs/agent_reports/**/*.md",
+        "state/agent_reports/**/*.json",
+        "state/orchestration/worker_reports/**/*.md",
+        "state/orchestration/worker_reports/**/*.json"
       ],
       "validation_commands": ["python -m pytest -q"],
       "safety_rules": {
@@ -67,17 +111,35 @@
         ".github/copilot-instructions.md"
       ],
       "task_sources": [
+        "TODO.md",
         "Todo.md",
         "todo.md",
         "docs/Todo.md",
+        "docs/TODO.md",
+        "docs/todo.md",
+        "docs/open_tasks/**/*.md",
         "tasks/**/*.md",
         "open_tasks/**/*.md"
       ],
-      "handover_locations": ["handover/**/*.md", "docs/handover/**/*.md"],
+      "handover_locations": [
+        "HANDOVER.md",
+        "handover.md",
+        "docs/HANDOVER.md",
+        "docs/handover.md",
+        "handover/**/*.md",
+        "docs/handover/**/*.md"
+      ],
       "report_locations": [
         "agent_reports/**/*.md",
         "handover/**/*.md",
-        "state/agent_reports/**/*.json"
+        "report/**/*.md",
+        "reports/**/*.md",
+        "docs/report/**/*.md",
+        "docs/reports/**/*.md",
+        "docs/agent_reports/**/*.md",
+        "state/agent_reports/**/*.json",
+        "state/orchestration/worker_reports/**/*.md",
+        "state/orchestration/worker_reports/**/*.json"
       ],
       "validation_commands": ["python -m pytest -q"],
       "safety_rules": {
@@ -114,17 +176,35 @@
         ".github/copilot-instructions.md"
       ],
       "task_sources": [
+        "TODO.md",
         "Todo.md",
         "todo.md",
         "docs/Todo.md",
+        "docs/TODO.md",
+        "docs/todo.md",
+        "docs/open_tasks/**/*.md",
         "tasks/**/*.md",
         "open_tasks/**/*.md"
       ],
-      "handover_locations": ["handover/**/*.md", "docs/handover/**/*.md"],
+      "handover_locations": [
+        "HANDOVER.md",
+        "handover.md",
+        "docs/HANDOVER.md",
+        "docs/handover.md",
+        "handover/**/*.md",
+        "docs/handover/**/*.md"
+      ],
       "report_locations": [
         "agent_reports/**/*.md",
         "handover/**/*.md",
-        "state/agent_reports/**/*.json"
+        "report/**/*.md",
+        "reports/**/*.md",
+        "docs/report/**/*.md",
+        "docs/reports/**/*.md",
+        "docs/agent_reports/**/*.md",
+        "state/agent_reports/**/*.json",
+        "state/orchestration/worker_reports/**/*.md",
+        "state/orchestration/worker_reports/**/*.json"
       ],
       "validation_commands": ["python -m pytest -q"],
       "safety_rules": {

@@ -12,14 +12,18 @@ from pathlib import Path
 from textwrap import dedent
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
+from dotenv import dotenv_values
+
 from automation.agent_selection_policy import AdaptiveAgentSelectionPolicy
 from automation.config import (
     AGENT_SELECTION_MODE,
     COORDINATION_GUARD_BLOCK_OVERLAPS,
     COORDINATION_GUARD_ENABLED,
     CROSS_REPO_TODO_ENABLED,
+    ENABLE_WSL_DOC_CACHE,
     MASTER_AGENT_REPO_CONFIGS,
     NORTH_STAR_ENABLED,
+    WSL_PATH_PROBE_TIMEOUT_SECONDS,
 )
 from automation.cost_tracker import get_cost_tracker
 from automation.cross_repo_todo_ingestion import (
@@ -35,24 +39,39 @@ from automation.feedback_analyzer import (
 )
 from automation.prompt_resolver import PROMPT_FEED_FILENAME
 from automation.title_parsing import extract_repo_name_from_vscode_window_title
+from automation.utils import probe_wsl_path
 
 # North Star coordination (optional — degrades gracefully when repos are unreachable)
 try:
     from automation.coordination_guard import CoordinationGuard, get_coordination_guard
-    from automation.north_star import NorthStarContext, get_north_star
+    from automation.north_star import (
+        REPO_DEPENDENCY_ORDER,
+        NorthStarContext,
+        get_north_star,
+    )
     _NORTH_STAR_AVAILABLE = True
 except ImportError:  # pragma: no cover
     _NORTH_STAR_AVAILABLE = False
+    REPO_DEPENDENCY_ORDER = []
 
 OpenAIClient: Any = None
+OpenAIAuthenticationError: Any = ()
+OpenAIAPIStatusError: Any = ()
 try:
+    from openai import APIStatusError as _OpenAIAPIStatusError
+    from openai import AuthenticationError as _OpenAIAuthenticationError
     from openai import OpenAI as _OpenAIClient
 
     OpenAIClient = _OpenAIClient
+    OpenAIAuthenticationError = _OpenAIAuthenticationError
+    OpenAIAPIStatusError = _OpenAIAPIStatusError
 except ImportError:  # pragma: no cover - openai is an optional dependency in tests
     pass
 
 _COST_TRACKER = get_cost_tracker()
+REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_DOTENV_PATH = REPO_ROOT / ".env"
+OPENAI_API_KEY_ENV_VAR = "OPENAI_API_KEY"
 
 DEFAULT_DOCS_ROOT = Path(
     os.environ.get(
@@ -67,7 +86,7 @@ DEFAULT_OPEN_TASKS_ROOT = Path(
     )
 )
 DEFAULT_OUTPUT_DIR = Path(os.environ.get("MASTER_AGENT_PROMPT_DIR", "tasks/generated_prompts"))
-DEFAULT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-4o-mini")
+DEFAULT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-5.4")
 DEFAULT_ALLOWED_EXTENSIONS = {
     ".md",
     ".txt",
@@ -81,6 +100,116 @@ DEFAULT_ALLOWED_EXTENSIONS = {
     ".py",
 }
 DEFAULT_MAX_FILE_SIZE = int(os.environ.get("MASTER_AGENT_MAX_FILE_BYTES", "200000"))
+DOCS_CACHE_ROOT = Path("state") / "docs_cache"
+
+
+class OpenAICredentialError(RuntimeError):
+    """Raised when OpenAI credentials are missing or rejected."""
+
+
+@dataclass(frozen=True)
+class OpenAICredentialState:
+    source: str
+    repo_dotenv_path: Path
+    repo_dotenv_exists: bool
+
+
+def _read_repo_openai_api_key() -> Optional[str]:
+    if not REPO_DOTENV_PATH.exists():
+        return None
+    try:
+        value = dotenv_values(REPO_DOTENV_PATH).get(OPENAI_API_KEY_ENV_VAR)
+    except OSError:
+        return None
+    if value is None:
+        return None
+    cleaned = str(value).strip()
+    return cleaned or None
+
+
+def _resolve_openai_api_key() -> Tuple[Optional[str], OpenAICredentialState]:
+    api_key = (os.environ.get(OPENAI_API_KEY_ENV_VAR) or "").strip() or None
+    repo_api_key = _read_repo_openai_api_key()
+    repo_dotenv_exists = REPO_DOTENV_PATH.exists()
+
+    if api_key and repo_api_key and api_key == repo_api_key:
+        source = f"process environment (matches {REPO_DOTENV_PATH})"
+    elif api_key:
+        source = "process environment"
+    elif repo_api_key:
+        source = str(REPO_DOTENV_PATH)
+    else:
+        source = "missing"
+
+    return api_key, OpenAICredentialState(
+        source=source,
+        repo_dotenv_path=REPO_DOTENV_PATH,
+        repo_dotenv_exists=repo_dotenv_exists,
+    )
+
+
+def _format_missing_openai_api_key_message(state: OpenAICredentialState) -> str:
+    repo_hint = (
+        f"Repo-root .env exists at {state.repo_dotenv_path} but does not define {OPENAI_API_KEY_ENV_VAR}."
+        if state.repo_dotenv_exists
+        else f"Repo-root .env was not found at {state.repo_dotenv_path}."
+    )
+    return (
+        "OpenAI credentials are not ready for automation.master_prompt_orchestrator: "
+        f"{OPENAI_API_KEY_ENV_VAR} is missing. Resolution order is process environment first, "
+        f"then {state.repo_dotenv_path}. {repo_hint} "
+        "The secret value is external to repository code; provide it in the process environment or add "
+        f"{OPENAI_API_KEY_ENV_VAR}=... to the repo-root .env before running a live refresh."
+    )
+
+
+def _format_invalid_openai_api_key_message(
+    state: OpenAICredentialState,
+    exc: BaseException,
+) -> str:
+    return (
+        "OpenAI credentials are not ready for automation.master_prompt_orchestrator: "
+        f"authentication failed for {OPENAI_API_KEY_ENV_VAR} loaded from {state.source}. "
+        f"OpenAI detail: {exc}. "
+        "The secret value is external to repository code; replace it in the process environment or repo-root .env, "
+        "then rerun `python -m automation.master_prompt_orchestrator --check-openai-credentials`."
+    )
+
+
+def _raise_for_openai_request_error(
+    exc: BaseException,
+    state: OpenAICredentialState,
+) -> None:
+    if OpenAIAuthenticationError and isinstance(exc, OpenAIAuthenticationError):
+        raise OpenAICredentialError(_format_invalid_openai_api_key_message(state, exc)) from exc
+
+    if OpenAIAPIStatusError and isinstance(exc, OpenAIAPIStatusError):
+        status_code = getattr(exc, "status_code", None)
+        if status_code == 401:
+            raise OpenAICredentialError(_format_invalid_openai_api_key_message(state, exc)) from exc
+        raise RuntimeError(
+            "OpenAI request failed for automation.master_prompt_orchestrator "
+            f"using credentials from {state.source}: {exc}"
+        ) from exc
+
+
+def _is_wsl_unc_path(path: Path) -> bool:
+    raw_path = str(path)
+    return raw_path.startswith("\\\\wsl.") or raw_path.startswith("//wsl.")
+
+
+def _safe_resolve(path: Path) -> Path:
+    if _is_wsl_unc_path(path):
+        if not probe_wsl_path(path, WSL_PATH_PROBE_TIMEOUT_SECONDS):
+            return path
+    try:
+        return path.resolve()
+    except OSError:
+        return path
+
+
+def _path_key(path: Path) -> str:
+    return str(_safe_resolve(path))
 
 
 def _extract_repo_name_from_window_title(window_title: str) -> Optional[str]:
@@ -131,14 +260,14 @@ def _find_repo_docs_by_name(repo_name: str) -> List[Path]:
     
     # Search WSL locations
     wsl_base = Path(r"\\wsl.localhost")
-    if wsl_base.exists():
+    if probe_wsl_path(wsl_base, WSL_PATH_PROBE_TIMEOUT_SECONDS):
         for distro in ["Ubuntu-24.04", "Ubuntu", "Ubuntu-22.04", "Ubuntu-20.04"]:
             distro_path = wsl_base / distro
-            if distro_path.exists():
+            if probe_wsl_path(distro_path, WSL_PATH_PROBE_TIMEOUT_SECONDS):
                 try:
                     # Try common user directories
                     for home_dir in distro_path.glob("home/*"):
-                        if home_dir.is_dir():
+                        if probe_wsl_path(home_dir, WSL_PATH_PROBE_TIMEOUT_SECONDS) and home_dir.is_dir():
                             search_paths.extend([
                                 home_dir / "wsl_projects" / repo_name,
                                 home_dir / "projects" / repo_name,
@@ -150,16 +279,22 @@ def _find_repo_docs_by_name(repo_name: str) -> List[Path]:
     # Check each path for docs folder
     for base_path in search_paths:
         docs_path = base_path / "docs"
+        if _is_wsl_unc_path(docs_path):
+            if not probe_wsl_path(docs_path, WSL_PATH_PROBE_TIMEOUT_SECONDS):
+                continue
         if docs_path.is_dir():
-            key = str(docs_path.resolve())
+            key = _path_key(docs_path)
             if key not in checked:
                 roots.append(docs_path)
                 checked.add(key)
                 
                 # Also check for open_tasks subfolder
                 open_tasks_path = docs_path / "open_tasks"
+                if _is_wsl_unc_path(open_tasks_path):
+                    if not probe_wsl_path(open_tasks_path, WSL_PATH_PROBE_TIMEOUT_SECONDS):
+                        continue
                 if open_tasks_path.is_dir():
-                    key_ot = str(open_tasks_path.resolve())
+                    key_ot = _path_key(open_tasks_path)
                     if key_ot not in checked:
                         roots.append(open_tasks_path)
                         checked.add(key_ot)
@@ -173,9 +308,9 @@ def _find_repo_docs_by_name(repo_name: str) -> List[Path]:
     for root in roots:
         # If this is an 'open_tasks' folder, map it to its parent 'docs' folder for counting purposes
         if root.name == "open_tasks" and root.parent.name == "docs":
-            unique_bases.add(str(root.parent.resolve()))
+            unique_bases.add(_path_key(root.parent))
         else:
-            unique_bases.add(str(root.resolve()))
+            unique_bases.add(_path_key(root))
             
     if len(unique_bases) > 1:
         # We found distinct 'docs' roots for the same repo name (e.g. one in WSL, one in Windows)
@@ -200,13 +335,13 @@ def _detect_repo_doc_roots() -> List[Path]:
     for base in [cwd, *list(cwd.parents)[:4]]:
         docs_path = base / "docs"
         if docs_path.is_dir():
-            key = str(docs_path.resolve())
+            key = _path_key(docs_path)
             if key not in checked:
                 roots.append(docs_path)
                 checked.add(key)
             open_tasks_path = docs_path / "open_tasks"
             if open_tasks_path.is_dir():
-                key_ot = str(open_tasks_path.resolve())
+                key_ot = _path_key(open_tasks_path)
                 if key_ot not in checked:
                     roots.append(open_tasks_path)
                     checked.add(key_ot)
@@ -291,6 +426,42 @@ class RepoConfig:
     """Configuration for a single repository's prompt generation."""
     name: str
     docs_dirs: List[Path]
+    role: Optional[str] = None
+    repo_root: Optional[Path] = None
+    config_source: str = "explicit"
+
+
+@dataclass
+class DocsSourceStatus:
+    repo_name: str
+    directory: Path
+    repo_root: Optional[Path]
+    config_source: str
+    status: str
+    issue_kind: Optional[str]
+    cache_available: bool
+    live_document_count: int
+    expected_relative_dir: Optional[str]
+    message: str
+    next_steps: List[str]
+
+    @property
+    def live_ready(self) -> bool:
+        return self.status == "live_ready"
+
+
+@dataclass
+class RepoReadinessReport:
+    repo_name: str
+    config_source: str
+    repo_root: Optional[Path]
+    docs_sources: List[DocsSourceStatus]
+    cache_dir: Path
+    cache_available: bool
+    live_ready: bool
+    seeding_ready: bool
+    status: str
+    next_steps: List[str]
 
 
 @dataclass
@@ -834,6 +1005,14 @@ class MasterPromptOrchestrator:
         self.max_output_tokens = max_output_tokens
         self.logger = logger or (lambda msg: None)
         self.client = client
+        self._credential_state: Optional[OpenAICredentialState] = None
+        self._openai_credentials_validated = False
+        if client is not None:
+            self._credential_state = OpenAICredentialState(
+                source="injected client",
+                repo_dotenv_path=REPO_DOTENV_PATH,
+                repo_dotenv_exists=REPO_DOTENV_PATH.exists(),
+            )
         
         # Enhanced features
         self.enable_quality_validation = enable_quality_validation
@@ -858,8 +1037,8 @@ class MasterPromptOrchestrator:
             )
 
         self._explicit_repo_configs = repo_configs is not None
-        if repo_configs:
-            self.repo_configs = list(repo_configs)
+        if repo_configs is not None:
+            self.repo_configs = self._dedupe_repo_configs(list(repo_configs))
         else:
             self.repo_configs = self._discover_repo_configs()
 
@@ -906,10 +1085,24 @@ class MasterPromptOrchestrator:
 
         for config_dict in MASTER_AGENT_REPO_CONFIGS:
             name = str(config_dict.get("name", "")).strip()
+            role = str(config_dict.get("role", "")).strip() or None
             raw_dirs = config_dict.get("docs_dirs", []) or []
             docs_dirs = self._normalize_doc_dirs(raw_dirs)
+            repo_root = config_dict.get("repo_root")
+            if isinstance(repo_root, str) and repo_root.strip():
+                repo_root = Path(repo_root).expanduser()
+            elif not isinstance(repo_root, Path):
+                repo_root = None
             if name and docs_dirs:
-                configs.append(RepoConfig(name=name, docs_dirs=docs_dirs))
+                configs.append(
+                    RepoConfig(
+                        name=name,
+                        docs_dirs=docs_dirs,
+                        role=role,
+                        repo_root=repo_root,
+                        config_source="env_config",
+                    )
+                )
         return self._dedupe_repo_configs(configs)
 
     def _configs_from_cross_repo_snapshot(self) -> List[RepoConfig]:
@@ -928,7 +1121,14 @@ class MasterPromptOrchestrator:
             repo_name = repo.repo_name.strip() or "default"
             docs_dirs = self._doc_dirs_from_todo_paths(repo.todo_paths)
             if docs_dirs:
-                configs.append(RepoConfig(name=repo_name, docs_dirs=docs_dirs))
+                configs.append(
+                    RepoConfig(
+                        name=repo_name,
+                        docs_dirs=docs_dirs,
+                        repo_root=self._infer_repo_root_from_docs_dirs(docs_dirs),
+                        config_source="cross_repo_snapshot",
+                    )
+                )
         return self._dedupe_repo_configs(configs)
 
     @staticmethod
@@ -939,17 +1139,35 @@ class MasterPromptOrchestrator:
         if foreground_roots:
             repo_name = _extract_repo_name_from_window_title(get_foreground_window_title() or "")
             if repo_name:
-                roots.append(RepoConfig(name=repo_name, docs_dirs=foreground_roots))
+                roots.append(
+                    RepoConfig(
+                        name=repo_name,
+                        docs_dirs=foreground_roots,
+                        repo_root=MasterPromptOrchestrator._infer_repo_root_from_docs_dirs(foreground_roots),
+                        config_source="legacy_foreground",
+                    )
+                )
 
         inferred_roots = _detect_repo_doc_roots()
         if inferred_roots:
-            roots.append(RepoConfig(name="default", docs_dirs=inferred_roots))
+            roots.append(
+                RepoConfig(
+                    name="default",
+                    docs_dirs=inferred_roots,
+                    repo_root=MasterPromptOrchestrator._infer_repo_root_from_docs_dirs(inferred_roots),
+                    config_source="legacy_cwd",
+                )
+            )
 
         if not roots:
             roots.append(
                 RepoConfig(
                     name="default",
                     docs_dirs=[DEFAULT_DOCS_ROOT, DEFAULT_OPEN_TASKS_ROOT],
+                    repo_root=MasterPromptOrchestrator._infer_repo_root_from_docs_dirs(
+                        [DEFAULT_DOCS_ROOT, DEFAULT_OPEN_TASKS_ROOT]
+                    ),
+                    config_source="legacy_default",
                 )
             )
 
@@ -972,10 +1190,7 @@ class MasterPromptOrchestrator:
         return self._normalize_doc_dirs(doc_dirs)
 
     def _infer_docs_dir_from_todo_path(self, todo_path: Path) -> Path:
-        try:
-            resolved = todo_path.resolve()
-        except OSError:
-            resolved = todo_path
+        resolved = _safe_resolve(todo_path)
 
         for ancestor in resolved.parents:
             if ancestor.name.lower() == "docs":
@@ -1003,6 +1218,23 @@ class MasterPromptOrchestrator:
         return normalized
 
     @staticmethod
+    def _infer_repo_root_from_docs_dir(doc_dir: Path) -> Optional[Path]:
+        path = Path(doc_dir).expanduser()
+        if path.name == "open_tasks" and path.parent.name == "docs":
+            return path.parent.parent
+        if path.name == "docs":
+            return path.parent
+        return None
+
+    @classmethod
+    def _infer_repo_root_from_docs_dirs(cls, doc_dirs: Iterable[Path]) -> Optional[Path]:
+        for doc_dir in doc_dirs:
+            repo_root = cls._infer_repo_root_from_docs_dir(doc_dir)
+            if repo_root is not None:
+                return repo_root
+        return None
+
+    @staticmethod
     def _dedupe_repo_configs(configs: Iterable[RepoConfig]) -> List[RepoConfig]:
         unique: List[RepoConfig] = []
         seen: set[str] = set()
@@ -1010,13 +1242,476 @@ class MasterPromptOrchestrator:
             docs_dirs = MasterPromptOrchestrator._normalize_doc_dirs(config.docs_dirs)
             if not docs_dirs:
                 continue
-            key_parts = sorted(str(Path(d).resolve()) for d in docs_dirs)
+            key_parts = sorted(_path_key(Path(d)) for d in docs_dirs)
             key = f"{config.name.strip().lower()}:{'|'.join(key_parts)}"
             if key in seen:
                 continue
             seen.add(key)
-            unique.append(RepoConfig(name=config.name, docs_dirs=docs_dirs))
+            unique.append(
+                RepoConfig(
+                    name=config.name,
+                    docs_dirs=docs_dirs,
+                    role=config.role,
+                    repo_root=config.repo_root or MasterPromptOrchestrator._infer_repo_root_from_docs_dirs(docs_dirs),
+                    config_source=config.config_source,
+                )
+            )
         return unique
+
+    @staticmethod
+    def _normalized_repo_name(repo_name: str) -> str:
+        return repo_name.strip().lower()
+
+    def _order_repo_configs(self, configs: Sequence[RepoConfig]) -> List[RepoConfig]:
+        if not configs:
+            return []
+
+        dependency_order = list(REPO_DEPENDENCY_ORDER)
+        north_star = self._load_north_star_context()
+        if north_star is not None:
+            dependency_order = list(north_star.dependency_order) or dependency_order
+
+        order_map = {
+            self._normalized_repo_name(repo_name): index
+            for index, repo_name in enumerate(dependency_order)
+        }
+        indexed_configs = list(enumerate(configs))
+        indexed_configs.sort(
+            key=lambda item: (
+                order_map.get(self._normalized_repo_name(item[1].name), len(order_map)),
+                item[0],
+            )
+        )
+        return [config for _, config in indexed_configs]
+
+    def _load_north_star_context(self) -> Optional[NorthStarContext]:
+        if not (NORTH_STAR_ENABLED and _NORTH_STAR_AVAILABLE):
+            return None
+        try:
+            return get_north_star()
+        except Exception as exc:  # pragma: no cover
+            self._log(f"North Star context unavailable: {exc}")
+            return None
+
+    def _north_star_role_for_repo(
+        self,
+        north_star: Optional[NorthStarContext],
+        repo_name: str,
+    ) -> Optional[Any]:
+        if north_star is None:
+            return None
+
+        exact_role = north_star.role_for_repo(repo_name)
+        if exact_role is not None:
+            return exact_role
+
+        normalized_name = self._normalized_repo_name(repo_name)
+        for role_name, role in north_star.repo_roles.items():
+            if self._normalized_repo_name(role_name) == normalized_name:
+                return role
+        return None
+
+    def _north_star_tasks_for_repo(
+        self,
+        north_star: Optional[NorthStarContext],
+        repo_name: str,
+        *,
+        priorities: Optional[Set[str]] = None,
+    ) -> List[Any]:
+        if north_star is None:
+            return []
+
+        normalized_name = self._normalized_repo_name(repo_name)
+        tasks = [
+            task for task in north_star.active_tasks
+            if self._normalized_repo_name(task.repo) == normalized_name and task.is_active
+        ]
+        if priorities is not None:
+            tasks = [task for task in tasks if task.priority in priorities]
+        return tasks
+
+    def _build_repo_role_section(
+        self,
+        repo_config: RepoConfig,
+        north_star: Optional[NorthStarContext],
+    ) -> str:
+        repo_role = self._north_star_role_for_repo(north_star, repo_config.name)
+        role_label = repo_config.role or (repo_role.name if repo_role is not None else "")
+        priority_tasks = self._north_star_tasks_for_repo(
+            north_star,
+            repo_config.name,
+            priorities={"P0", "P1"},
+        )
+
+        role_lines: List[str] = []
+        role_lines.append("\n\nRepo-specific North Star context:")
+        role_lines.append(f"- Target repo: {repo_config.name}")
+        if role_label:
+            role_lines.append(f"- Role: {role_label}")
+
+        if repo_role is not None:
+            if repo_role.owns:
+                role_lines.append(f"- Owns: {'; '.join(repo_role.owns[:4])}")
+            if repo_role.must_not_do:
+                role_lines.append(f"- Must not do: {'; '.join(repo_role.must_not_do[:4])}")
+            if repo_role.depends_on:
+                role_lines.append(f"- Depends on: {', '.join(repo_role.depends_on)}")
+            if repo_role.depended_on_by:
+                role_lines.append(f"- Downstream consumers: {', '.join(repo_role.depended_on_by)}")
+
+        if priority_tasks:
+            role_lines.append("- Current repo P0/P1 North Star tasks:")
+            for task in priority_tasks[:6]:
+                role_lines.append(
+                    f"  - [{task.priority}][{task.status}] {task.task_id}: {task.title}"
+                )
+        else:
+            role_lines.append("- Current repo P0/P1 North Star tasks: none active")
+
+        role_lines.append(
+            "- Prompting directive: generate tasks that respect this repo boundary, advance the listed P0/P1 work, and avoid assigning downstream work before upstream dependencies are ready."
+        )
+        return "\n".join(role_lines)
+
+    def _repo_docs_cache_dir(self, repo_name: str) -> Path:
+        return DOCS_CACHE_ROOT / repo_name
+
+    def _repo_cache_has_documents(self, repo_name: str) -> bool:
+        cache_root = self._repo_docs_cache_dir(repo_name)
+        if not cache_root.is_dir():
+            return False
+        for path in cache_root.rglob("*"):
+            if path.is_file() and self._is_allowed_file(path):
+                return True
+        return False
+
+    def _expected_relative_dir(self, repo_config: RepoConfig, directory: Path) -> Optional[str]:
+        repo_root = repo_config.repo_root
+        if repo_root is None:
+            return None
+        try:
+            relative = Path(directory).expanduser().relative_to(repo_root)
+        except ValueError:
+            return None
+        return str(relative).replace("\\", "/")
+
+    def _probe_path_available(self, path: Optional[Path]) -> bool:
+        if path is None:
+            return False
+        if _is_wsl_unc_path(path):
+            return probe_wsl_path(path, WSL_PATH_PROBE_TIMEOUT_SECONDS)
+        try:
+            return path.exists()
+        except OSError:
+            return False
+
+    def _readable_document_content(self, path: Path) -> Optional[str]:
+        if not path.is_file() or not self._is_allowed_file(path):
+            return None
+        try:
+            size = path.stat().st_size
+        except OSError:
+            return None
+        if size > self.max_file_size:
+            return None
+        content = self._read_text(path)
+        if not content.strip():
+            return None
+        return content
+
+    @staticmethod
+    def _docs_source_kind(path: Path) -> str:
+        return "file" if path.suffix else "directory"
+
+    def _count_live_documents(self, directory: Path) -> int:
+        content = self._readable_document_content(directory)
+        if content is not None:
+            return 1
+
+        count = 0
+        try:
+            iterator = directory.rglob("*")
+            for path in iterator:
+                if self._readable_document_content(path) is not None:
+                    count += 1
+        except OSError:
+            return 0
+        return count
+
+    def _build_docs_next_steps(
+        self,
+        repo_config: RepoConfig,
+        directory: Path,
+        status: str,
+        cache_available: bool,
+    ) -> List[str]:
+        steps: List[str] = []
+        source_kind = self._docs_source_kind(directory)
+        if status == "external_docs_missing":
+            steps.append(f"Create or restore the upstream docs {source_kind} at {directory}.")
+            steps.append(
+                "If the repo moved, update TRADING_SYSTEM_ROOT_WIN / MASTER_AGENT_REPO_CONFIGS to the correct repo root/docs path."
+            )
+        elif status == "repo_misconfiguration":
+            steps.append(
+                f"Fix the configured docs path for repo '{repo_config.name}' so it points at the real upstream docs directory."
+            )
+            steps.append("Update MASTER_AGENT_REPO_CONFIGS or the CLI --repos argument, then rerun the readiness check.")
+        elif status == "upstream_unreachable":
+            target = repo_config.repo_root or directory.parent
+            steps.append(f"Restore access to the upstream WSL path at {target}.")
+            steps.append("Verify the WSL distro/share is online, then rerun the readiness check.")
+        elif status == "live_docs_empty":
+            steps.append(f"Add at least one supported document under {directory} so live cache seeding has source content.")
+        if cache_available:
+            steps.append(f"Cached fallback remains available at {self._repo_docs_cache_dir(repo_config.name)}.")
+        else:
+            steps.append(f"No cache is available yet at {self._repo_docs_cache_dir(repo_config.name)}.")
+        return steps
+
+    def _assess_docs_source(self, repo_config: RepoConfig, directory: Path) -> DocsSourceStatus:
+        cache_available = ENABLE_WSL_DOC_CACHE and self._repo_cache_has_documents(repo_config.name)
+        repo_root = repo_config.repo_root or self._infer_repo_root_from_docs_dir(directory)
+        expected_relative_dir = self._expected_relative_dir(repo_config, directory)
+        directory_available = self._probe_path_available(directory)
+        issue_kind: Optional[str] = None
+        live_document_count = 0
+
+        if directory_available:
+            live_document_count = self._count_live_documents(directory)
+            if live_document_count > 0:
+                status = "live_ready"
+                message = f"Live docs ready at {directory} ({live_document_count} readable file(s))."
+            else:
+                status = "live_docs_empty"
+                issue_kind = "empty"
+                message = (
+                    f"Docs {self._docs_source_kind(directory)} exists but contains no readable source documents at {directory}."
+                )
+            next_steps = self._build_docs_next_steps(repo_config, directory, status, cache_available)
+            return DocsSourceStatus(
+                repo_name=repo_config.name,
+                directory=directory,
+                repo_root=repo_root,
+                config_source=repo_config.config_source,
+                status=status,
+                issue_kind=issue_kind,
+                cache_available=cache_available,
+                live_document_count=live_document_count,
+                expected_relative_dir=expected_relative_dir,
+                message=message,
+                next_steps=next_steps,
+            )
+
+        repo_root_available = self._probe_path_available(repo_root)
+        parent = directory.parent if directory.parent != directory else None
+        parent_available = self._probe_path_available(parent)
+        source_kind = self._docs_source_kind(directory)
+
+        if repo_root is not None and repo_root_available:
+            status = "external_docs_missing"
+            issue_kind = "missing"
+            message = (
+                f"Configured repo root is reachable at {repo_root}, but the expected docs {source_kind} is missing at {directory}."
+            )
+        elif repo_root is None and repo_config.config_source in {"env_config", "cli"}:
+            status = "repo_misconfiguration"
+            issue_kind = "missing"
+            message = (
+                f"Configured docs path is missing and no repo_root was supplied for repo '{repo_config.name}'."
+            )
+        elif repo_root is not None and not repo_root_available:
+            status = "upstream_unreachable"
+            issue_kind = "unreachable"
+            message = f"Configured repo root is not reachable at {repo_root}."
+        elif parent_available:
+            status = "external_docs_missing"
+            issue_kind = "missing"
+            message = f"Parent path is reachable, but the docs {source_kind} is missing at {directory}."
+        else:
+            status = "upstream_unreachable"
+            issue_kind = "unreachable"
+            message = f"Configured docs path is not reachable at {directory}."
+
+        next_steps = self._build_docs_next_steps(repo_config, directory, status, cache_available)
+        return DocsSourceStatus(
+            repo_name=repo_config.name,
+            directory=directory,
+            repo_root=repo_root,
+            config_source=repo_config.config_source,
+            status=status,
+            issue_kind=issue_kind,
+            cache_available=cache_available,
+            live_document_count=0,
+            expected_relative_dir=expected_relative_dir,
+            message=message,
+            next_steps=next_steps,
+        )
+
+    def build_repo_readiness_report(self, repo_config: RepoConfig) -> RepoReadinessReport:
+        docs_sources = [self._assess_docs_source(repo_config, directory) for directory in repo_config.docs_dirs]
+        live_ready = any(source.live_ready for source in docs_sources)
+        cache_dir = self._repo_docs_cache_dir(repo_config.name)
+        cache_available = any(source.cache_available for source in docs_sources)
+        seeding_ready = live_ready
+        failing_sources = [source for source in docs_sources if not source.live_ready]
+        if live_ready:
+            status = "live_ready"
+        elif failing_sources:
+            status = failing_sources[0].status
+        else:
+            status = "no_docs_configured"
+
+        next_steps: List[str] = []
+        seen_steps: set[str] = set()
+        for source in docs_sources:
+            for step in source.next_steps:
+                if step not in seen_steps:
+                    seen_steps.add(step)
+                    next_steps.append(step)
+
+        return RepoReadinessReport(
+            repo_name=repo_config.name,
+            config_source=repo_config.config_source,
+            repo_root=repo_config.repo_root,
+            docs_sources=docs_sources,
+            cache_dir=cache_dir,
+            cache_available=cache_available,
+            live_ready=live_ready,
+            seeding_ready=seeding_ready,
+            status=status,
+            next_steps=next_steps,
+        )
+
+    def build_readiness_report(self) -> List[RepoReadinessReport]:
+        return [self.build_repo_readiness_report(repo_config) for repo_config in self.repo_configs]
+
+    def _log_docs_source_issue(
+        self,
+        repo_name: str,
+        directory: Path,
+        *,
+        issue_status: DocsSourceStatus,
+    ) -> None:
+        cache_root = self._repo_docs_cache_dir(repo_name)
+        if issue_status.cache_available:
+            cache_state = f"using cached docs from {cache_root}"
+        else:
+            cache_state = f"no cached docs available at {cache_root}"
+        manual_action = " ".join(issue_status.next_steps)
+        repo_root_fragment = f" Repo root: {issue_status.repo_root}." if issue_status.repo_root else ""
+        expected_fragment = (
+            f" Expected relative path: {issue_status.expected_relative_dir}."
+            if issue_status.expected_relative_dir
+            else ""
+        )
+
+        self._log(
+            f"WARNING: [ORCHESTRATOR] Repo '{repo_name}' docs source {issue_status.status}. "
+            f"Path: {directory}.{repo_root_fragment}{expected_fragment} "
+            f"Cache fallback: {cache_state}. Detail: {issue_status.message} Manual action: {manual_action}"
+        )
+
+    def _cache_relative_path(self, source_dir: Path, source_file: Path) -> Path:
+        if source_dir == source_file:
+            return Path(source_file.name)
+        try:
+            return source_file.relative_to(source_dir)
+        except ValueError:
+            return Path(source_file.name)
+
+    def _write_doc_snapshot(self, repo_name: str, source_dir: Path, source_file: Path, content: str) -> None:
+        if not ENABLE_WSL_DOC_CACHE:
+            return
+        cache_root = self._repo_docs_cache_dir(repo_name)
+        relative_path = self._cache_relative_path(source_dir, source_file)
+        cache_path = cache_root / relative_path
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        cache_path.write_text(content, encoding="utf-8")
+
+    def _load_documents_from_cache(self, repo_name: str) -> List[DocumentSlice]:
+        cache_root = self._repo_docs_cache_dir(repo_name)
+        if not cache_root.is_dir():
+            self._log(
+                f"ERROR: [ORCHESTRATOR] No cached docs found for repo '{repo_name}' at {cache_root}"
+            )
+            return []
+
+        candidates: List[DocumentSlice] = []
+        for path in cache_root.rglob("*"):
+            if not path.is_file() or not self._is_allowed_file(path):
+                continue
+            try:
+                size = path.stat().st_size
+            except OSError:
+                continue
+            if size > self.max_file_size:
+                continue
+            content = self._read_text(path)
+            if not content.strip():
+                continue
+            truncated = content.strip()[: self.max_chars]
+            candidates.append(
+                DocumentSlice(
+                    path=path,
+                    content=truncated,
+                    characters=len(truncated),
+                    modified_epoch=path.stat().st_mtime,
+                    repo_name=repo_name,
+                )
+            )
+        if not candidates:
+            self._log(
+                f"ERROR: [ORCHESTRATOR] No cached docs found for repo '{repo_name}' at {cache_root}"
+            )
+        return candidates
+
+    def _collect_documents_from_directory(self, repo_name: str, directory: Path) -> List[DocumentSlice]:
+        candidates: List[DocumentSlice] = []
+        content = self._readable_document_content(directory)
+        if content is not None:
+            truncated = content.strip()[: self.max_chars]
+            candidates.append(
+                DocumentSlice(
+                    path=directory,
+                    content=truncated,
+                    characters=len(truncated),
+                    modified_epoch=directory.stat().st_mtime,
+                    repo_name=repo_name,
+                )
+            )
+            if _is_wsl_unc_path(directory):
+                self._write_doc_snapshot(repo_name, directory, directory, content)
+            return candidates
+
+        try:
+            iterator = directory.rglob("*")
+            for path in iterator:
+                content = self._readable_document_content(path)
+                if content is None:
+                    try:
+                        size = path.stat().st_size
+                    except OSError:
+                        size = None
+                    if size is not None and size > self.max_file_size:
+                        self._log(f"Skipping {path} (>{self.max_file_size} bytes)")
+                    continue
+                truncated = content.strip()[: self.max_chars]
+                candidates.append(
+                    DocumentSlice(
+                        path=path,
+                        content=truncated,
+                        characters=len(truncated),
+                        modified_epoch=path.stat().st_mtime,
+                        repo_name=repo_name,
+                    )
+                )
+                if _is_wsl_unc_path(directory):
+                    self._write_doc_snapshot(repo_name, directory, path, content)
+        except OSError as exc:
+            self._log(f"Docs directory read failed: {directory} ({exc})")
+            return []
+        return candidates
 
     # ------------------------------------------------------------------
     # Public API
@@ -1044,6 +1739,13 @@ class MasterPromptOrchestrator:
             self._log(f"Discovered {len(self.repo_configs)} repositories.")
         else:
             self._log(f"Using {len(self.repo_configs)} explicitly configured repositories.")
+
+        self.repo_configs = self._order_repo_configs(self.repo_configs)
+        if self.repo_configs:
+            self._log(
+                "Repository processing order: "
+                + ", ".join(repo.name for repo in self.repo_configs)
+            )
         
         # 2 & 3. Analysis & Generation: Handled by generate_prompt_batches
         results = self.generate_prompt_batches(dry_run=dry_run)
@@ -1053,6 +1755,9 @@ class MasterPromptOrchestrator:
 
     def generate_prompt_batches(self, *, dry_run: bool = False) -> List[Optional[PromptBatchResult]]:
         """Generate prompt batches for all configured repos."""
+        if not dry_run and not self._openai_credentials_validated:
+            self.validate_openai_credentials()
+        self.repo_configs = self._order_repo_configs(self.repo_configs)
         results = []
         for repo_config in self.repo_configs:
             result = self.generate_prompt_batch_for_repo(repo_config, dry_run=dry_run)
@@ -1077,6 +1782,9 @@ class MasterPromptOrchestrator:
 
     def generate_prompt_batch_for_repo(self, repo_config: RepoConfig, *, dry_run: bool = False) -> Optional[PromptBatchResult]:
         """Generate prompt batch for a specific repo with enhanced quality control."""
+        if not dry_run and not self._openai_credentials_validated:
+            self.validate_openai_credentials()
+
         docs = self.collect_documents(repo_config)
         if not docs:
             self._log(f"No documents found for repo '{repo_config.name}'.")
@@ -1103,7 +1811,12 @@ class MasterPromptOrchestrator:
         todo_dependencies = self._extract_todo_dependencies(repo_config.name)
 
         # Request prompts from LLM with enhanced context
-        response_text = self._request_prompts_with_context(docs, repo_analysis, todo_dependencies)
+        response_text = self._request_prompts_with_context(
+            docs,
+            repo_analysis,
+            todo_dependencies,
+            repo_config,
+        )
         if not response_text:
             self._log(f"OpenAI response was empty for repo '{repo_config.name}'; skipping file write.")
             return None
@@ -1197,35 +1910,29 @@ class MasterPromptOrchestrator:
     def collect_documents(self, repo_config: RepoConfig) -> List[DocumentSlice]:
         """Gather most-relevant text files from the configured directories for a specific repo."""
         candidates: List[DocumentSlice] = []
+        cache_loaded = False
         for directory in repo_config.docs_dirs:
-            if not directory.exists():
-                self._log(f"Docs directory missing: {directory}")
-                continue
-            for path in directory.rglob("*"):
-                if not path.is_file():
-                    continue
-                if not self._is_allowed_file(path):
-                    continue
-                try:
-                    size = path.stat().st_size
-                except OSError:
-                    continue
-                if size > self.max_file_size:
-                    self._log(f"Skipping {path} (>{self.max_file_size} bytes)")
-                    continue
-                content = self._read_text(path)
-                if not content.strip():
-                    continue
-                truncated = content.strip()[: self.max_chars]
-                candidates.append(
-                    DocumentSlice(
-                        path=path,
-                        content=truncated,
-                        characters=len(truncated),
-                        modified_epoch=path.stat().st_mtime,
-                        repo_name=repo_config.name,
-                    )
+            source_status = self._assess_docs_source(repo_config, directory)
+            if not source_status.live_ready:
+                self._log_docs_source_issue(
+                    repo_config.name,
+                    directory,
+                    issue_status=source_status,
                 )
+                if source_status.cache_available and not cache_loaded:
+                    candidates.extend(self._load_documents_from_cache(repo_config.name))
+                    cache_loaded = True
+                continue
+            directory_candidates = self._collect_documents_from_directory(repo_config.name, directory)
+            if not directory_candidates and _is_wsl_unc_path(directory) and ENABLE_WSL_DOC_CACHE and not cache_loaded:
+                self._log(
+                    f"WARNING: [ORCHESTRATOR] Repo '{repo_config.name}' returned no live docs from {directory}. "
+                    f"Cache fallback: using cached docs from {self._repo_docs_cache_dir(repo_config.name)}."
+                )
+                candidates.extend(self._load_documents_from_cache(repo_config.name))
+                cache_loaded = True
+                continue
+            candidates.extend(directory_candidates)
 
         if self.cross_repo_todo_service is not None:
             try:
@@ -1339,9 +2046,9 @@ class MasterPromptOrchestrator:
         docs: List[DocumentSlice],
         repo_analysis: RepositoryAnalysis,
         todo_dependencies: List[TodoItem],
+        repo_config: RepoConfig,
     ) -> str:
         """Request prompts from LLM with enhanced context including repo analysis."""
-        client = self._ensure_client()
         compiled_docs = self._format_documents(docs)
         
         # Build enhanced user prompt with repo context
@@ -1351,8 +2058,10 @@ class MasterPromptOrchestrator:
         
         # Get feedback insights to include in system prompt
         feedback_insights = self.feedback_analyzer.analyze_feedback(min_responses=3)
-        enhanced_system_prompt = self._build_enhanced_system_prompt(
-            feedback_insights, repo_analysis
+        enhanced_system_prompt = self._build_system_prompt(
+            feedback_insights,
+            repo_analysis,
+            repo_config,
         )
         
         self._log(
@@ -1360,7 +2069,7 @@ class MasterPromptOrchestrator:
             f"({sum(d.characters for d in docs)} chars) with repo analysis."
         )
 
-        response = client.responses.create(
+        response = self._responses_create(
             model=self.model,
             input=[
                 {
@@ -1389,27 +2098,27 @@ class MasterPromptOrchestrator:
         )
         return self._merge_text_outputs(response)
     
-    def _build_enhanced_system_prompt(
+    def _build_system_prompt(
         self,
         feedback_insights: FeedbackInsights,
         repo_analysis: RepositoryAnalysis,
+        repo_config: RepoConfig,
     ) -> str:
-        """Build system prompt enhanced with feedback insights and repo analysis."""
+        """Build system prompt enhanced with feedback insights and repo North Star context."""
         base_prompt = SYSTEM_PROMPT
+        north_star = self._load_north_star_context()
 
         # Prepend North Star context so the LLM understands the top-level goal and
         # in-flight work across all repos before it generates any task prompts.
         north_star_section = ""
-        if NORTH_STAR_ENABLED and _NORTH_STAR_AVAILABLE:
-            try:
-                ns = get_north_star()
-                north_star_section = (
-                    "\n\n## COORDINATION CONTEXT — READ BEFORE ASSIGNING TASKS\n\n"
-                    + ns.prompt_header()
-                    + "\n"
-                )
-            except Exception as exc:  # pragma: no cover
-                self._log(f"North Star context unavailable: {exc}")
+        if north_star is not None:
+            north_star_section = (
+                "\n\n## COORDINATION CONTEXT — READ BEFORE ASSIGNING TASKS\n\n"
+                + north_star.prompt_header()
+                + "\n"
+                + self._build_repo_role_section(repo_config, north_star)
+                + "\n"
+            )
 
         base_prompt = north_star_section + base_prompt
         
@@ -1427,6 +2136,7 @@ class MasterPromptOrchestrator:
         
         # Add repository context
         repo_section = "\n\nRepository context for prompt generation:"
+        repo_section += f"\n- Repository: {repo_analysis.repo_name}"
         repo_section += f"\n- Primary language: {repo_analysis.primary_language or 'unknown'}"
         repo_section += f"\n- Architecture: {repo_analysis.architecture_style or 'unknown'}"
         
@@ -1447,6 +2157,15 @@ class MasterPromptOrchestrator:
             template_section += "\nWhen generating prompts, structure them according to proven templates for better results."
         
         return base_prompt + feedback_section + repo_section + template_section
+
+    def _build_enhanced_system_prompt(
+        self,
+        feedback_insights: FeedbackInsights,
+        repo_analysis: RepositoryAnalysis,
+        repo_config: Optional[RepoConfig] = None,
+    ) -> str:
+        effective_repo_config = repo_config or RepoConfig(name=repo_analysis.repo_name, docs_dirs=[])
+        return self._build_system_prompt(feedback_insights, repo_analysis, effective_repo_config)
     
     def _build_enhanced_user_prompt(
         self,
@@ -1879,7 +2598,6 @@ class MasterPromptOrchestrator:
         return hashlib.sha256(prompt_text.encode("utf-8", errors="ignore")).hexdigest()
     
     def _request_prompts(self, docs: List[DocumentSlice]) -> str:
-        client = self._ensure_client()
         compiled_docs = self._format_documents(docs)
         user_prompt = self._build_user_prompt(compiled_docs)
         self._log(
@@ -1887,7 +2605,7 @@ class MasterPromptOrchestrator:
             f"({sum(d.characters for d in docs)} chars)."
         )
 
-        response = client.responses.create(
+        response = self._responses_create(
             model=self.model,
             input=[
                 {
@@ -2177,6 +2895,89 @@ class MasterPromptOrchestrator:
         
         return output_path, metadata_path
 
+    def generate_cross_repo_coordination_prompt(self) -> Optional[Path]:
+        """Write a coordination prompt summarizing active work across repos."""
+        north_star = self._load_north_star_context()
+        if north_star is None:
+            return None
+
+        active_tasks = [task for task in north_star.active_tasks if task.is_active]
+        if not active_tasks:
+            return None
+
+        dependency_order = list(north_star.dependency_order or REPO_DEPENDENCY_ORDER)
+        dependency_rank = {
+            self._normalized_repo_name(repo_name): index
+            for index, repo_name in enumerate(dependency_order)
+        }
+        priority_rank = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
+        status_rank = {"in_progress": 0, "review": 1, "planned": 2, "blocked": 3}
+
+        grouped_tasks: Dict[str, List[Any]] = defaultdict(list)
+        for task in active_tasks:
+            grouped_tasks[task.repo].append(task)
+
+        ordered_repo_names = sorted(
+            grouped_tasks,
+            key=lambda repo_name: (
+                dependency_rank.get(self._normalized_repo_name(repo_name), len(dependency_rank)),
+                self._normalized_repo_name(repo_name),
+            ),
+        )
+
+        leverage_task = min(
+            active_tasks,
+            key=lambda task: (
+                dependency_rank.get(self._normalized_repo_name(task.repo), len(dependency_rank)),
+                priority_rank.get(task.priority, 9),
+                status_rank.get(task.status, 9),
+            ),
+        )
+        leverage_role = self._north_star_role_for_repo(north_star, leverage_task.repo)
+        downstream_note = ""
+        if leverage_role is not None and leverage_role.depended_on_by:
+            downstream_note = (
+                f" before {', '.join(leverage_role.depended_on_by)} can safely advance dependent work"
+            )
+
+        lines: List[str] = []
+        lines.append("# Cross-Repo Coordination Prompt")
+        lines.append("")
+        lines.append(f"Generated at: {datetime.now(timezone.utc).isoformat()}")
+        lines.append("")
+        lines.append("## North Star")
+        lines.append("")
+        lines.append(f"- Primary goal: {north_star.primary_goal}")
+        if north_star.primary_task_id:
+            lines.append(f"- Primary task id: {north_star.primary_task_id}")
+        lines.append(f"- Dependency order: {' -> '.join(dependency_order)}")
+        lines.append("")
+        lines.append("## In-Flight Tasks")
+        lines.append("")
+        for repo_name in ordered_repo_names:
+            lines.append(f"### {repo_name}")
+            for task in grouped_tasks[repo_name]:
+                lines.append(f"- [{task.priority}][{task.status}] {task.task_id}: {task.title}")
+            lines.append("")
+
+        lines.append("## Highest-Leverage Next Cross-Repo Action")
+        lines.append("")
+        lines.append(
+            f"Advance {leverage_task.repo} task {leverage_task.task_id}: {leverage_task.title}{downstream_note}."
+        )
+        lines.append("")
+        lines.append("## Suggested Coordination Prompt")
+        lines.append("")
+        lines.append(
+            "Review the in-flight tasks above, confirm the dependency order is being honored, and assign the next cross-repo action to the repo that unlocks the most downstream progress without crossing ownership boundaries."
+        )
+
+        output_path = self.output_dir / "cross_repo_coordination.md"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+        self._log(f"Saved cross-repo coordination prompt to {output_path}")
+        return output_path
+
     def _ensure_client(self) -> Any:
         if self.client:
             return self.client
@@ -2184,11 +2985,52 @@ class MasterPromptOrchestrator:
             raise RuntimeError(
                 "openai package is not installed. Install dependencies from requirements.txt."
             )
-        api_key = os.environ.get("OPENAI_API_KEY")
+        api_key, state = _resolve_openai_api_key()
         if not api_key:
-            raise RuntimeError("OPENAI_API_KEY is required to generate prompts.")
+            raise OpenAICredentialError(_format_missing_openai_api_key_message(state))
         self.client = OpenAIClient(api_key=api_key)
+        self._credential_state = state
         return self.client
+
+    def validate_openai_credentials(self) -> Dict[str, str]:
+        self._ensure_client()
+        credential_state = self._credential_state or OpenAICredentialState(
+            source="unknown",
+            repo_dotenv_path=REPO_DOTENV_PATH,
+            repo_dotenv_exists=REPO_DOTENV_PATH.exists(),
+        )
+        self._log(
+            f"Validating OpenAI credentials for model '{self.model}' using {credential_state.source}."
+        )
+        # Keep the probe as small as possible while honoring the Responses API minimum.
+        self._responses_create(
+            model=self.model,
+            input=[
+                {
+                    "role": "user",
+                    "content": [{"type": "input_text", "text": "Reply with the single word READY."}],
+                }
+            ],
+            max_output_tokens=16,
+        )
+        self._openai_credentials_validated = True
+        return {
+            "model": self.model,
+            "credential_source": credential_state.source,
+        }
+
+    def _responses_create(self, **kwargs):
+        client = self._ensure_client()
+        credential_state = self._credential_state or OpenAICredentialState(
+            source="unknown",
+            repo_dotenv_path=REPO_DOTENV_PATH,
+            repo_dotenv_exists=REPO_DOTENV_PATH.exists(),
+        )
+        try:
+            return client.responses.create(**kwargs)
+        except Exception as exc:
+            _raise_for_openai_request_error(exc, credential_state)
+            raise
 
     def _read_text(self, path: Path) -> str:
         try:
@@ -2242,6 +3084,21 @@ def _build_cli_parser() -> argparse.ArgumentParser:
         help="Skip the OpenAI call and just list which files would be sent",
     )
     parser.add_argument(
+        "--readiness-check",
+        action="store_true",
+        help="Run a deterministic docs-source readiness check for cache seeding and exit non-zero when any repo is not live-ready.",
+    )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Emit JSON output for readiness checks.",
+    )
+    parser.add_argument(
+        "--check-openai-credentials",
+        action="store_true",
+        help="Validate OpenAI credential readiness before a live prompt refresh",
+    )
+    parser.add_argument(
         "--agent-mode",
         choices=["normal", "maximise", "maximize"],
         help="Override the adaptive agent selection mode used to tag prompts",
@@ -2290,55 +3147,157 @@ def _parse_repo_configs(args_repos: List[str], args_docs: List[str]) -> List[Rep
             name, paths_str = repo_spec.split('=', 1)
             paths = [Path(p.strip()) for p in paths_str.split(',') if p.strip()]
             if name and paths:
-                configs.append(RepoConfig(name=name.strip(), docs_dirs=paths))
+                configs.append(
+                    RepoConfig(
+                        name=name.strip(),
+                        docs_dirs=paths,
+                        repo_root=MasterPromptOrchestrator._infer_repo_root_from_docs_dirs(paths),
+                        config_source="cli",
+                    )
+                )
     
     # Backward compatibility: use --docs for default repo
     if args_docs and not configs:
-        configs.append(RepoConfig(name="default", docs_dirs=[Path(p) for p in args_docs]))
+        doc_paths = [Path(p) for p in args_docs]
+        configs.append(
+            RepoConfig(
+                name="default",
+                docs_dirs=doc_paths,
+                repo_root=MasterPromptOrchestrator._infer_repo_root_from_docs_dirs(doc_paths),
+                config_source="cli",
+            )
+        )
     
     return configs
+
+
+def _serialize_readiness_reports(reports: Sequence[RepoReadinessReport]) -> Dict[str, Any]:
+    repos_payload: List[Dict[str, Any]] = []
+    all_ready = True
+    for report in reports:
+        all_ready = all_ready and report.seeding_ready
+        repos_payload.append(
+            {
+                "repo_name": report.repo_name,
+                "config_source": report.config_source,
+                "repo_root": str(report.repo_root) if report.repo_root else None,
+                "status": report.status,
+                "live_ready": report.live_ready,
+                "seeding_ready": report.seeding_ready,
+                "cache_available": report.cache_available,
+                "cache_dir": str(report.cache_dir),
+                "next_steps": report.next_steps,
+                "docs_sources": [
+                    {
+                        "path": str(source.directory),
+                        "repo_root": str(source.repo_root) if source.repo_root else None,
+                        "status": source.status,
+                        "issue_kind": source.issue_kind,
+                        "config_source": source.config_source,
+                        "cache_available": source.cache_available,
+                        "live_document_count": source.live_document_count,
+                        "expected_relative_dir": source.expected_relative_dir,
+                        "message": source.message,
+                        "next_steps": source.next_steps,
+                    }
+                    for source in report.docs_sources
+                ],
+            }
+        )
+    return {"all_repos_ready": all_ready, "repos": repos_payload}
+
+
+def _print_readiness_plain(reports: Sequence[RepoReadinessReport]) -> None:
+    print("Master prompt orchestrator readiness")
+    for report in reports:
+        print(f"Repo '{report.repo_name}': {report.status}")
+        print(f"  Live ready: {report.live_ready}")
+        print(f"  Cache available: {report.cache_available}")
+        if report.repo_root:
+            print(f"  Repo root: {report.repo_root}")
+        for source in report.docs_sources:
+            print(f"  - {source.directory}: {source.status}")
+            print(f"    {source.message}")
+            if source.expected_relative_dir:
+                print(f"    Expected relative dir: {source.expected_relative_dir}")
+        for step in report.next_steps:
+            print(f"  Next step: {step}")
 
 
 def main() -> None:
     parser = _build_cli_parser()
     args = parser.parse_args()
-    repo_configs = _parse_repo_configs(args.repos or [], args.docs or [])
-    
-    orchestrator = MasterPromptOrchestrator(
-        repo_configs=repo_configs,
-        output_dir=Path(args.output_dir),
-        max_docs=args.max_docs,
-        max_chars=args.max_chars,
-        agent_selection_mode=args.agent_mode,
-        enable_quality_validation=not args.disable_quality_validation,
-        quality_threshold=args.quality_threshold,
-        enable_adaptive_complexity=not args.disable_adaptive_complexity,
-        enable_prompt_templates=not args.disable_templates,
-        enable_human_review=args.enable_human_review,
-    )
+    parsed_repo_configs = _parse_repo_configs(args.repos or [], args.docs or [])
+    repo_configs = parsed_repo_configs or None
 
-    if args.dry_run:
-        # For dry run, show documents for each repo
-        for repo_config in orchestrator.repo_configs:
-            docs = orchestrator.collect_documents(repo_config)
-            print(f"Repo '{repo_config.name}': Collected {len(docs)} documents")
-            for doc in docs:
-                print(f"  - {orchestrator._pretty_path(doc.path)} ({doc.characters} chars)")
-        return
+    try:
+        if args.check_openai_credentials:
+            orchestrator = MasterPromptOrchestrator(
+                repo_configs=[],
+                output_dir=Path(args.output_dir),
+                max_docs=args.max_docs,
+                max_chars=args.max_chars,
+                agent_selection_mode=args.agent_mode,
+                enable_quality_validation=not args.disable_quality_validation,
+                quality_threshold=args.quality_threshold,
+                enable_adaptive_complexity=not args.disable_adaptive_complexity,
+                enable_prompt_templates=not args.disable_templates,
+                enable_human_review=args.enable_human_review,
+            )
+            result = orchestrator.validate_openai_credentials()
+            print(
+                "OPENAI READY: "
+                f"model={result['model']} credential_source={result['credential_source']}"
+            )
+            return
 
-    results = orchestrator.generate_prompt_batches()
-    for result in results:
-        if result:
-            print(f"\nPrompts for repo '{result.repo_name}':")
-            print(f"  Generated: {result.prompt_count} prompts")
-            print(f"  Saved to: {result.output_path}")
-            if result.metadata_file:
-                print(f"  Metadata: {result.metadata_file}")
-            if result.prompts_with_metadata:
-                avg_quality = sum(m.quality_score for _, m in result.prompts_with_metadata) / len(result.prompts_with_metadata)
-                print(f"  Average quality score: {avg_quality:.2f}")
-        else:
-            print("No prompts were generated for some repos.")
+        orchestrator = MasterPromptOrchestrator(
+            repo_configs=repo_configs,
+            output_dir=Path(args.output_dir),
+            max_docs=args.max_docs,
+            max_chars=args.max_chars,
+            agent_selection_mode=args.agent_mode,
+            enable_quality_validation=not args.disable_quality_validation,
+            quality_threshold=args.quality_threshold,
+            enable_adaptive_complexity=not args.disable_adaptive_complexity,
+            enable_prompt_templates=not args.disable_templates,
+            enable_human_review=args.enable_human_review,
+        )
+
+        if args.readiness_check:
+            reports = orchestrator.build_readiness_report()
+            payload = _serialize_readiness_reports(reports)
+            if args.json:
+                print(json.dumps(payload, indent=2))
+            else:
+                _print_readiness_plain(reports)
+            raise SystemExit(0 if payload["all_repos_ready"] else 1)
+
+        if args.dry_run:
+            # For dry run, show documents for each repo
+            for repo_config in orchestrator.repo_configs:
+                docs = orchestrator.collect_documents(repo_config)
+                print(f"Repo '{repo_config.name}': Collected {len(docs)} documents")
+                for doc in docs:
+                    print(f"  - {orchestrator._pretty_path(doc.path)} ({doc.characters} chars)")
+            return
+
+        results = orchestrator.generate_prompt_batches()
+        for result in results:
+            if result:
+                print(f"\nPrompts for repo '{result.repo_name}':")
+                print(f"  Generated: {result.prompt_count} prompts")
+                print(f"  Saved to: {result.output_path}")
+                if result.metadata_file:
+                    print(f"  Metadata: {result.metadata_file}")
+                if result.prompts_with_metadata:
+                    avg_quality = sum(m.quality_score for _, m in result.prompts_with_metadata) / len(result.prompts_with_metadata)
+                    print(f"  Average quality score: {avg_quality:.2f}")
+            else:
+                print("No prompts were generated for some repos.")
+    except OpenAICredentialError as exc:
+        print(f"ERROR: {exc}")
+        raise SystemExit(2) from exc
 
 
 if __name__ == "__main__":  # pragma: no cover

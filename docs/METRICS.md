@@ -61,6 +61,45 @@ Tracks AI response analysis for learning and improvement.
   - `is_sensitive`: Whether response contains sensitive data
   - `processing_time_seconds`: How long the agent worked
 
+## Runtime Monitors
+
+### Copilot Usage Monitor
+
+Tracks Copilot subscription consumption pace relative to calendar progress.
+
+- **Source**: `CopilotUsageMonitor` in `automation/copilot_usage_monitor.py`
+- **Persistence**: `logs/cost_metrics.jsonl`
+- **Event**: `copilot_status`
+- **What it records**:
+  - `percentage`: Copilot usage percent from the VS Code status bar
+  - `calendar_progress`: Percent of the current month elapsed
+  - `normalized_ratio`: Usage pace divided by calendar progress
+  - `alert`: Warning/critical pace message when thresholds are exceeded
+  - `control_name`, `automation_id`: UIA details for the matched control
+- **How it runs**: Background thread started by the orchestrator during the live run loop
+- **Network calls**: None. It only reads local UI Automation state and appends local JSONL metrics.
+
+### Rate Monitor
+
+Tracks automation throughput for Allow clicks and raises operational alerts when the click rate drops.
+
+- **Source**: `RateMonitor` in `automation/rate_monitor.py`
+- **Persistence**: No dedicated metrics file
+- **What it reads**: Allow-click history from the local rate-limit tracker
+- **What it emits**:
+  - Local log messages for rate-drop alerts
+  - Audio prompts via `speak(...)`
+  - Telegram alerts via `send_telegram_alert(...)`
+- **How it runs**: Inline inside the main orchestration loop
+
+### Difference and Double-Counting
+
+These monitors do not overlap in persisted metrics and should not be interpreted as the same signal.
+
+- `CopilotUsageMonitor` measures subscription consumption pace from the VS Code Copilot status UI.
+- `RateMonitor` measures automation throughput using local Allow-click counts.
+- A high Copilot usage pace does not imply a high Allow-click rate, and a low Allow-click rate does not change Copilot usage records.
+
 ## Assignment Tracking
 
 Assignment tracking provides observability into which prompts are sent to which panels. This helps with:

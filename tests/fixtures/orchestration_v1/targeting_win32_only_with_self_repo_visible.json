@@ -1,0 +1,40 @@
+{
+  "scenario": "win32_only_with_self_repo_visible",
+  "notes": "Sanitized representative of recent pilot failures where UIA exposed only desktop-agent-automation while Win32 saw the intended target as cloaked/off-desktop.",
+  "repo_id": "TF",
+  "repo_root": "C:/repos/TF",
+  "foreground_window_id": "hwnd:1301",
+  "windows": [
+    {
+      "window_id": "hwnd:1301",
+      "window_index": 1,
+      "title": "Chat - desktop-agent-automation - Visual Studio Code",
+      "parsed_repo": "desktop-agent-automation",
+      "normalized_parsed_repo": "desktop-agent-automation",
+      "is_visible": true,
+      "is_minimized": false,
+      "is_cloaked": false,
+      "inclusion_reason": "included_by_uia",
+      "win32_lookup": "matched"
+    }
+  ],
+  "omitted_windows": [
+    {
+      "window_id": "hwnd:7999",
+      "title": "Task X - TF (Workspace) [WSL: Ubuntu-24.04] - Visual Studio Code",
+      "is_visible": false,
+      "is_minimized": false,
+      "is_cloaked": true,
+      "cloaked_raw": 2,
+      "inclusion_reason": "omitted_from_uia_snapshot"
+    }
+  ],
+  "expected": {
+    "reason_code": "repo_window_detected_win32_only",
+    "eligible_for_dispatch": false,
+    "matched_windows": 0,
+    "win32_only_matches": 1,
+    "selected_window_id": "hwnd:7999",
+    "protected_visible_window_id": "hwnd:1301"
+  }
+}

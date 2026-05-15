@@ -25,8 +25,13 @@ from typing import Any, Dict, List, Tuple, Union
 
 from dotenv import load_dotenv
 
-# Load .env file early
-load_dotenv()
+REPO_ROOT = Path(__file__).resolve().parent.parent
+REPO_DOTENV_PATH = REPO_ROOT / ".env"
+
+# Load only the repository root .env so parent-directory dotenv files do not
+# accidentally override runtime secrets for live automation.
+if REPO_DOTENV_PATH.exists():
+    load_dotenv(REPO_DOTENV_PATH, override=False)
 
 
 # ============================================================================
@@ -200,6 +205,8 @@ STALE_TRY_AGAIN_IGNORE_AFTER_MINUTES = 5
 # Cooldown duration (in minutes) when rate limit is detected via Try Again button
 # After clicking Allow, we wait 2s to check if Try Again appears - if so, we're rate limited
 TRY_AGAIN_COOLDOWN_MINUTES = int(os.environ.get("TRY_AGAIN_COOLDOWN_MINUTES", "5"))
+TRY_AGAIN_WEEKLY_RETRY_LOCAL_HOUR = int(os.environ.get("TRY_AGAIN_WEEKLY_RETRY_LOCAL_HOUR", "1"))
+TRY_AGAIN_WEEKLY_RETRY_INTERVAL_HOURS = int(os.environ.get("TRY_AGAIN_WEEKLY_RETRY_INTERVAL_HOURS", "4"))
 
 
 # ============================================================================
@@ -263,18 +270,42 @@ FINISHED_PANEL_DRY_RUN = os.environ.get("FINISHED_PANEL_DRY_RUN", "false").lower
 # Where to read the prompt batch used to seed new chats when a panel is finished
 FINISHED_PANEL_PROMPT_PATH = Path(os.environ.get("FINISHED_PANEL_PROMPT_PATH", "tasks/generated_prompts/latest.txt"))
 
+# If true, a finished-panel miss can request an immediate feed refresh instead of waiting
+# for the next periodic discovery interval.
+ENABLE_ON_DEMAND_FEED_REFRESH = os.environ.get("ENABLE_ON_DEMAND_FEED_REFRESH", "true").lower() == "true"
+
 # If true, repos without a dedicated prompt feed may fall back to FINISHED_PANEL_PROMPT_PATH.
 # If false (default), "no assignment" means "skip panel" and do not seed from latest.txt.
 FINISHED_PANEL_ALLOW_DEFAULT_PROMPT_FALLBACK = (
     os.environ.get("FINISHED_PANEL_ALLOW_DEFAULT_PROMPT_FALLBACK", "false").lower() == "true"
 )
 
+# Shared default for text-only OpenAI coordination tasks. Vision/computer-use
+# flows should keep their own model selection because capability support differs.
+OPENAI_COORDINATION_MODEL = os.environ.get("OPENAI_COORDINATION_MODEL", "gpt-5.4")
+
+# Desktop auto-allow uses capability-specific vision/computer-use models rather
+# than the shared text coordination default.
+AUTO_ALLOW_COMPUTER_USE_MODEL = os.environ.get("AUTO_ALLOW_COMPUTER_USE_MODEL", "computer-use-preview")
+AUTO_ALLOW_VISION_FALLBACK_MODEL = os.environ.get("AUTO_ALLOW_VISION_FALLBACK_MODEL", "gpt-4o")
+
+# Optional targeted overrides for specific text-only workflows.
+HANDOVER_SUMMARY_MODEL = os.environ.get("HANDOVER_SUMMARY_MODEL", OPENAI_COORDINATION_MODEL)
+PANEL_CLASSIFICATION_MODEL = os.environ.get("PANEL_CLASSIFICATION_MODEL", OPENAI_COORDINATION_MODEL)
+
 # Finished panel review pipeline configuration
-FINISHED_PANEL_REVIEW_MODEL = os.environ.get("FINISHED_PANEL_REVIEW_MODEL", "gpt-5.1")
+FINISHED_PANEL_REVIEW_MODEL = os.environ.get("FINISHED_PANEL_REVIEW_MODEL", OPENAI_COORDINATION_MODEL)
 FINISHED_PANEL_REVIEW_MAX_RETRIES = int(os.environ.get("FINISHED_PANEL_REVIEW_MAX_RETRIES", "3"))
 FINISHED_PANEL_REVIEW_BACKOFF_SECONDS = float(os.environ.get("FINISHED_PANEL_REVIEW_BACKOFF_SECONDS", "1.5"))
 FINISHED_PANEL_REVIEW_TRANSCRIPT_CHARS = int(os.environ.get("FINISHED_PANEL_REVIEW_TRANSCRIPT_CHARS", "2000"))
 FINISHED_PANEL_REVIEW_TEMPERATURE = float(os.environ.get("FINISHED_PANEL_REVIEW_TEMPERATURE", "0.25"))
+
+# Workstream coordination and chat lifecycle controls.
+ENABLE_WORKSTREAM_COORDINATION = os.environ.get("ENABLE_WORKSTREAM_COORDINATION", "true").lower() == "true"
+WORKSTREAM_CONTEXT_SOFT_TOKEN_LIMIT = int(os.environ.get("WORKSTREAM_CONTEXT_SOFT_TOKEN_LIMIT", "6000"))
+WORKSTREAM_CONTEXT_HARD_TOKEN_LIMIT = int(os.environ.get("WORKSTREAM_CONTEXT_HARD_TOKEN_LIMIT", "10000"))
+WORKSTREAM_MULTI_PANEL_TOKEN_LIMIT = int(os.environ.get("WORKSTREAM_MULTI_PANEL_TOKEN_LIMIT", "3500"))
+WORKSTREAM_CONDENSED_CONTEXT_CHARS = int(os.environ.get("WORKSTREAM_CONDENSED_CONTEXT_CHARS", "1400"))
 
 
 def _parse_repo_prompt_map(raw_value: str) -> Dict[str, Path]:
@@ -322,10 +353,17 @@ def _parse_repo_configs(raw_value: str) -> List[Dict[str, Any]]:
         if isinstance(parsed, list):
             for config in parsed:
                 if isinstance(config, dict) and 'name' in config and 'docs_dirs' in config:
-                    configs.append({
+                    normalized_config = {
                         'name': str(config['name']),
                         'docs_dirs': [Path(p).expanduser() for p in config['docs_dirs'] if isinstance(p, str)]
-                    })
+                    }
+                    repo_root = config.get('repo_root')
+                    if isinstance(repo_root, str) and repo_root.strip():
+                        normalized_config['repo_root'] = Path(repo_root).expanduser()
+                    role = str(config.get('role', '')).strip()
+                    if role:
+                        normalized_config['role'] = role
+                    configs.append(normalized_config)
             return configs
     except json.JSONDecodeError:
         pass
@@ -338,8 +376,38 @@ def _parse_repo_configs(raw_value: str) -> List[Dict[str, Any]]:
         name = name.strip()
         paths = [Path(p.strip()).expanduser() for p in paths_str.split(',') if p.strip()]
         if name and paths:
-            configs.append({'name': name, 'docs_dirs': paths})
+            configs.append({'name': name, 'docs_dirs': paths, 'repo_root': None})
     return configs
+
+
+_DEFAULT_TRADING_SYSTEM_ROOT = r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system"
+
+
+def _default_master_agent_repo_configs() -> List[Dict[str, Any]]:
+    """Return the default trading-system repo prompt sources and role labels."""
+    trading_system_root = Path(
+        os.environ.get("TRADING_SYSTEM_ROOT_WIN", _DEFAULT_TRADING_SYSTEM_ROOT)
+    )
+    return [
+        {
+            "name": "contracts",
+            "repo_root": trading_system_root / "contracts",
+            "docs_dirs": [trading_system_root / "contracts" / "docs"],
+            "role": "source of truth",
+        },
+        {
+            "name": "TF",
+            "repo_root": trading_system_root / "TF",
+            "docs_dirs": [trading_system_root / "TF" / "docs"],
+            "role": "upstream framework",
+        },
+        {
+            "name": "Trading",
+            "repo_root": trading_system_root / "Trading",
+            "docs_dirs": [trading_system_root / "Trading" / "docs"],
+            "role": "downstream live system",
+        },
+    ]
 
 
 def _parse_path_list(raw_value: str) -> List[Path]:
@@ -437,9 +505,24 @@ AGENT_SELECTION_MODE = _raw_agent_selection_mode.strip().lower() or DEFAULT_AGEN
 
 # Multi-repo configurations for master prompt orchestrator
 # Set MASTER_AGENT_REPO_CONFIGS environment variable using JSON array format:
-# [{"name": "repo1", "docs_dirs": ["/path/to/repo1/docs"]}, {"name": "repo2", "docs_dirs": ["/path/to/repo2/docs"]}]
+# [{"name": "repo1", "docs_dirs": ["/path/to/repo1/docs"], "role": "repo role"}, {"name": "repo2", "docs_dirs": ["/path/to/repo2/docs"], "role": "repo role"}]
 # Or semicolon-delimited: "repo1=/path/to/repo1/docs;repo2=/path/to/repo2/docs"
-MASTER_AGENT_REPO_CONFIGS: List[Dict[str, Any]] = _parse_repo_configs(os.environ.get("MASTER_AGENT_REPO_CONFIGS", ""))
+MASTER_AGENT_REPO_CONFIGS: List[Dict[str, Any]] = _parse_repo_configs(
+    os.environ.get(
+        "MASTER_AGENT_REPO_CONFIGS",
+        json.dumps(
+            [
+                {
+                    "name": config["name"],
+                    "repo_root": str(config["repo_root"]) if config.get("repo_root") else None,
+                    "docs_dirs": [str(path) for path in config["docs_dirs"]],
+                    "role": config["role"],
+                }
+                for config in _default_master_agent_repo_configs()
+            ]
+        ),
+    )
+)
 
 
 def _discover_repo_prompt_map(feed_root: Path, repo_configs: List[Dict[str, Any]]) -> Dict[str, Path]:
@@ -566,6 +649,12 @@ TASK_DISCOVERY_LOW_TASK_THRESHOLD = int(
 # Autostart task discovery daemon even without --autonomous.
 TASK_DISCOVERY_AUTOSTART = os.environ.get("TASK_DISCOVERY_AUTOSTART", "true").lower() == "true"
 
+# Background Copilot usage monitor settings.
+ENABLE_COPILOT_USAGE_MONITOR = os.environ.get("ENABLE_COPILOT_USAGE_MONITOR", "true").lower() == "true"
+COPILOT_USAGE_MONITOR_INTERVAL_SECONDS = float(
+    os.environ.get("COPILOT_USAGE_MONITOR_INTERVAL_SECONDS", "300")
+)
+
 # Model picker labels as seen in the UI
 MODEL_PICKER_LABELS = {
     "grok": "Grok",
@@ -683,7 +772,7 @@ LOG_VERBOSITY = os.environ.get("LOG_VERBOSITY", "normal").lower()
 ENABLE_MASTER_AGENT = True
 NO_ALLOW_TRIGGER_MINUTES = int(os.environ.get("NO_ALLOW_TRIGGER_MINUTES", "20"))
 PROMPT_GENERATION_COOLDOWN_MINUTES = int(os.environ.get("PROMPT_GENERATION_COOLDOWN_MINUTES", "90"))
-MASTER_AGENT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-4o-mini")
+MASTER_AGENT_MODEL = os.environ.get("MASTER_AGENT_MODEL", OPENAI_COORDINATION_MODEL)
 MASTER_AGENT_MAX_DOCS = int(os.environ.get("MASTER_AGENT_MAX_DOCS", "18"))
 MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
 
@@ -694,7 +783,6 @@ MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
 
 # Root of the trading-system monorepo on WSL (shared by TF, contracts, Trading)
 # Override via env var for non-standard installations.
-_DEFAULT_TRADING_SYSTEM_ROOT = r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system"
 TRADING_SYSTEM_ROOT: Path = Path(
     os.environ.get("TRADING_SYSTEM_ROOT_WIN", _DEFAULT_TRADING_SYSTEM_ROOT)
 )
@@ -724,6 +812,8 @@ COORDINATION_GUARD_BLOCK_OVERLAPS: bool = (
 
 # How many seconds to cache the North Star / LedgerReport before refreshing.
 NORTH_STAR_CACHE_TTL_SECONDS: int = int(os.environ.get("NORTH_STAR_CACHE_TTL_SECONDS", "300"))
+WSL_PATH_PROBE_TIMEOUT_SECONDS = float(os.environ.get("WSL_PATH_PROBE_TIMEOUT_SECONDS", "3.0"))
+ENABLE_WSL_DOC_CACHE = os.environ.get("ENABLE_WSL_DOC_CACHE", "true").lower() == "true"
 
 # ============================================================================
 # MASTER AGENT PATH CONFIGURATION

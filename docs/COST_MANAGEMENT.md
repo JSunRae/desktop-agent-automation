@@ -56,6 +56,36 @@ $env:COST_TRACKER_VISION_COST_PER_IMAGE = "0.02"  # USD per image
 
 If not set, `DEFAULT_VISION_COST_PER_IMAGE` (currently `0.02`) is used.
 
+### 2.4 Monthly pricing verification
+
+Use the repo-maintained verification script to compare `DEFAULT_MODEL_RATES` against the latest published OpenAI pricing and save an auditable report set under `logs/pricing_checks/`.
+
+Canonical monthly command:
+
+```powershell
+master --run pricing-verification
+```
+
+Direct script fallback:
+
+```powershell
+python scripts/verify_pricing.py --monthly-check
+```
+
+What the monthly command does:
+
+- Compares current `DEFAULT_MODEL_RATES` against the latest pricing source it can parse.
+- Writes timestamped JSON and Markdown reports to `logs/pricing_checks/`.
+- Compares against the most recent compatible saved report, if one exists.
+- Prints a console summary with rate deltas and per-1M-token impact.
+
+Operator follow-up:
+
+1. Review the console output and saved Markdown report.
+2. If rates changed, update `automation/cost_tracker.py` and any `COST_TRACKER_MODEL_RATES` overrides used in deployment.
+3. Re-run the same monthly command to confirm the baseline is current.
+4. Commit the code change and the new `logs/pricing_checks/` report artifacts together.
+
 ---
 
 ## 3. Cost Calculation Methodology
@@ -216,26 +246,52 @@ Call `reset_session_totals()` to start a new accounting window within the same p
 
 1. Run a simple budget check script:
 
-   ```powershell
-   python - << 'EOF'
-   from automation.cost_tracker import get_cost_tracker
+```powershell
+python - << 'EOF'
+  from automation.cost_tracker import get_cost_tracker
 
-   tracker = get_cost_tracker()
-   print(tracker.check_budget_alerts())
-   EOF
-   ```
+  tracker = get_cost_tracker()
+  print(tracker.check_budget_alerts())
+  EOF
+```
 
-2. If warnings appear, consider temporarily:
+### 7.2 Monthly pricing review
+
+Run the standard pricing verification workflow:
+
+```powershell
+master --run pricing-verification
+```
+
+Direct script fallback:
+
+```powershell
+python scripts/verify_pricing.py --monthly-check
+```
+
+Expected outputs:
+
+- A readable console summary of changed/default/new/missing model rates.
+- Timestamped JSON and Markdown reports in `logs/pricing_checks/`.
+- A previous-report comparison when a compatible prior report exists.
+
+If pricing changed:
+
+1. Update `DEFAULT_MODEL_RATES` in `automation/cost_tracker.py`.
+2. Update any deployment-time `COST_TRACKER_MODEL_RATES` override to match.
+3. Re-run the monthly check and commit the code and report artifacts together.
+
+4. If daily budget warnings appear, consider temporarily:
    - Lowering `MAX_ALLOWS_PER_HOUR`.
    - Turning off non-essential workflows.
 
-### 7.2 Investigating cost spikes
+### 7.3 Investigating cost spikes
 
 1. Filter `logs/cost_metrics.jsonl` by timestamp range.
 2. Group by `source` and `event` to find the noisiest workflows.
 3. Cross-reference with `automation/metrics.json` and `automation/allow_metrics.jsonl` for correlation with Allow patterns and prompt seeding.
 
-### 7.3 Long-term archiving
+### 7.4 Long-term archiving
 
 - Periodically rotate or compress `logs/cost_metrics.jsonl` to avoid unbounded growth.
 - Keep per-month snapshots for audit and forecasting.

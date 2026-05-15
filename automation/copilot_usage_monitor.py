@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import calendar
 import re
+import sys
+import threading
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Callable, Dict, Optional
+from typing import Callable, Optional
 
 import uiautomation as auto
 
@@ -40,6 +42,7 @@ class CopilotUsageMonitor:
         critical_threshold: float = 1.25,
         time_provider: Callable[[], datetime] = datetime.now,
         max_search_depth: int = 6,
+        interval_seconds: float = 300.0,
     ) -> None:
         if warning_threshold > critical_threshold:
             raise ValueError("warning_threshold must be <= critical_threshold")
@@ -51,6 +54,35 @@ class CopilotUsageMonitor:
         self.critical_threshold = critical_threshold
         self.time_provider = time_provider
         self.max_search_depth = max_search_depth
+        self.interval_seconds = max(0.1, float(interval_seconds))
+        self._stop_event = threading.Event()
+        self._thread: Optional[threading.Thread] = None
+
+    def start(self) -> None:
+        """Start periodic polling on a daemon thread."""
+
+        if self._thread is not None and self._thread.is_alive():
+            return
+
+        self._stop_event = threading.Event()
+        self._thread = threading.Thread(
+            target=self._run_loop,
+            name="copilot-usage-monitor",
+            daemon=True,
+        )
+        self._thread.start()
+
+    def stop(self, timeout: Optional[float] = None) -> None:
+        """Stop the background polling thread if it is running."""
+
+        thread = self._thread
+        if thread is None:
+            return
+
+        self._stop_event.set()
+        thread.join(timeout=max(1.0, timeout or self.interval_seconds))
+        if not thread.is_alive():
+            self._thread = None
 
     def poll_once(self) -> CopilotStatusSnapshot:
         """Read the Copilot status percentage, normalize, log, and record it."""
@@ -158,3 +190,15 @@ class CopilotUsageMonitor:
             return float(match.group(1))
         except ValueError:
             return None
+
+    def _run_loop(self) -> None:
+        while not self._stop_event.is_set():
+            try:
+                self.poll_once()
+            except Exception as exc:
+                print(
+                    f"[{datetime.now()}] WARNING: Copilot usage monitor poll failed: {exc}",
+                    file=sys.stderr,
+                )
+            if self._stop_event.wait(self.interval_seconds):
+                break

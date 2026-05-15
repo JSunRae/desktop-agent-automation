@@ -1,0 +1,17 @@
+#!/bin/sh
+set -eu
+
+if [ -x ".venv/Scripts/python.exe" ]; then
+  exec .venv/Scripts/python.exe scripts/check_submodule_state.py --fail-if-dirty
+fi
+
+if command -v python >/dev/null 2>&1; then
+  exec python scripts/check_submodule_state.py --fail-if-dirty
+fi
+
+if command -v py >/dev/null 2>&1; then
+  exec py -3 scripts/check_submodule_state.py --fail-if-dirty
+fi
+
+echo "Unable to find a Python interpreter for submodule pre-commit check." >&2
+exit 1

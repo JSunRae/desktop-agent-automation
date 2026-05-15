@@ -14,7 +14,6 @@ from typing import Dict, List, Optional
 from automation.config import VSCODE_TITLE_SUFFIX
 from automation.response_parser import ResponseCategory
 
-
 # VS Code window titles usually end with " - Visual Studio Code" but can also use
 # a shorter " - VS Code" suffix. Deduplicate in case both strings are identical.
 WINDOW_TITLE_SUFFIXES: tuple[str, ...] = tuple(
@@ -298,6 +297,10 @@ class PanelState:
     transcript_issue_tags: List[str] = field(default_factory=list)
     transcript_issue_summary: Optional[str] = None
     last_transcript_analysis: Optional[datetime] = None
+    workstream_id: Optional[str] = None
+    estimated_context_tokens: int = 0
+    last_chat_action: Optional[str] = None
+    last_chat_action_reason: Optional[str] = None
     # Prompt seeding retry + failure tracking
     needs_retry: bool = False
     seed_retry_count: int = 0
@@ -353,6 +356,10 @@ class PanelState:
             "transcript_issue_tags": self.transcript_issue_tags,
             "transcript_issue_summary": self.transcript_issue_summary,
             "last_transcript_analysis": self.last_transcript_analysis.isoformat() if self.last_transcript_analysis else None,
+            "workstream_id": self.workstream_id,
+            "estimated_context_tokens": self.estimated_context_tokens,
+            "last_chat_action": self.last_chat_action,
+            "last_chat_action_reason": self.last_chat_action_reason,
             "needs_retry": self.needs_retry,
             "seed_retry_count": self.seed_retry_count,
             "seed_last_failure_reason": self.seed_last_failure_reason,
@@ -467,6 +474,10 @@ class PanelState:
             transcript_issue_tags=list(data.get("transcript_issue_tags") or []),
             transcript_issue_summary=data.get("transcript_issue_summary"),
             last_transcript_analysis=datetime.fromisoformat(data["last_transcript_analysis"]) if data.get("last_transcript_analysis") else None,
+            workstream_id=data.get("workstream_id"),
+            estimated_context_tokens=int(data.get("estimated_context_tokens", 0) or 0),
+            last_chat_action=data.get("last_chat_action"),
+            last_chat_action_reason=data.get("last_chat_action_reason"),
             needs_retry=needs_retry,
             seed_retry_count=seed_retry_count,
             seed_last_failure_reason=seed_last_failure_reason,

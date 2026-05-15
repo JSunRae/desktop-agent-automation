@@ -36,7 +36,7 @@ The existing `scripts/verify_pricing.py` script:
 From `docs/Todo.md`:
 ```markdown
 ## Recurring Reminders
-- [ ] First business day of every month: run `python scripts/verify_pricing.py --json`, 
+- [ ] First business day of every month: run `python scripts/verify_pricing.py --monthly-check`, 
       review diffs against `DEFAULT_MODEL_RATES`, and commit any adjustments with notes 
       in `logs/pricing_checks/`.
 ```
@@ -123,7 +123,7 @@ def compare_pricing(current_rates: dict, api_rates: dict) -> dict:
 
 Generate reports in `logs/pricing_checks/`:
 
-**File naming**: `pricing_check_YYYY-MM-DD.json`
+**File naming**: `pricing_check_YYYY-MM-DDTHHMMSSZ.json`
 
 **Report structure**:
 ```json
@@ -146,7 +146,7 @@ Generate reports in `logs/pricing_checks/`:
         "old_price": 0.0025,
         "new_price": 0.0030,
         "change_pct": 20.0,
-        "change_per_1m_tokens": 500.0
+        "change_per_1m_tokens": 0.5
       }
     ],
     "decreased": [],
@@ -451,7 +451,7 @@ python scripts/verify_pricing.py --save-report --compare-previous
 python scripts/verify_pricing.py --save-report --auto-commit
 
 # JSON output for automation
-python scripts/verify_pricing.py --json --save-report
+python scripts/verify_pricing.py --monthly-check
 
 # Get alerts via email (when configured)
 python scripts/verify_pricing.py --save-report --notify email

@@ -2138,7 +2138,9 @@ def poll_worker_outcome(
         accepted_parse_mode = "json_or_text"
         return report
 
-    while time.time() <= deadline:
+    first_poll = True
+    while first_poll or time.time() <= deadline:
+        first_poll = False
         rounds_total += 1
         _record_channel_attempt("report_file")
         # Preferred source: structured worker report files.

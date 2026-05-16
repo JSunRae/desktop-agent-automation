@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -170,9 +171,18 @@ def _panel_context_tokens(panel: PanelState) -> int:
     return token_total
 
 
+def _resolve_workstream_state_path(state_path: Optional[Path] = None) -> Path:
+    if state_path is not None:
+        return state_path
+    override = os.environ.get("WORKSTREAM_COORDINATION_STATE_PATH")
+    if override:
+        return Path(override)
+    return DEFAULT_WORKSTREAM_STATE_PATH
+
+
 class WorkstreamCoordinator:
-    def __init__(self, *, state_path: Path = DEFAULT_WORKSTREAM_STATE_PATH) -> None:
-        self.state_path = state_path
+    def __init__(self, *, state_path: Optional[Path] = None) -> None:
+        self.state_path = _resolve_workstream_state_path(state_path)
         self.workstreams: Dict[str, WorkstreamRecord] = {}
         self._load_state()
 

@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
+import tempfile
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -14,6 +16,15 @@ from typing import Any, Iterable, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PANEL_STATE_PATH = REPO_ROOT / "automation" / "panel_state.json"
+ISOLATED_ENV_PATHS: dict[str, tuple[str, ...]] = {
+    "AUTOMATION_METRICS_PATH": ("automation", "metrics.json"),
+    "AUTOMATION_ASSIGNMENT_METRICS_PATH": ("automation", "assignment_metrics.jsonl"),
+    "ALLOW_METRICS_LOG_PATH": ("automation", "allow_metrics.jsonl"),
+    "ALLOW_EVENTS_PERSIST_PATH": ("automation", "allow_events.json"),
+    "CROSS_REPO_TODO_CACHE_PATH": ("automation", "cross_repo_todo_cache.json"),
+    "NORTH_STAR_CACHE_PATH": ("state", "north_star_cache.json"),
+    "WORKSTREAM_COORDINATION_STATE_PATH": ("state", "workstream_coordination.json"),
+}
 
 
 @dataclass(frozen=True)
@@ -103,12 +114,24 @@ def _display_path(path: Path) -> str:
         return str(path)
 
 
-def _run_subprocess(command: Sequence[str]) -> subprocess.CompletedProcess[str]:
+def _build_isolated_env(temp_root: Path) -> dict[str, str]:
+    env = os.environ.copy()
+    for key, relative_path in ISOLATED_ENV_PATHS.items():
+        env[key] = str(temp_root.joinpath(*relative_path))
+    return env
+
+
+def _run_subprocess(
+    command: Sequence[str],
+    *,
+    env: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         list(command),
         cwd=str(REPO_ROOT),
         text=True,
         capture_output=True,
+        env=env,
         check=False,
     )
 
@@ -132,9 +155,9 @@ def _run_git_clean_check() -> CheckResult:
     )
 
 
-def _run_submodule_clean_check() -> CheckResult:
+def _run_submodule_clean_check(env: dict[str, str]) -> CheckResult:
     command = (sys.executable, "scripts/check_submodule_state.py", "--json")
-    completed = _run_subprocess(command)
+    completed = _run_subprocess(command, env=env)
     output = completed.stdout.strip()
     payload: dict[str, Any] | None = None
     if output:
@@ -291,8 +314,8 @@ def _summarize_command_output(check: CheckSpec, completed: subprocess.CompletedP
     return output or f"{check.name} exited {completed.returncode}", details
 
 
-def _run_command_check(check: CheckSpec) -> CheckResult:
-    completed = _run_subprocess(check.command)
+def _run_command_check(check: CheckSpec, env: dict[str, str]) -> CheckResult:
+    completed = _run_subprocess(check.command, env=env)
     summary, details = _summarize_command_output(check, completed)
     return CheckResult(
         key=check.key,
@@ -308,13 +331,15 @@ def _run_command_check(check: CheckSpec) -> CheckResult:
 
 
 def run_preflight(*, state_max_age_days: int) -> list[CheckResult]:
-    results = [
-        _run_git_clean_check(),
-        _run_submodule_clean_check(),
-        inspect_panel_state(PANEL_STATE_PATH, max_age_days=state_max_age_days),
-    ]
-    results.extend(_run_command_check(check) for check in COMMAND_CHECKS)
-    return results
+    with tempfile.TemporaryDirectory(prefix="launch-preflight-") as temp_dir:
+        isolated_env = _build_isolated_env(Path(temp_dir))
+        results = [
+            _run_git_clean_check(),
+            _run_submodule_clean_check(isolated_env),
+            inspect_panel_state(PANEL_STATE_PATH, max_age_days=state_max_age_days),
+        ]
+        results.extend(_run_command_check(check, isolated_env) for check in COMMAND_CHECKS)
+        return results
 
 
 def _render_human(results: Iterable[CheckResult]) -> None:

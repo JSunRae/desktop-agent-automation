@@ -77,6 +77,8 @@ You can also target just one tracked file, for example:
 master --run reset-runtime-state -- --targets panel-state --execute
 ```
 
+`master --run launch-preflight` now redirects mutable telemetry and cache outputs to a temporary path while checks are running. That keeps the release-candidate working tree stable while still exercising the real commands.
+
 ## Deliberately Not Reclassified Here
 
 Some JSON files under `automation/` look generated or stateful, but they may still serve as shared inputs, baselines, or curated snapshots. Audit those separately before converting them to scratch paths. In particular, do not infer that every `automation/*.json` file is local scratch just because some stateful files now live under `state/`.

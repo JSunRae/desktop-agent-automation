@@ -19,6 +19,7 @@ agents always know:
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
@@ -37,7 +38,8 @@ from automation.utils import probe_wsl_path
 # ---------------------------------------------------------------------------
 
 _WSL_BASE = TRADING_SYSTEM_ROOT
-NORTH_STAR_CACHE_PATH = Path("state") / "north_star_cache.json"
+DEFAULT_NORTH_STAR_CACHE_PATH = Path("state") / "north_star_cache.json"
+NORTH_STAR_CACHE_PATH = DEFAULT_NORTH_STAR_CACHE_PATH
 
 TRADING_SYSTEM_ROOT: Path = _WSL_BASE
 TRADING_REPO_ROOT: Path = _WSL_BASE / "Trading"
@@ -443,8 +445,19 @@ def _north_star_from_dict(payload: Dict[str, Any]) -> NorthStarContext:
     )
 
 
+def _resolve_north_star_cache_path(cache_path: Optional[Path] = None) -> Path:
+    if cache_path is not None:
+        return cache_path
+    if NORTH_STAR_CACHE_PATH != DEFAULT_NORTH_STAR_CACHE_PATH:
+        return NORTH_STAR_CACHE_PATH
+    override = os.environ.get("NORTH_STAR_CACHE_PATH")
+    if override:
+        return Path(override)
+    return NORTH_STAR_CACHE_PATH
+
+
 def _load_cached_north_star(cache_path: Optional[Path] = None) -> Optional[NorthStarContext]:
-    resolved_cache_path = cache_path or NORTH_STAR_CACHE_PATH
+    resolved_cache_path = _resolve_north_star_cache_path(cache_path)
     try:
         payload = json.loads(resolved_cache_path.read_text(encoding="utf-8"))
     except Exception:
@@ -459,7 +472,7 @@ def _write_cached_north_star(
     context: NorthStarContext,
     cache_path: Optional[Path] = None,
 ) -> None:
-    resolved_cache_path = cache_path or NORTH_STAR_CACHE_PATH
+    resolved_cache_path = _resolve_north_star_cache_path(cache_path)
     resolved_cache_path.parent.mkdir(parents=True, exist_ok=True)
     resolved_cache_path.write_text(json.dumps(asdict(context), indent=2), encoding="utf-8")
 

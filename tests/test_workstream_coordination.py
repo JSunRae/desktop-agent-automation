@@ -97,3 +97,12 @@ def test_workstream_policy_starts_fresh_on_severe_issue(tmp_path):
 
     assert decision.action == ChatLifecycleAction.START_FRESH
     assert decision.rendered_prompt == "Restart from a clean state."
+
+
+def test_workstream_coordinator_honors_env_override(monkeypatch, tmp_path):
+    override_path = tmp_path / "workstream_coordination.json"
+    monkeypatch.setenv("WORKSTREAM_COORDINATION_STATE_PATH", str(override_path))
+
+    coordinator = WorkstreamCoordinator()
+
+    assert coordinator.state_path == override_path

@@ -380,7 +380,15 @@ def check_mouse_interrupts() -> Optional[str]:
     )
 
     expected = get_expected_cursor_pos()
-    baseline = expected if expected is not None else _last_mouse_position
+    if automation_recent:
+        # Treat automation-driven cursor moves as the new baseline immediately so
+        # we do not interpret our own SetCursorPos calls as fresh user activity
+        # once the short "automation recent" window expires.
+        _last_mouse_position = current_mouse_pos
+        _physical_mouse_anchor = current_mouse_pos
+
+    baseline = _last_mouse_position
+    mouse_pause_triggered = False
 
     # 1. Cursor drift guard
     if AUTO_PAUSE_ON_CURSOR_DRIFT and expected is not None:
@@ -435,7 +443,7 @@ def check_mouse_interrupts() -> Optional[str]:
                 return f"Cursor drift pause: {remaining:5.0f}s left | last=({last[0]},{last[1]}) | {PAUSE_HOTKEY} to resume"
 
     # 2. Physical movement detector
-    if baseline is not None:
+    if not automation_recent and baseline is not None:
         dx = current_mouse_pos[0] - baseline[0]
         dy = current_mouse_pos[1] - baseline[1]
         distance = math.hypot(dx, dy)
@@ -449,16 +457,18 @@ def check_mouse_interrupts() -> Optional[str]:
                 reason = "extending" if _mouse_pause_active else "pausing"
                 print(f"\n[{now}] 🖱️  Mouse moved {distance:.0f}px - {reason} automation for {MOUSE_PAUSE_SECONDS}s")
                 if not _mouse_pause_active and SPEAK_PAUSE_EVENTS:
-                    speak("Pausing automation")
+                    speak("Mouse movement detected")
                 _mouse_pause_active = True
                 _mouse_pause_until = pause_target
+                _physical_mouse_anchor = current_mouse_pos
+                mouse_pause_triggered = True
 
     _last_mouse_position = current_mouse_pos
 
     if not automation_recent:
         if _physical_mouse_anchor is None:
             _physical_mouse_anchor = current_mouse_pos
-        else:
+        elif not mouse_pause_triggered:
             dxp = current_mouse_pos[0] - _physical_mouse_anchor[0]
             dyp = current_mouse_pos[1] - _physical_mouse_anchor[1]
             physical_distance = math.hypot(dxp, dyp)
@@ -471,7 +481,7 @@ def check_mouse_interrupts() -> Optional[str]:
                 _physical_mouse_anchor = current_mouse_pos
                 print(f"\n[{now}] 🖱️  Physical mouse movement detected ({physical_distance:.0f}px) - pausing automation for {MOUSE_PAUSE_SECONDS}s")
                 if SPEAK_PAUSE_EVENTS:
-                    speak("Pausing automation")
+                    speak("Mouse movement detected")
 
     # Cleanup mouse pause state
     if _mouse_pause_active and _mouse_pause_until and now >= _mouse_pause_until:

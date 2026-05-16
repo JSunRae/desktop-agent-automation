@@ -1,16 +1,33 @@
 #!/bin/sh
 set -eu
 
+hook_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+repo_root="$(CDPATH= cd -- "$hook_dir/.." && pwd)"
+if [ ! -f "$repo_root/scripts/check_submodule_state.py" ]; then
+  echo "Unable to resolve repository root for submodule pre-commit check." >&2
+  exit 1
+fi
+
+cd "$repo_root"
+
 if [ -x ".venv/Scripts/python.exe" ]; then
-  exec .venv/Scripts/python.exe scripts/check_submodule_state.py --fail-if-dirty
+  exec ".venv/Scripts/python.exe" "scripts/check_submodule_state.py" --fail-if-dirty
+fi
+
+if [ -x ".venv/bin/python" ]; then
+  exec ".venv/bin/python" "scripts/check_submodule_state.py" --fail-if-dirty
 fi
 
 if command -v python >/dev/null 2>&1; then
-  exec python scripts/check_submodule_state.py --fail-if-dirty
+  exec python "scripts/check_submodule_state.py" --fail-if-dirty
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  exec python3 "scripts/check_submodule_state.py" --fail-if-dirty
 fi
 
 if command -v py >/dev/null 2>&1; then
-  exec py -3 scripts/check_submodule_state.py --fail-if-dirty
+  exec py -3 "scripts/check_submodule_state.py" --fail-if-dirty
 fi
 
 echo "Unable to find a Python interpreter for submodule pre-commit check." >&2

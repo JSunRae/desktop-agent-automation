@@ -11,6 +11,7 @@ This module provides metrics collection and reporting for:
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -320,11 +321,24 @@ class MetricsTracker:
         Args:
             metrics_path: Path to metrics file (defaults to automation/metrics.json)
         """
-        if metrics_path is None:
-            metrics_path = Path(__file__).parent / "metrics.json"
-        
-        self.metrics_path = metrics_path
-        self.assignment_metrics_path = metrics_path.parent / "assignment_metrics.jsonl"
+        resolved_metrics_path = metrics_path
+        if resolved_metrics_path is None:
+            resolved_metrics_path = Path(
+                os.environ.get(
+                    "AUTOMATION_METRICS_PATH",
+                    str(Path(__file__).parent / "metrics.json"),
+                )
+            )
+
+        self.metrics_path = resolved_metrics_path
+        assignment_override = (
+            os.environ.get("AUTOMATION_ASSIGNMENT_METRICS_PATH")
+            if metrics_path is None
+            else None
+        )
+        self.assignment_metrics_path = Path(assignment_override) if assignment_override else (
+            resolved_metrics_path.parent / "assignment_metrics.jsonl"
+        )
         self.prompt_metrics: List[PromptMetric] = []
         self.model_metrics: List[ModelSelectionMetric] = []
         self.response_feedback_metrics: List[ResponseFeedbackMetric] = []

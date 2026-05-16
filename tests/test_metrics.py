@@ -231,6 +231,20 @@ def test_assignment_tracking():
         print("✓ Assignment tracking test passed")
 
 
+def test_metrics_tracker_honors_env_overrides(monkeypatch):
+    """MetricsTracker should respect env overrides when no path is passed."""
+    with tempfile.TemporaryDirectory() as tmpdir:
+        metrics_path = Path(tmpdir) / "env_metrics.json"
+        assignment_path = Path(tmpdir) / "env_assignments.jsonl"
+        monkeypatch.setenv("AUTOMATION_METRICS_PATH", str(metrics_path))
+        monkeypatch.setenv("AUTOMATION_ASSIGNMENT_METRICS_PATH", str(assignment_path))
+
+        tracker = MetricsTracker()
+
+        assert tracker.metrics_path == metrics_path
+        assert tracker.assignment_metrics_path == assignment_path
+
+
 if __name__ == "__main__":
     test_metrics_persistence()
     test_metrics_summary()

@@ -3,11 +3,62 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
+
+_GIT_ENV_VARS_TO_CLEAR = (
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+    "GIT_DIR",
+    "GIT_GRAFT_FILE",
+    "GIT_IMPLICIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_INTERNAL_SUPER_PREFIX",
+    "GIT_NAMESPACE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_PREFIX",
+    "GIT_REPLACE_REF_BASE",
+    "GIT_SHALLOW_FILE",
+    "GIT_SUPER_PREFIX",
+    "GIT_WORK_TREE",
+)
+
+
+def _git_env() -> dict[str, str]:
+    env = os.environ.copy()
+    for key in _GIT_ENV_VARS_TO_CLEAR:
+        env.pop(key, None)
+    return env
+
+
+def discover_repo_root(*, candidates: list[Path] | None = None) -> Path:
+    fallback = Path(__file__).resolve().parent.parent
+    probe_candidates = candidates or [Path.cwd(), fallback]
+    seen: set[Path] = set()
+    for candidate in probe_candidates:
+        resolved_candidate = candidate.resolve()
+        if resolved_candidate in seen:
+            continue
+        seen.add(resolved_candidate)
+        completed = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=str(resolved_candidate),
+            text=True,
+            capture_output=True,
+            check=False,
+            env=_git_env(),
+        )
+        if completed.returncode == 0:
+            output = completed.stdout.strip()
+            if output:
+                return Path(output).resolve()
+    return fallback
+
+
+REPO_ROOT = discover_repo_root()
 
 
 @dataclass(frozen=True)
@@ -28,6 +79,7 @@ def _git(*args: str, cwd: Path = REPO_ROOT, check: bool = True) -> subprocess.Co
         text=True,
         capture_output=True,
         check=False,
+        env=_git_env(),
     )
     if check and completed.returncode != 0:
         raise RuntimeError(completed.stderr.strip() or completed.stdout.strip() or "git command failed")

@@ -77,3 +77,15 @@ def test_inspect_panel_state_rejects_stale_tracked_panels(tmp_path: Path) -> Non
     assert result.ok is False
     assert result.details["panel_count"] == 2
     assert "stale" in result.summary
+
+
+def test_build_isolated_env_redirects_mutable_outputs(tmp_path: Path) -> None:
+    module = _load_launch_preflight_module()
+
+    env = module._build_isolated_env(tmp_path)
+
+    assert env["AUTOMATION_METRICS_PATH"] == str(tmp_path / "automation" / "metrics.json")
+    assert env["AUTOMATION_ASSIGNMENT_METRICS_PATH"] == str(tmp_path / "automation" / "assignment_metrics.jsonl")
+    assert env["CROSS_REPO_TODO_CACHE_PATH"] == str(tmp_path / "automation" / "cross_repo_todo_cache.json")
+    assert env["NORTH_STAR_CACHE_PATH"] == str(tmp_path / "state" / "north_star_cache.json")
+    assert env["WORKSTREAM_COORDINATION_STATE_PATH"] == str(tmp_path / "state" / "workstream_coordination.json")

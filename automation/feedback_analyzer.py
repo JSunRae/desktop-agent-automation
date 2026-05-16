@@ -11,6 +11,7 @@ This module analyzes response feedback to:
 from __future__ import annotations
 
 import json
+import os
 import re
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -398,7 +399,13 @@ class FeedbackAnalyzer:
             ],
         }
 
-        path = Path(cache_path) if cache_path else Path(__file__).parent / "cross_repo_todo_cache.json"
+        path = Path(cache_path) if cache_path else Path(
+            os.environ.get(
+                "CROSS_REPO_TODO_CACHE_PATH",
+                str(Path(__file__).parent / "cross_repo_todo_cache.json"),
+            )
+        )
+        path.parent.mkdir(parents=True, exist_ok=True)
         try:
             raw = path.read_text(encoding="utf-8")
             cache = json.loads(raw)

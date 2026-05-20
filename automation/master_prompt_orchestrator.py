@@ -100,7 +100,12 @@ DEFAULT_ALLOWED_EXTENSIONS = {
     ".py",
 }
 DEFAULT_MAX_FILE_SIZE = int(os.environ.get("MASTER_AGENT_MAX_FILE_BYTES", "200000"))
-DOCS_CACHE_ROOT = Path("state") / "docs_cache"
+DOCS_CACHE_ROOT = Path(
+    os.environ.get(
+        "MASTER_AGENT_DOCS_CACHE_ROOT",
+        os.environ.get("DOCS_CACHE_ROOT", str(Path("state") / "docs_cache")),
+    )
+)
 
 
 class OpenAICredentialError(RuntimeError):

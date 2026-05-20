@@ -87,5 +87,6 @@ def test_build_isolated_env_redirects_mutable_outputs(tmp_path: Path) -> None:
     assert env["AUTOMATION_METRICS_PATH"] == str(tmp_path / "automation" / "metrics.json")
     assert env["AUTOMATION_ASSIGNMENT_METRICS_PATH"] == str(tmp_path / "automation" / "assignment_metrics.jsonl")
     assert env["CROSS_REPO_TODO_CACHE_PATH"] == str(tmp_path / "automation" / "cross_repo_todo_cache.json")
+    assert env["MASTER_AGENT_DOCS_CACHE_ROOT"] == str(tmp_path / "state" / "docs_cache")
     assert env["NORTH_STAR_CACHE_PATH"] == str(tmp_path / "state" / "north_star_cache.json")
     assert env["WORKSTREAM_COORDINATION_STATE_PATH"] == str(tmp_path / "state" / "workstream_coordination.json")

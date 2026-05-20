@@ -22,6 +22,7 @@ ISOLATED_ENV_PATHS: dict[str, tuple[str, ...]] = {
     "ALLOW_METRICS_LOG_PATH": ("automation", "allow_metrics.jsonl"),
     "ALLOW_EVENTS_PERSIST_PATH": ("automation", "allow_events.json"),
     "CROSS_REPO_TODO_CACHE_PATH": ("automation", "cross_repo_todo_cache.json"),
+    "MASTER_AGENT_DOCS_CACHE_ROOT": ("state", "docs_cache"),
     "NORTH_STAR_CACHE_PATH": ("state", "north_star_cache.json"),
     "WORKSTREAM_COORDINATION_STATE_PATH": ("state", "workstream_coordination.json"),
 }

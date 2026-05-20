@@ -563,15 +563,16 @@ def collect_repo_context(repo: ManagedRepoConfig) -> RepoContextBundle:
 
     if assignment_ledger_path is not None:
         assignment_warning = None
+        normalized_assignment_ledger_path = str(assignment_ledger_path).replace("\\", "/")
         if not assignment_ledger_path.is_file():
             assignment_warning = (
                 f"WARNING: {repo.repo_id} agent assignment source missing: "
-                f"{str(assignment_ledger_path).replace('\\', '/')}"
+                f"{normalized_assignment_ledger_path}"
             )
         elif not assignment_items:
             assignment_warning = (
                 f"WARNING: {repo.repo_id} agent assignment source empty: "
-                f"{str(assignment_ledger_path).replace('\\', '/')}"
+                f"{normalized_assignment_ledger_path}"
             )
         if assignment_warning:
             bundle.warnings.append(assignment_warning)

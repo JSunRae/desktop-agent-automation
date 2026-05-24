@@ -73,6 +73,9 @@ def scan() -> list[Finding]:
                 findings.append(Finding("path", rel, label))
                 break
 
+        if rel == "scripts/check_public_safety.py":
+            continue
+
         if lowered.startswith(CONTENT_SKIP_PREFIXES) or path.name.startswith("test_"):
             continue
 

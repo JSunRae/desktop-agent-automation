@@ -5,7 +5,7 @@
 - Automates clicking "Allow", "Keep Edits", and "Try Again" buttons in VS Code Copilot.
 - Supports multi-desktop scanning and automatic window switching.
 - **NEW**: Desktop Auto-Allow Agent using OpenAI Computer Use API to automatically detect and click Copilot approval buttons.
-- **NEW**: Automatic master-agent prompts – when no "Allow" happens for an hour, the workspace docs from WSL are uploaded to OpenAI and a fresh pack of 10 coordinated prompts is generated in `tasks/generated_prompts/`.
+- **NEW**: Automatic master-agent prompts – when no "Allow" happens for an hour, the workspace docs are uploaded to OpenAI and a fresh pack of 10 coordinated prompts is generated in the private prompt feed under `private/generated_prompts/` by default.
 - **NEW**: Cost tracking for OpenAI API usage across all agents.
 - **NEW**: Comprehensive metrics tracking for prompt seeding, model selections, and success rates.
 - **NEW**: Round-robin prompt assignment to distribute work evenly across panels.
@@ -39,7 +39,7 @@ orchestrator.refresh_all_feeds(force_discovery=False)
 
 ## Panel Quality Dashboard & Reports
 
-The automation continuously samples transcript snapshots from every Copilot panel and scores them for completeness, test health, documentation quality, and alignment with the original prompt. Each assessment is stored alongside the panel in `automation/panel_state.json`, allowing you to track whether a conversation is **COMPLETED**, **IN_PROGRESS**, **NEEDS_REVISION**, or **BLOCKED**.
+The automation continuously samples transcript snapshots from every Copilot panel and scores them for completeness, test health, documentation quality, and alignment with the original prompt. Each assessment is stored in the private runtime area (`PANEL_STATE_PATH`, default `private/runtime/panel_state.json`), allowing you to track whether a conversation is **COMPLETED**, **IN_PROGRESS**, **NEEDS_REVISION**, or **BLOCKED**.
 
 Key capabilities:
 
@@ -59,6 +59,13 @@ python scripts/panel_quality_dashboard.py --json --weekly-report
 ```
 
 Weekly reports are written to `automation/quality_reports/quality_report_YYYY_MM_DD.json` and include status counts, average quality scores, quality alerts, and actionable recommendations. The dashboard pulls from the same data to surface panels that require human review so you can intervene before quality regresses.
+
+## Public vs Private Repo Contract
+
+- Public branch content must stay publishable.
+- Runtime state, generated prompts, handovers, session snapshots, and real secrets belong under `private/` and on `private-main` only.
+- The automation loads `private/.env` automatically after the public root `.env`.
+- Before pushing public changes, run `python scripts/check_public_safety.py`.
 
 ## Quick Start (Launcher)
 
@@ -172,7 +179,7 @@ Run the automation with background prompt auditing and Todo ingestion:
 python run_automation.py --autonomous
 ```
 
-Configure the daemon cadence in `.env` or `automation/config.py`:
+Configure the daemon cadence in `private/.env`, `.env.example`, or `automation/config.py`:
 
 - `TASK_DISCOVERY_INTERVAL_SECONDS` (default: 900)
 - `TASK_DISCOVERY_LOW_TASK_THRESHOLD` (default: 2)
@@ -191,19 +198,22 @@ What it does in V1:
 - Collects repo-local instructions/tasks/handovers/reports from configured sources.
 - Normalizes findings into a common work-item schema.
 - Applies safety/concurrency constraints (max workers, retry loop guard, protected signal checks).
-- Dispatches one scoped task by writing a prompt + dispatch envelope to `state/orchestration/dispatch_queue/<repo>/`.
-- Polls for a structured worker completion report in `state/orchestration/worker_reports/`.
-- Writes append-only ledger entries to `state/orchestration/global_ledger.jsonl`.
+- Dispatches one scoped task by writing a prompt + dispatch envelope to the private runtime queue.
+- Polls for a structured worker completion report in the private runtime report directory.
+- Writes append-only ledger entries to the private runtime ledger.
 
 This is a scaffolding pass: it establishes deterministic interfaces and logs first, then can be wired to direct VS Code panel send/read in subsequent iterations.
 
 ### Configuration
 
-Edit `automation/config.py` or set environment variables in `.env` to customize:
+Edit `automation/config.py` or set environment variables in `private/.env` to customize:
 
 - `DESKTOPS_TO_CHECK`: List of virtual desktop names to scan.
 - `MAX_ALLOWS_PER_HOUR`: Rate limiting threshold.
 - `COOLDOWN_MINUTES`: Wait time after hitting a rate limit.
+- `AUTOMATION_PRIVATE_ROOT`: Root for non-public runtime artifacts.
+- `PANEL_STATE_PATH`: Override the panel-state JSON path.
+- `VSCODE_SESSION_STATE_PATH`: Override the VS Code session snapshot path.
 
 ### Features
 
@@ -395,9 +405,9 @@ When Copilot hasn't shown an `Allow` button for 60 minutes (after at least one s
 
 1. Pulls the latest docs from configured repository paths (supports multiple repos with separate prompt batches discovered via env, cross-repo snapshots, or legacy fallbacks).
 2. Uploads concise slices of up to 18 recently modified text files (3.5k chars each) per repo to OpenAI and asks for **exactly 10** independent prompts that include a recommended model (Grok, Sonnet 4.5, or GPT 5.1 codex mini) plus instructions to update Todos, task assignments, README, Architecture, and the originating doc.
-3. Stores separate prompt batches as `tasks/generated_prompts/{repo_name}/master_prompts_<timestamp>.txt` and mirrors to `tasks/generated_prompts/{repo_name}/latest.txt` for easy access. A JSONL manifest is maintained for each repo.
+3. Stores separate prompt batches under `MASTER_AGENT_PROMPT_DIR` (default `private/generated_prompts/{repo_name}/...`) and mirrors a `latest.txt` feed for easy access. A JSONL manifest is maintained for each repo.
 
-**Multi-Repo Support**: Configure multiple repositories with `MASTER_AGENT_REPO_CONFIGS` or `--repos`, or rely on the cross-repo Todo snapshot for automatic discovery. Each repo gets its own isolated prompt batch under `tasks/generated_prompts/<repo>/` to prevent context mixing.
+**Multi-Repo Support**: Configure multiple repositories with `MASTER_AGENT_REPO_CONFIGS` or `--repos`, or rely on the cross-repo Todo snapshot for automatic discovery. Each repo gets its own isolated prompt batch under `MASTER_AGENT_PROMPT_DIR/<repo>/` to prevent context mixing.
 
 See `docs/multi_repo_prompt_batches.md` for a detailed walkthrough of discovery order, environment overrides, and dispatcher routing.
 
@@ -496,7 +506,7 @@ Comprehensive metrics collection for monitoring system performance:
 
 ### Unified Telemetry Dashboard & Reports
 
-`scripts/generate_metrics_report.py` unifies every telemetry source (`automation/metrics.json`, `automation/assignment_metrics.jsonl`, `automation/allow_metrics.jsonl`, `automation/panel_state.json`, `logs/cost_metrics.jsonl`, and related trackers) into live dashboards and exportable analytics.
+`scripts/generate_metrics_report.py` unifies every telemetry source (`automation/metrics.json`, `automation/assignment_metrics.jsonl`, `ALLOW_METRICS_LOG_PATH`, `PANEL_STATE_PATH`, `logs/cost_metrics.jsonl`, and related trackers) into live dashboards and exportable analytics.
 
 ```powershell
 # Live dashboard with continuous refresh, anomaly alerts, and ASCII charts
@@ -533,7 +543,7 @@ All outputs default to `logs/metrics_reports/` and stay ASCII-friendly for termi
 
 ### Rate-limit telemetry
 
-Every five minutes the script writes a JSON line to `automation/allow_metrics.jsonl` containing:
+Every five minutes the script writes a JSON line to `ALLOW_METRICS_LOG_PATH` (default `private/runtime/allow_metrics.jsonl`) containing:
 
 - `allows_last_window` – number of `Allow` clicks in the past hour.
 - `panels_last_window` – unique VS Code windows (panels) that clicked Allow in that hour.
@@ -700,7 +710,8 @@ desktop-agent-automation/
 ├── tests/                      # Test suites
 ├── docs/                       # Documentation
 ├── schemas/                    # JSON schemas for validation
-├── tasks/                      # Task files and generated prompts
+├── tasks/                      # Task definitions only
+├── private/                    # Local-only secrets and runtime state (ignored on public branch)
 ├── logs/                       # Log files
 ├── debug/                      # Debug utilities
 ├── agent_assignments.json      # Task assignments
@@ -887,7 +898,7 @@ python scripts/cost_report.py --alerts-only
 Prompts are now assigned in round-robin fashion across available panels:
 
 - Each panel tracks which prompt index it received
-- State persists across sessions in `automation/panel_state.json`
+- State persists across sessions in `PANEL_STATE_PATH` (default `private/runtime/panel_state.json`)
 - Ensures even distribution of work across multiple panels
 
 ### Repository Detection

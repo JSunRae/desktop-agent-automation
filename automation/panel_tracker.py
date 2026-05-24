@@ -30,9 +30,9 @@ openai_module = _openai_module
 
 import os
 
-from dotenv import load_dotenv
+from automation.paths import load_automation_env, panel_state_path
 
-load_dotenv()
+load_automation_env()
 
 from automation.config import (  # noqa: E402
     ENABLE_CLIPBOARD_TEXT_READING,
@@ -193,7 +193,7 @@ PLEASE_CONTINUE_PROMPT = "please continue"
 # State persistence
 # ---------------------------------------------------------------------------
 
-PANEL_STATE_PATH = Path(__file__).parent / "panel_state.json"
+PANEL_STATE_PATH = panel_state_path()
 
 _tracker: Optional[PanelTracker] = None
 

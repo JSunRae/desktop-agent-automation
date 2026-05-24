@@ -677,9 +677,7 @@ def get_cross_repo_todo_service(
 
     import automation.config as config
 
-    default_cache_path = getattr(
-        config, "CROSS_REPO_TODO_CACHE_PATH", Path("automation/cross_repo_todo_cache.json")
-    )
+    default_cache_path = getattr(config, "CROSS_REPO_TODO_CACHE_PATH", Path("private/runtime/cross_repo_todo_cache.json"))
     default_refresh = int(getattr(config, "CROSS_REPO_TODO_REFRESH_INTERVAL_SECONDS", 300))
     default_search_roots = list(getattr(config, "CROSS_REPO_TODO_SEARCH_ROOTS", []))
     default_overrides = dict(getattr(config, "CROSS_REPO_TODO_REPO_OVERRIDES", {}))

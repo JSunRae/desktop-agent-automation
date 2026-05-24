@@ -10,6 +10,8 @@ This guide covers the most common failures encountered when setting up and runni
 
 For advanced recovery playbooks, deeper log analysis, and edge-case scenarios (zero-bounds buttons, multi-desktop reliability, advanced rate limiting, prompt seeding internals, model picker changes, and clipboard/reading issues), see `docs/TROUBLESHOOTING_EXTENDED.md`.
 
+All stateful examples in this guide should be interpreted through your configured private runtime paths first. By default, panel state, prompt feeds, and session snapshots now live under `private/` rather than public-tracked repo paths.
+
 ## Quick Diagnosis
 
 ### Common Error Messages & Immediate Fixes

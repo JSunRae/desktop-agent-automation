@@ -26,16 +26,15 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from automation.paths import load_automation_env, trading_system_root
+
 # ---------------------------------------------------------------------------
 # Path constants (resolved via env vars so CI/tests can override them)
 # ---------------------------------------------------------------------------
 
-_WSL_BASE = Path(
-    os.environ.get(
-        "TRADING_SYSTEM_ROOT_WIN",
-        r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system",
-    )
-)
+load_automation_env()
+
+_WSL_BASE = trading_system_root()
 
 TRADING_SYSTEM_ROOT: Path = _WSL_BASE
 TRADING_REPO_ROOT: Path = _WSL_BASE / "Trading"

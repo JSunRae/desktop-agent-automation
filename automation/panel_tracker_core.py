@@ -37,6 +37,7 @@ from automation.panel_state import (
 )
 from automation.panel_transcript_analysis import analyze_panel_transcripts
 from automation.response_parser import ResponseCategory, classify_response
+from automation.paths import panel_state_path
 
 
 _REPO_PRIORITY_MAP = {key.lower(): value for key, value in REPO_PRIORITY_WEIGHTS.items()}
@@ -63,7 +64,7 @@ PANEL_STALE_THRESHOLD_MINUTES = 60     # Consider panel stale if not scanned for
 OUTPUT_SAMPLE_CHARS = 100              # Number of characters to sample from end of output
 
 
-DEFAULT_PANEL_STATE_PATH = Path(__file__).parent / "panel_state.json"
+DEFAULT_PANEL_STATE_PATH = panel_state_path()
 
 
 @dataclass

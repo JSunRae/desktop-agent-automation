@@ -23,10 +23,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-from dotenv import load_dotenv
+from automation.paths import (
+    allow_events_persist_path,
+    allow_metrics_log_path,
+    cross_repo_todo_cache_path,
+    finished_panel_prompt_path,
+    load_automation_env,
+    private_root,
+    prompt_output_dir,
+    trading_system_root,
+)
 
-# Load .env file early
-load_dotenv()
+# Load the public-safe root .env and the private overlay before resolving defaults.
+load_automation_env()
 
 
 # ============================================================================
@@ -261,7 +270,9 @@ PANEL_INSPECT_TARGET_REPO = os.environ.get("PANEL_INSPECT_TARGET_REPO", "desktop
 FINISHED_PANEL_DRY_RUN = os.environ.get("FINISHED_PANEL_DRY_RUN", "false").lower() == "true"
 
 # Where to read the prompt batch used to seed new chats when a panel is finished
-FINISHED_PANEL_PROMPT_PATH = Path(os.environ.get("FINISHED_PANEL_PROMPT_PATH", "tasks/generated_prompts/latest.txt"))
+AUTOMATION_PRIVATE_ROOT = private_root()
+
+FINISHED_PANEL_PROMPT_PATH = finished_panel_prompt_path()
 
 # If true, repos without a dedicated prompt feed may fall back to FINISHED_PANEL_PROMPT_PATH.
 # If false (default), "no assignment" means "skip panel" and do not seed from latest.txt.
@@ -514,9 +525,7 @@ CROSS_REPO_TODO_REFRESH_INTERVAL_SECONDS = int(
 )
 
 # Where to persist the parsed snapshot (JSON).
-CROSS_REPO_TODO_CACHE_PATH = Path(
-    os.environ.get("CROSS_REPO_TODO_CACHE_PATH", "automation/cross_repo_todo_cache.json")
-).expanduser()
+CROSS_REPO_TODO_CACHE_PATH = cross_repo_todo_cache_path()
 
 # Extra search roots (directories containing sibling repos), beyond workspace_root.parent.
 # Format: JSON array of paths OR semicolon-separated list.
@@ -534,12 +543,7 @@ CROSS_REPO_TODO_REPO_OVERRIDES: Dict[str, Path] = _parse_repo_root_overrides(
 # This ensures the cross-repo TODO scanner always discovers Trading, TF, and contracts
 # without requiring manual env var configuration.
 if not CROSS_REPO_TODO_REPO_OVERRIDES and not os.environ.get("CROSS_REPO_TODO_REPO_OVERRIDES"):
-    _ts_root_for_todo = Path(
-        os.environ.get(
-            "TRADING_SYSTEM_ROOT_WIN",
-            r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system",
-        )
-    )
+    _ts_root_for_todo = trading_system_root()
     CROSS_REPO_TODO_REPO_OVERRIDES = {
         "Trading": _ts_root_for_todo / "Trading",
         "TF": _ts_root_for_todo / "TF",
@@ -694,10 +698,7 @@ MASTER_AGENT_MAX_CHARS = int(os.environ.get("MASTER_AGENT_MAX_CHARS", "3500"))
 
 # Root of the trading-system monorepo on WSL (shared by TF, contracts, Trading)
 # Override via env var for non-standard installations.
-_DEFAULT_TRADING_SYSTEM_ROOT = r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system"
-TRADING_SYSTEM_ROOT: Path = Path(
-    os.environ.get("TRADING_SYSTEM_ROOT_WIN", _DEFAULT_TRADING_SYSTEM_ROOT)
-)
+TRADING_SYSTEM_ROOT: Path = trading_system_root()
 
 # Per-repo roots within TRADING_SYSTEM_ROOT
 TRADING_REPO_ROOT: Path = Path(os.environ.get("TRADING_REPO_ROOT", str(TRADING_SYSTEM_ROOT / "Trading")))
@@ -743,9 +744,9 @@ WSL_OPEN_TASKS_ROOT = Path(
     )
 )
 
-PROMPT_OUTPUT_DIR = Path(os.environ.get("MASTER_AGENT_PROMPT_DIR", "tasks/generated_prompts"))
-ALLOW_METRICS_LOG_PATH = Path(os.environ.get("ALLOW_METRICS_LOG_PATH", "automation/allow_metrics.jsonl"))
-ALLOW_EVENTS_PERSIST_PATH = Path(os.environ.get("ALLOW_EVENTS_PERSIST_PATH", "automation/allow_events.json"))
+PROMPT_OUTPUT_DIR = prompt_output_dir()
+ALLOW_METRICS_LOG_PATH = allow_metrics_log_path()
+ALLOW_EVENTS_PERSIST_PATH = allow_events_persist_path()
 ALLOW_METRICS_INTERVAL_SECONDS = int(os.environ.get("ALLOW_METRICS_INTERVAL_SECONDS", "300"))
 ALLOW_EVENT_RETENTION_MINUTES = int(os.environ.get("ALLOW_EVENT_RETENTION_MINUTES", "60"))
 

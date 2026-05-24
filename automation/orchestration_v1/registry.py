@@ -12,8 +12,11 @@ from automation.orchestration_v1.models import (
     RepoSafetyRules,
     WorkspaceConstraints,
 )
+from automation.paths import load_automation_env, trading_system_root
 
-_DEFAULT_TRADING_SYSTEM_ROOT = r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system"
+load_automation_env()
+
+_DEFAULT_TRADING_SYSTEM_ROOT = str(trading_system_root())
 _DEFAULT_REGISTRY_PATH = Path(__file__).resolve().parents[1] / "managed_workspace_registry.json"
 
 

@@ -2,6 +2,8 @@
 
 > This guide complements `docs/TROUBLESHOOTING.md` with deeper failure analysis, diagnostics, and recovery recipes for advanced operators.
 
+Unless you explicitly override the path variables, the state files referenced in examples now resolve under `AUTOMATION_PRIVATE_ROOT` (default `private/`).
+
 ## 1. Zero-Bounds Button Errors
 
 ### 1.1 Symptoms

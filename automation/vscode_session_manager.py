@@ -14,10 +14,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple
 
 from automation.desktop import switch_to_desktop
+from automation.paths import load_automation_env, trading_system_root, vscode_session_state_path
 from automation.title_parsing import extract_repo_name_from_vscode_window_title
 from automation.ui.vscode_windows import find_all_vscode_windows
 
-_DEFAULT_STATE_PATH = Path("state") / "vscode_desktop_sessions.json"
+load_automation_env()
+
+_DEFAULT_STATE_PATH = vscode_session_state_path()
 _DEFAULT_MAX_SNAPSHOTS = 120
 _DEFAULT_OPEN_DELAY_SECONDS = 0.55
 _WORKSPACE_SUFFIX_RE = re.compile(r"\s*\(workspace\)\s*$", re.IGNORECASE)
@@ -33,7 +36,7 @@ def _utc_iso_now() -> str:
 
 def _resolve_state_path(raw_path: str | None) -> Path:
     if not raw_path:
-        return (_repo_root() / _DEFAULT_STATE_PATH).resolve()
+        return _DEFAULT_STATE_PATH
     candidate = Path(raw_path)
     if not candidate.is_absolute():
         candidate = _repo_root() / candidate
@@ -132,19 +135,14 @@ def _known_repo_path_candidates(repo_name: str) -> List[Path]:
     if not canonical:
         return []
 
-    trading_system_root = Path(
-        os.environ.get(
-            "TRADING_SYSTEM_ROOT_WIN",
-            r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\trading-system",
-        )
-    )
+    trading_system_root_path = trading_system_root()
 
     candidates_by_key: Dict[str, List[Path]] = {
         "desktop-agent-automation": [_repo_root()],
-        "trading-system": [trading_system_root],
-        "trading": [Path(os.environ.get("TRADING_REPO_ROOT", str(trading_system_root / "Trading")))],
-        "tf": [Path(os.environ.get("TF_REPO_ROOT", str(trading_system_root / "TF")))],
-        "contracts": [Path(os.environ.get("CONTRACTS_REPO_ROOT", str(trading_system_root / "contracts")))],
+        "trading-system": [trading_system_root_path],
+        "trading": [Path(os.environ.get("TRADING_REPO_ROOT", str(trading_system_root_path / "Trading")))],
+        "tf": [Path(os.environ.get("TF_REPO_ROOT", str(trading_system_root_path / "TF")))],
+        "contracts": [Path(os.environ.get("CONTRACTS_REPO_ROOT", str(trading_system_root_path / "contracts")))],
     }
     return candidates_by_key.get(canonical, [])
 

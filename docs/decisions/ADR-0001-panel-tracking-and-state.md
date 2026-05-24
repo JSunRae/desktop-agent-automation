@@ -14,7 +14,7 @@ The system needs to track many Copilot panels across multiple VS Code windows an
 
 ## Decision
 
-We introduced `automation.panel_tracker_core.PanelTracker` and `automation.panel_state.PanelState` as the canonical source of truth for panel lifecycle, persisted to `automation/panel_state.json`.
+We introduced `automation.panel_tracker_core.PanelTracker` and `automation.panel_state.PanelState` as the canonical source of truth for panel lifecycle, persisted to `PANEL_STATE_PATH` (default `private/runtime/panel_state.json`).
 
 Key aspects:
 

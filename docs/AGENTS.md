@@ -9,6 +9,15 @@ This document describes the structured task management system for tracking human
 - **CLI Tool**: `scripts/tasks_cli.py` - Command-line interface for task operations
 - **Validator**: `scripts/validate_agent_tasks.py` - Schema validation script
 - **CI Workflow**: `.github/workflows/validate-agent-tasks.yml` - GitHub Actions validation
+- **Public Safety Audit**: `scripts/check_public_safety.py` - Prevents runtime/private files from landing on the public branch
+
+## Public/Private Boundary
+
+- Public branch files must remain safe to publish.
+- Real secrets belong in `private/.env` and stay on `private-main`.
+- Runtime state belongs under `private/` by default, including panel state, session captures, generated prompt feeds, and orchestration artifacts.
+- Handovers and machine snapshots are private operational artifacts, not public documentation.
+- Run `python scripts/check_public_safety.py` before any public push or PR.
 
 ## Task Schema
 

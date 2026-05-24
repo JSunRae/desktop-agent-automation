@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from automation.metrics import get_metrics_tracker
+from automation.paths import cross_repo_todo_cache_path
 from automation.panel_state import PanelQualityAssessment, PanelState, QualityStatus
 from automation.panel_transcript_analysis import TranscriptAnalysisResult
 from automation.response_parser import ResponseCategory, classify_response
@@ -398,7 +399,7 @@ class FeedbackAnalyzer:
             ],
         }
 
-        path = Path(cache_path) if cache_path else Path(__file__).parent / "cross_repo_todo_cache.json"
+        path = Path(cache_path) if cache_path else cross_repo_todo_cache_path()
         try:
             raw = path.read_text(encoding="utf-8")
             cache = json.loads(raw)

@@ -18,6 +18,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from automation.paths import allow_metrics_log_path, load_automation_env, panel_state_path
+
+load_automation_env()
+
 try:  # Optional rich dependency for dashboards
     from rich.console import Console
     from rich.layout import Layout
@@ -42,8 +46,8 @@ class TelemetryPaths:
     metrics_json: Path = PROJECT_ROOT / "automation" / "metrics.json"
     metrics_jsonl: Path = PROJECT_ROOT / "automation" / "metrics.jsonl"
     assignment_metrics: Path = PROJECT_ROOT / "automation" / "assignment_metrics.jsonl"
-    allow_metrics: Path = PROJECT_ROOT / "automation" / "allow_metrics.jsonl"
-    panel_state: Path = PROJECT_ROOT / "automation" / "panel_state.json"
+    allow_metrics: Path = allow_metrics_log_path()
+    panel_state: Path = panel_state_path()
     cost_metrics: Path = PROJECT_ROOT / "logs" / "cost_metrics.jsonl"
 
 

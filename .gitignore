@@ -9,3 +9,11 @@ logs/
 desktop_agent_automation.egg-info/
 .coverage
 .env
+private/
+HANDOVER*.md
+automation/panel_state*.json
+automation/cross_repo_todo_cache.json
+state/
+tasks/generated_prompts/
+@AutomationLog.txt
+window_list.txt

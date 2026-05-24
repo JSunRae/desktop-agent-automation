@@ -3,9 +3,12 @@ Notification utilities for Desktop Agent Automation.
 Handles sending alerts via centralized Telegram Notifications system.
 """
 
-from pathlib import Path
 import os
+
 from automation.core.logging import log_normal
+from automation.paths import load_automation_env, notifier_state_path
+
+load_automation_env()
 
 # Attempt to import the centralized notification agent
 HAS_TELEGRAM_LIB = False
@@ -41,7 +44,7 @@ def send_telegram_alert(message: str) -> None:
             url=tbs_url,
             secret=secret,
             repo=agent_name,
-            state_path=Path("state/state.json")
+            state_path=notifier_state_path(),
         )
         
         client = NotifierClient(config)
@@ -60,4 +63,3 @@ def send_telegram_alert(message: str) -> None:
             
     except Exception as e:
         log_normal(f"Failed to send Telegram alert: {e}")
-

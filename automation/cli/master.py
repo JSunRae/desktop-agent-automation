@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Iterable, Sequence
 
 from automation import __version__ as PACKAGE_VERSION
+from automation.paths import load_automation_env
 
 
 @dataclass(frozen=True)
@@ -814,9 +815,7 @@ def _ensure_orchestrator() -> None:
     
     # Load environment variables from the root .env
     # We want to ensure TBS_API_TOKEN is available to the subprocess
-    from dotenv import load_dotenv
-    # Explicitly load from CWD which is workspace root
-    load_dotenv(Path(".env"))
+    load_automation_env()
 
     try:
         f_out = open(out_log, "w", encoding="utf-8")

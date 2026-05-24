@@ -20,6 +20,9 @@ from automation.config import (
     CROSS_REPO_TODO_ENABLED,
     MASTER_AGENT_REPO_CONFIGS,
     NORTH_STAR_ENABLED,
+    PROMPT_OUTPUT_DIR,
+    WSL_DOCS_ROOT,
+    WSL_OPEN_TASKS_ROOT,
 )
 from automation.cost_tracker import get_cost_tracker
 from automation.cross_repo_todo_ingestion import (
@@ -54,19 +57,9 @@ except ImportError:  # pragma: no cover - openai is an optional dependency in te
 
 _COST_TRACKER = get_cost_tracker()
 
-DEFAULT_DOCS_ROOT = Path(
-    os.environ.get(
-        "MASTER_AGENT_DOCS_ROOT",
-        r"\\wsl.localhost\Ubuntu-24.04\home\jrae\wsl_projects\tf_1\docs",
-    )
-)
-DEFAULT_OPEN_TASKS_ROOT = Path(
-    os.environ.get(
-        "MASTER_AGENT_OPEN_TASKS_ROOT",
-        str(DEFAULT_DOCS_ROOT / "open_tasks"),
-    )
-)
-DEFAULT_OUTPUT_DIR = Path(os.environ.get("MASTER_AGENT_PROMPT_DIR", "tasks/generated_prompts"))
+DEFAULT_DOCS_ROOT = WSL_DOCS_ROOT
+DEFAULT_OPEN_TASKS_ROOT = WSL_OPEN_TASKS_ROOT
+DEFAULT_OUTPUT_DIR = PROMPT_OUTPUT_DIR
 DEFAULT_MODEL = os.environ.get("MASTER_AGENT_MODEL", "gpt-4o-mini")
 DEFAULT_ALLOWED_EXTENSIONS = {
     ".md",
